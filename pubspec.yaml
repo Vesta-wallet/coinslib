@@ -2,7 +2,7 @@ name: dart_coin
 description: A dart Bitcoin library for Flutter. BIP32, BIP39, P2PKH, bech32 integration.
 version: 3.0.0
 homepage: https://github.com/Vesta-wallet/dart_coin
-publish_to: none
+publish_to: https://pub.dev
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
@@ -14,7 +14,7 @@ dependencies:
   hex: ^0.2.0
   bs58check: ^1.0.2
   meta: ^1.3.0
-  collection: ^1.15.0-nullsafety.4
+  collection: ^1.15.0
 
 dev_dependencies:
   test: ^1.17.5
