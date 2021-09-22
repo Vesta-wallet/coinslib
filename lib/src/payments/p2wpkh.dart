@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:bip32/src/utils/ecurve.dart' show isPoint;
-import 'package:bech32/bech32.dart';
+import 'package:dart_coin/bech32/bech32.dart';
 
 import '../crypto.dart';
 import '../models/networks.dart';
