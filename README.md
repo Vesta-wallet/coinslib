@@ -1,8 +1,9 @@
-<a href="https://pub.dartlang.org/packages/bitcoin_flutter"><img alt="pub version" src="https://img.shields.io/pub/v/bitcoin_flutter.svg?style=flat-square"></a>
+<a href="https://pub.dartlang.org/packages/coinslib"><img alt="pub version" src="https://img.shields.io/pub/v/coinslib?style=flat-squaree"></a>
 
 # coinslib
 
-A dart Bitcoin library for Flutter.
+A dart Bitcoin library for Flutter.  
+This library is a fork of the seemingly discontinued lib [bitcoin_flutter](https://github.com/dart-bitcoin/bitcoin_flutter).
 
 Released under the terms of the [MIT LICENSE](LICENSE).
 
@@ -12,12 +13,12 @@ Otherwise, pull requests are appreciated.
 
 ## Installing
 
-[Flutter Packages](https://pub.dartlang.org/packages/bitcoin_flutter#-installing-tab-)
+[Flutter Packages](https://pub.dev/packages/coinslib/install)
 
 ## Examples
 
 ```dart
-import 'package:coinslib/bitcoin_flutter.dart';
+import 'package:coinslib/coinslib.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
 main() {
@@ -45,22 +46,22 @@ main() {
 ```
 
 The below examples are implemented as integration tests:
-- [Generate a random address](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/addresses_test.dart#L21)
-- [Validating address](https://github.com/anicdh/bitcoin-dart/blob/master/test/address_test.dart)
-- [Generate an address from a SHA256 hash](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/addresses_test.dart#L26)
-- [Import an address via WIF](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/addresses_test.dart#L32)
-- [Generate a Testnet address](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/addresses_test.dart#L37)
-- [Generate a Litecoin address](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/addresses_test.dart#L45)
-- [Generate a native Segwit address](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/addresses_test.dart#L53)
-- [Create a 1-to-1 Transaction](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/transactions_test.dart#L7)
-- [Create a 2-to-2 Transaction](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/transactions_test.dart#L21)
-- [Create a Transaction with a SegWit P2WPKH input](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/transactions_test.dart#L45)
-- [Import a BIP32 testnet xpriv and export to WIF](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/bip32_test.dart#L9)
-- [Export a BIP32 xpriv, then import it](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/bip32_test.dart#L14)
-- [Export a BIP32 xpub](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/bip32_test.dart#L23)
-- [Create a BIP32, bitcoin, account 0, external address](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/bip32_test.dart#L30)
-- [Create a BIP44, bitcoin, account 0, external address](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/bip32_test.dart#L41)
-- [Use BIP39 to generate BIP32 addresses](https://github.com/anicdh/bitcoin-dart/blob/master/test/integration/bip32_test.dart#L56)
+- [Generate a random address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L21)
+- [Validating address](https://github.com/Vesta-wallet/coinslib/blob/master/test/address_test.dart)
+- [Generate an address from a SHA256 hash](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L26)
+- [Import an address via WIF](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L32)
+- [Generate a Testnet address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L37)
+- [Generate a Litecoin address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L45)
+- [Generate a native Segwit address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L53)
+- [Create a 1-to-1 Transaction](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/transactions_test.dart#L7)
+- [Create a 2-to-2 Transaction](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/transactions_test.dart#L21)
+- [Create a Transaction with a SegWit P2WPKH input](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/transactions_test.dart#L45)
+- [Import a BIP32 testnet xpriv and export to WIF](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L9)
+- [Export a BIP32 xpriv, then import it](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L14)
+- [Export a BIP32 xpub](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L23)
+- [Create a BIP32, bitcoin, account 0, external address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L30)
+- [Create a BIP44, bitcoin, account 0, external address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L41)
+- [Use BIP39 to generate BIP32 addresses](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L56)
 
 
 ### TODO
