@@ -1,6 +1,6 @@
 <a href="https://pub.dartlang.org/packages/bitcoin_flutter"><img alt="pub version" src="https://img.shields.io/pub/v/bitcoin_flutter.svg?style=flat-square"></a>
 
-# bitcoin_flutter
+# dart_coin
 
 A dart Bitcoin library for Flutter.
 
@@ -17,7 +17,7 @@ Otherwise, pull requests are appreciated.
 ## Examples
 
 ```dart
-import 'package:bitcoin_flutter/bitcoin_flutter.dart';
+import 'package:dart_coin/bitcoin_flutter.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
 main() {

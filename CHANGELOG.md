@@ -1,3 +1,6 @@
+## 3.0.0
+- Null Safety and fork
+
 ## 2.0.2
 - Add support for optional 'noStrict' parameter in Transaction.fromBuffer
 

@@ -1,7 +1,7 @@
-name: bitcoin_flutter
-description: A dart Bitcoin library for Flutter. BIP32, BIP39, P2PKH integration.
-version: 2.0.2
-homepage: https://github.com/anicdh
+name: dart_coin
+description: A dart Bitcoin library for Flutter. BIP32, BIP39, P2PKH, bech32 integration.
+version: 3.0.0
+homepage: https://github.com/Vesta-wallet/dart_coin
 publish_to: none
 
 environment:
