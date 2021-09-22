@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:dart_coin/src/models/networks.dart';
-import 'package:dart_coin/src/payments/index.dart' show PaymentData;
-import 'package:dart_coin/src/payments/p2pkh.dart';
+import 'package:coinslib/src/models/networks.dart';
+import 'package:coinslib/src/payments/index.dart' show PaymentData;
+import 'package:coinslib/src/payments/p2pkh.dart';
 import 'package:test/test.dart';
 import 'package:hex/hex.dart';
 import 'package:bip39/bip39.dart' as bip39;

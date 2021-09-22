@@ -1,9 +1,9 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library dart_coin;
+library coinslib;
 
-export 'src/dart_coin_base.dart';
+export 'src/coinslib_base.dart';
 export 'src/models/networks.dart';
 export 'src/transaction.dart';
 export 'src/address.dart';

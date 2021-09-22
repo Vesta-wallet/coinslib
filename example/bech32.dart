@@ -1,4 +1,4 @@
-import 'package:dart_coin/bech32/bech32.dart';
+import 'package:coinslib/bech32/bech32.dart';
 
 //ignore_for_file: avoid_print
 void main() {

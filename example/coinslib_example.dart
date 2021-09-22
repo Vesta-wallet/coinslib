@@ -1,4 +1,4 @@
-import 'package:dart_coin/dart_coin.dart';
+import 'package:coinslib/coinslib.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
 main() {
