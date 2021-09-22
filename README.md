@@ -2,7 +2,8 @@
 
 # coinslib
 
-A dart Bitcoin library for Flutter.  
+A dart cryptocurrency library for Peercoin for Flutter.  
+
 This library is a fork of the seemingly discontinued lib [bitcoin_flutter](https://github.com/dart-bitcoin/bitcoin_flutter).
 
 Released under the terms of the [MIT LICENSE](LICENSE).
