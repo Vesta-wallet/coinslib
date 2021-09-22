@@ -1,4 +1,4 @@
-import 'package:bitcoin_flutter/bitcoin_flutter.dart';
+import 'package:dart_coin/dart_coin.dart';
 import 'package:test/test.dart';
 import 'package:bip39/bip39.dart' as bip39;
 
