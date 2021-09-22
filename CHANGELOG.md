@@ -1,3 +1,6 @@
+## 3.0.1
+- Update readme and examples
+
 ## 3.0.0
 - Null Safety and fork
 
