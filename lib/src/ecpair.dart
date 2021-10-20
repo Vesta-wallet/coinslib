@@ -93,7 +93,7 @@ class ECPair {
   }
 }
 
-const int _SIZE_BYTE = 255;
+const int _SIZE_BYTE = 256;
 
 Uint8List _randomBytes(int size) {
   final rng = Random.secure();
