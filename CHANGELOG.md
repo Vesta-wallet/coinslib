@@ -1,3 +1,6 @@
+## 3.0.2
+- fix incomplete entropy https://github.com/Vesta-wallet/coinslib/issues/3
+
 ## 3.0.1
 - Update readme and examples
 
