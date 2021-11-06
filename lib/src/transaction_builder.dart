@@ -12,8 +12,6 @@ import 'payments/p2pkh.dart';
 import 'payments/p2wpkh.dart';
 import 'classify.dart';
 
-const int MAX_OP_RETURN_SIZE = 256;
-
 class TransactionBuilder {
   NetworkType network;
   int maximumFeeRate;
@@ -97,10 +95,10 @@ class TransactionBuilder {
   int addNullOutput(dynamic data) {
     var scriptPubKey;
     if (data is String) {
-      if (data.length <= MAX_OP_RETURN_SIZE) {
+      if (data.length <= network.opreturnSize) {
         scriptPubKey = bscript.compile([OPS['OP_RETURN'], utf8.encode(data)]);
       } else {
-        throw new ArgumentError('Too much data, max OP_RETURN size is '+MAX_OP_RETURN_SIZE.toString());
+        throw new ArgumentError('Too much data, max OP_RETURN size is '+network.opreturnSize.toString());
       }
     } else if (data is Uint8List) {
       scriptPubKey = data;
