@@ -56,7 +56,7 @@ final peercoin = new NetworkType(
     scriptHash: 0x75,
     wif: 0xb7);
 
-final peercoin-testnet = new NetworkType(
+final peercoin_testnet = new NetworkType(
     messagePrefix: '\x18Peercoin Signed Message:\n',
     bech32: 'tpc',
     bip32: new Bip32Type(public: 0x043587cf, private: 0x04358394),
