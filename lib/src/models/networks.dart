@@ -41,7 +41,7 @@ final bitcoin = new NetworkType(
     pubKeyHash: 0x00,
     scriptHash: 0x05,
     wif: 0x80,
-    opreturnSize: 256);
+    opreturnSize: 80);
 
 final testnet = new NetworkType(
     messagePrefix: '\x18Bitcoin Signed Message:\n',
@@ -50,4 +50,4 @@ final testnet = new NetworkType(
     pubKeyHash: 0x6f,
     scriptHash: 0xc4,
     wif: 0xef,
-    opreturnSize: 256);
+    opreturnSize: 80);
