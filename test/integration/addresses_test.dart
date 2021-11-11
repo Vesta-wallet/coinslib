@@ -14,7 +14,8 @@ NETWORKS.NetworkType litecoin = new NETWORKS.NetworkType(
     bip32: new NETWORKS.Bip32Type(public: 0x019da462, private: 0x019d9cfe),
     pubKeyHash: 0x30,
     scriptHash: 0x32,
-    wif: 0xb0);
+    wif: 0xb0,
+    opreturnSize: 80);
 // deterministic RNG for testing only
 rng(int number) {
   return utf8.encode('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz');
