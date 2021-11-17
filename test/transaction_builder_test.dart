@@ -278,11 +278,13 @@ main() {
       });
       test('throws if too much data is provided', () {
         try {
-          expect(txb.addNullOutput('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+          expect(
+              txb.addNullOutput(
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sagittis placerat.'),
               isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message,
-              'Too much data, max OP_RETURN size is 256');
+              'Too much data, max OP_RETURN size is 80');
         }
       });
       test('add second output after signed first input with SIGHASH_NONE', () {
@@ -297,12 +299,12 @@ main() {
         expect(txb.addNullOutput(data), 0);
       });
       test('add second output after signed first input with SIGHASH_SINGLE',
-              () {
-            txb.addInput(txHash, 0);
-            txb.addNullOutput(data);
-            txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
-            expect(txb.addNullOutput(data2), 1);
-          });
+          () {
+        txb.addInput(txHash, 0);
+        txb.addNullOutput(data);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+        expect(txb.addNullOutput(data2), 1);
+      });
       test('add first output after signed first input with SIGHASH_SINGLE', () {
         txb.addInput(txHash, 0);
         txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
@@ -315,17 +317,17 @@ main() {
       });
       test(
           'throws if SIGHASH_ALL has been used to sign any existing scriptSigs',
-              () {
-            txb.addInput(txHash, 0);
-            txb.addNullOutput(data);
-            txb.sign(vin: 0, keyPair: keyPair);
-            try {
-              expect(txb.addNullOutput(data2), isArgumentError);
-            } catch (err) {
-              expect((err as ArgumentError).message,
-                  'No, this would invalidate signatures');
-            }
-          });
+          () {
+        txb.addInput(txHash, 0);
+        txb.addNullOutput(data);
+        txb.sign(vin: 0, keyPair: keyPair);
+        try {
+          expect(txb.addNullOutput(data2), isArgumentError);
+        } catch (err) {
+          expect((err as ArgumentError).message,
+              'No, this would invalidate signatures');
+        }
+      });
     });
     group('setLockTime', () {
       test('throws if if there exist any scriptSigs', () {
