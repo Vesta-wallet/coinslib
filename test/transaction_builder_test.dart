@@ -1,3 +1,4 @@
+import 'package:coinslib/src/utils/constants/op.dart';
 import 'package:test/test.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -261,21 +262,37 @@ main() {
       });
     });
     group('addNullOutput', () {
+
       late TransactionBuilder txb;
       late String data;
       late String data2;
+
       setUp(() {
         txb = new TransactionBuilder();
-        data = 'Hey this is a random string without coins.';
+        data = 'Hey this is a random string without coins. Extended to 80 characters............';
         data2 = 'And this is another string.';
       });
-      test('accepts a ScriptPubKey', () {
-        final vout = txb.addNullOutput(scripts.elementAt(0));
+
+      expectOutputScript(input, Uint8List expectPushData) {
+        final opReturn = OPS['OP_RETURN']!;
+        final expectScript = bscript.compile([opReturn, expectPushData]);
+        final vout = txb.addNullOutput(input);
         expect(vout, 0);
         final txout = txb.tx.outs[0];
-        expect(txout.script, scripts.elementAt(0));
+        expect(txout.script, expectScript);
         expect(txout.value, 0);
+      }
+
+      test('accepts a string', () {
+        final rawData = Uint8List.fromList(utf8.encode(data));
+        expectOutputScript(data, rawData);
       });
+
+      test('accepts Uint8List data', () {
+        final rawData = Uint8List.fromList(List.generate(80, (i) => i));
+        expectOutputScript(rawData, rawData);
+      });
+
       test('throws if too much data is provided', () {
         try {
           expect(
