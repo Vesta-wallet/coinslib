@@ -1,3 +1,7 @@
+## 3.0.3
+-This release adds OP_RETURN to coinslib  
+
+**Breaking change**: The network model has been enhanced and it is **mandatory** to set an OP_RETURN size now for each network. 
 ## 3.0.2
 - fix incomplete entropy https://github.com/Vesta-wallet/coinslib/issues/3
 
