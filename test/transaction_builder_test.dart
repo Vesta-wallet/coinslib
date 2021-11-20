@@ -1,3 +1,4 @@
+import 'package:coinslib/src/utils/constants/op.dart';
 import 'package:test/test.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -254,6 +255,91 @@ main() {
         txb.sign(vin: 0, keyPair: keyPair);
         try {
           expect(txb.addOutput(scripts.elementAt(1), 9000), isArgumentError);
+        } catch (err) {
+          expect((err as ArgumentError).message,
+              'No, this would invalidate signatures');
+        }
+      });
+    });
+    group('addNullOutput', () {
+
+      late TransactionBuilder txb;
+      late String data;
+      late String data2;
+
+      setUp(() {
+        txb = new TransactionBuilder();
+        data = 'Hey this is a random string without coins. Extended to 80 characters............';
+        data2 = 'And this is another string.';
+      });
+
+      expectOutputScript(input, Uint8List expectPushData) {
+        final opReturn = OPS['OP_RETURN']!;
+        final expectScript = bscript.compile([opReturn, expectPushData]);
+        final vout = txb.addNullOutput(input);
+        expect(vout, 0);
+        final txout = txb.tx.outs[0];
+        expect(txout.script, expectScript);
+        expect(txout.value, 0);
+      }
+
+      test('accepts a string', () {
+        final rawData = Uint8List.fromList(utf8.encode(data));
+        expectOutputScript(data, rawData);
+      });
+
+      test('accepts Uint8List data', () {
+        final rawData = Uint8List.fromList(List.generate(80, (i) => i));
+        expectOutputScript(rawData, rawData);
+      });
+
+      test('throws if too much data is provided', () {
+        try {
+          expect(
+              txb.addNullOutput(
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sagittis placerat.'),
+              isArgumentError);
+        } catch (err) {
+          expect((err as ArgumentError).message,
+              'Too much data, max OP_RETURN size is 80');
+        }
+      });
+      test('add second output after signed first input with SIGHASH_NONE', () {
+        txb.addInput(txHash, 0);
+        txb.addNullOutput(data);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+        expect(txb.addNullOutput(data2), 1);
+      });
+      test('add first output after signed first input with SIGHASH_NONE', () {
+        txb.addInput(txHash, 0);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+        expect(txb.addNullOutput(data), 0);
+      });
+      test('add second output after signed first input with SIGHASH_SINGLE',
+          () {
+        txb.addInput(txHash, 0);
+        txb.addNullOutput(data);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+        expect(txb.addNullOutput(data2), 1);
+      });
+      test('add first output after signed first input with SIGHASH_SINGLE', () {
+        txb.addInput(txHash, 0);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+        try {
+          expect(txb.addNullOutput(data), isArgumentError);
+        } catch (err) {
+          expect((err as ArgumentError).message,
+              'No, this would invalidate signatures');
+        }
+      });
+      test(
+          'throws if SIGHASH_ALL has been used to sign any existing scriptSigs',
+          () {
+        txb.addInput(txHash, 0);
+        txb.addNullOutput(data);
+        txb.sign(vin: 0, keyPair: keyPair);
+        try {
+          expect(txb.addNullOutput(data2), isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message,
               'No, this would invalidate signatures');

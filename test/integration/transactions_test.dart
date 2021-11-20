@@ -59,6 +59,25 @@ main() {
           '01000000024c94e48a870b85f41228d33cf25213dfcc8dd796e7211ed6b1f9a014809dbbb5060000006a473044022041450c258ce7cac7da97316bf2ea1ce66d88967c4df94f3e91f4c2a30f5d08cb02203674d516e6bb2b0afd084c3551614bd9cec3c2945231245e891b145f2d6951f0012103e05ce435e462ec503143305feb6c00e06a3ad52fbf939e85c65f3a765bb7baacffffffff3077d9de049574c3af9bc9c09a7c9db80f2d94caaf63988c9166249b955e867d000000006b483045022100aeb5f1332c79c446d3f906e4499b2e678500580a3f90329edf1ba502eec9402e022072c8b863f8c8d6c26f4c691ac9a6610aa4200edc697306648ee844cfbc089d7a012103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a289ffffffff0220bf0200000000001976a9147dd65592d0ab2fe0d0257d571abf032cd9db93dc88ac10980200000000001976a914c42e7ef92fdb603af844d064faad95db9bcdfd3d88ac00000000');
     });
 
+    test('can create an "null data" Transaction', () {
+      final alice = ECPair.fromWIF(
+          'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy');
+      final txb = new TransactionBuilder();
+
+      txb.setVersion(1);
+      txb.addInput(
+          '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d',
+          0);
+      txb.addNullOutput('Hey this is a random string without coins');
+      //If no other output is set, coins in the input tx gets burned
+
+      txb.sign(vin: 0, keyPair: alice);
+
+      // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
+      expect(txb.build().toHex(),
+          '01000000019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d561000000006b483045022100cf9cdd4cdc7c20ec52ddd2d9a944a9c2e36d4ad72be94e2cbc3cde092ac5a9e002204badff06f7439b7f82f1adcfbdbb4091d11c2e478a8d4b6834b37a41ed4f215d0121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffff0100000000000000002b6a29486579207468697320697320612072616e646f6d20737472696e6720776974686f757420636f696e7300000000');
+    });
+
     test('can create (and broadcast via 3PBP) a Transaction, w/ a P2WPKH input',
         () {
       final alice = ECPair.fromWIF(
