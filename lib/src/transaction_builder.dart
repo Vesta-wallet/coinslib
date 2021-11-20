@@ -77,8 +77,15 @@ class TransactionBuilder {
     _tx.locktime = locktime;
   }
 
+  int _addOutputFromScript(Uint8List script, int value) {
+    if (!_canModifyOutputs()) {
+      throw new ArgumentError('No, this would invalidate signatures');
+    }
+    return _tx.addOutput(script, value);
+  }
+
   int addOutput(dynamic data, int value) {
-    var scriptPubKey;
+    late Uint8List scriptPubKey;
     if (data is String) {
       scriptPubKey = Address.addressToOutputScript(data, this.network);
     } else if (data is Uint8List) {
@@ -86,29 +93,33 @@ class TransactionBuilder {
     } else {
       throw new ArgumentError('Address invalid');
     }
-    if (!_canModifyOutputs()) {
-      throw new ArgumentError('No, this would invalidate signatures');
-    }
-    return _tx.addOutput(scriptPubKey, value);
+    return _addOutputFromScript(scriptPubKey, value);
   }
 
   int addNullOutput(dynamic data) {
-    var scriptPubKey;
+
+    // Encode string to Uint8List or take Uint8List
+    late Uint8List pushData;
     if (data is String) {
-      if (data.length <= network.opreturnSize) {
-        scriptPubKey = bscript.compile([OPS['OP_RETURN'], utf8.encode(data)]);
-      } else {
-        throw new ArgumentError('Too much data, max OP_RETURN size is '+network.opreturnSize.toString());
-      }
+      pushData = Uint8List.fromList(utf8.encode(data));
     } else if (data is Uint8List) {
-      scriptPubKey = data;
+      pushData = data;
     } else {
       throw new ArgumentError('Invalid data');
     }
-    if (!_canModifyOutputs()) {
-      throw new ArgumentError('No, this would invalidate signatures');
+
+    // Enforce the limit of the allowed data size
+    if (data.length > network.opreturnSize) {
+      throw new ArgumentError(
+        'Too much data, max OP_RETURN size is ' +
+        network.opreturnSize.toString()
+      );
     }
-    return _tx.addOutput(scriptPubKey, 0);
+
+    // Encode output script with OP_RETURN followed by the push data
+    final script = bscript.compile([OPS['OP_RETURN'], pushData]);
+    return _addOutputFromScript(script, 0);
+
   }
 
   int addInput(dynamic txHash, int vout,
