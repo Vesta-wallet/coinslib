@@ -34,7 +34,7 @@ class Bip32Type {
   }
 }
 
-final bitcoin = new NetworkType(
+final bitcoin = NetworkType(
     messagePrefix: '\x18Bitcoin Signed Message:\n',
     bech32: 'bc',
     bip32: new Bip32Type(public: 0x0488b21e, private: 0x0488ade4),
@@ -43,7 +43,7 @@ final bitcoin = new NetworkType(
     wif: 0x80,
     opreturnSize: 80);
 
-final testnet = new NetworkType(
+final testnet = NetworkType(
     messagePrefix: '\x18Bitcoin Signed Message:\n',
     bech32: 'tb',
     bip32: new Bip32Type(public: 0x043587cf, private: 0x04358394),
