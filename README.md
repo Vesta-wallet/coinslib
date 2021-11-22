@@ -1,6 +1,6 @@
 <a href="https://pub.dartlang.org/packages/coinslib"><img alt="pub version" src="https://img.shields.io/pub/v/coinslib?style=flat-squaree"></a> [![Dart](https://github.com/Vesta-wallet/coinslib/actions/workflows/dart.yml/badge.svg)](https://github.com/Vesta-wallet/coinslib/actions/workflows/dart.yml)
 
----
+# coinslib
 A dart cryptocurrency library for Flutter, primarily build for Peercoin.
 
 
