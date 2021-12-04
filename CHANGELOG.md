@@ -1,3 +1,6 @@
+
+## 3.1.0
+- This release adds P2SH transaction building and address verification  
 ## 3.0.3
 - This release adds OP_RETURN to coinslib  
 
