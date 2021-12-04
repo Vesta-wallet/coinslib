@@ -35,6 +35,7 @@ main() {
     pubKeyHash: 0x37,
     scriptHash: 0x75,
     wif: 0xb7,
+    opreturnSize: 256,
   );
 
   var seed = bip39.mnemonicToSeed(
@@ -84,9 +85,6 @@ The below examples are implemented as integration tests:
 
 
 ### TODO
-- Generate a SegWit P2SH address
-- Generate a SegWit multisig address
-- Create a Transaction with a P2SH(multisig) input
 - Build a Transaction w/ psbt format
 - Add Tapscript / Taproot feature
 
