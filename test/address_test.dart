@@ -106,7 +106,7 @@ main() {
         expectScript(
           "3R2cuenjG5nFubqX9Wzuukdin2YfBbQ6Kw",
           "ffffffffffffffffffffffffffffffffffffffff"
-          );
+        );
 
       });
 

@@ -103,5 +103,28 @@ main() {
       expect(txb.build().toHex(),
           '010000000001015beda251af570014b7748c0adc5975b808e7b72a491353e1422d04f5266667530000000000ffffffff0240420f0000000000160014c5e1b9dad4c1dd0920ec3671b84d649877636f2fb8408900000000001600149d5e94ada1d095f60b701560f412d08a007d11590247304402203c4670ff81d352924af311552e0379861268bebb2222eeb0e66b3cdd1d4345b60220585b57982d958208cdd52f4ead4ecb86cfa9ff7740c2f6933e77135f1cc4c58f012102f9f43a191c6031a5ffae27c5f9911218e78857923284ac1154abc2cc008544b200000000');
     });
+
+    test('can create a P2SH output', () {
+
+      // Reusing key from above
+      final alice = ECPair.fromWIF(
+        'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy'
+      );
+
+      final txb = TransactionBuilder();
+      txb.setVersion(1);
+      txb.addInput(
+        '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d', 0
+      );
+      txb.addOutput('31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj', 1000);
+      txb.sign(vin: 0, keyPair: alice);
+
+      expect(
+        txb.build().toHex(),
+        '01000000019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d561000000006a473044022012b7cd85d2d6ae54d2f2130533ac6db27fd9a0db52ad1625f8f5c246dc3994780220637d1c28328f56ec9747499e35f70c548a712743d9b0f467b4fde412c8511a9b0121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffff01e80300000000000017a9140102030405060708090a0b0c0d0e0f10111213148700000000'
+      );
+
+    });
+
   });
 }
