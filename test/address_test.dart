@@ -60,6 +60,34 @@ main() {
         expect(Address.validateAddress('3333333casca'), false);
       });
 
+      test('wrong size address', () {
+
+        expect(
+          Address.validateAddress('12D2adLM3UKy4Z4giRbReR6gjWx1w6Dz'),
+          false,
+          reason: "P2PKH too short"
+        );
+
+        expect(
+          Address.validateAddress('1QXEx2ZQ9mEdvMSaVKHznFv6iZq2LQbDz8'),
+          false,
+          reason: "P2PKH too long"
+        );
+
+        expect(
+          Address.validateAddress('TTazDDREDxxh1mPyGySut6H98h4UKPG6'),
+          false,
+          reason: "P2SH too short"
+        );
+
+        expect(
+          Address.validateAddress('9tT9KH26AxgN8j9uTpKdwUkK6LFcSKp4FpF'),
+          false,
+          reason: "P2SH too long"
+        );
+
+      });
+
     });
 
     group('addressToOutputScript', () {
