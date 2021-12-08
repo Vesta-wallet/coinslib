@@ -1,4 +1,6 @@
 import 'dart:typed_data';
+import 'package:coinslib/src/payments/p2wsh.dart';
+
 import 'models/networks.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinslib/bech32/bech32.dart';
@@ -52,13 +54,29 @@ class Address {
     } catch (err) {}
 
     if (decodeBech32 != null) {
+
       if (network.bech32 != decodeBech32.hrp)
         throw new ArgumentError('Invalid prefix or Network mismatch');
+
       if (decodeBech32.version != 0)
         throw new ArgumentError('Invalid address version');
-      P2WPKH p2wpkh = new P2WPKH(
-          data: new PaymentData(address: address), network: network);
-      return p2wpkh.data.output!;
+
+      final program = Uint8List.fromList(decodeBech32.program);
+      final progLen = program.length;
+
+      if (progLen == 20) {
+        P2WPKH p2wpkh = new P2WPKH(
+            data: new PaymentData(address: address), network: network
+        );
+        return p2wpkh.data.output!;
+      }
+
+      if (progLen == 32) {
+        return createP2wshOutputScript(program);
+      }
+
+      throw ArgumentError('The bech32 witness program is not the correct size');
+
     }
 
     throw new ArgumentError(address + ' has no matching Script');
