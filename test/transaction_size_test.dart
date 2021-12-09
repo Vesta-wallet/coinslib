@@ -1,5 +1,8 @@
+import 'package:coinslib/src/ecpair.dart';
+import 'package:coinslib/src/transaction_builder.dart';
 import 'package:test/test.dart';
-import '../lib/src/transaction.dart';
+import 'package:coinslib/src/transaction.dart';
+import 'package:coinslib/src/models/networks.dart' as NETWORKS;
 
 main() {
 
@@ -29,6 +32,38 @@ main() {
       );
 
       expect(tx.txSize, 256);
+
+    });
+
+    test('built tranasaction gives correct size', () {
+
+      // Peercoin WIF format
+      final aliceKey = ECPair.fromWIF(
+        'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
+        network: NETWORKS.peercoin
+      );
+
+      final txb = new TransactionBuilder(network: NETWORKS.peercoin);
+
+      txb.setVersion(3);
+      txb.addInput(
+        '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d',
+        0
+      );
+
+      txb.addOutput('P8gWEwpDSPPohHMHcNA5cg7di7pgRrXGGk', 12000);
+      // Do null outputs break it?
+      txb.addNullOutput('Hey this is a random string without coins');
+
+      txb.sign(vin: 0, keyPair: aliceKey);
+
+      final tx = txb.build();
+
+      print(tx.txSize);
+      // No witness data so size should equal buffer size
+      expect(tx.txSize, tx.toBuffer().length);
+      // Deterministically 244 bytes each time
+      expect(tx.txSize, 244);
 
     });
 
