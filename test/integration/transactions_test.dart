@@ -7,10 +7,13 @@ import '../../lib/src/payments/p2wpkh.dart' show P2WPKH;
 import '../../lib/src/payments/index.dart' show PaymentData;
 
 main() {
+
+  final aliceKey = ECPair.fromWIF(
+      'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy'
+  );
+
   group('bitcoinjs-lib (transactions)', () {
     test('can create a 1-to-1 Transaction', () {
-      final alice = ECPair.fromWIF(
-          'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy');
       final txb = new TransactionBuilder();
 
       txb.setVersion(1);
@@ -20,7 +23,7 @@ main() {
       txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', 12000);
       // (in)15000 - (out)12000 = (fee)3000, this is the miner fee
 
-      txb.sign(vin: 0, keyPair: alice);
+      txb.sign(vin: 0, keyPair: aliceKey);
 
       // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
       expect(txb.build().toHex(),
@@ -60,8 +63,7 @@ main() {
     });
 
     test('can create an "null data" Transaction', () {
-      final alice = ECPair.fromWIF(
-          'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy');
+
       final txb = new TransactionBuilder();
 
       txb.setVersion(1);
@@ -71,7 +73,7 @@ main() {
       txb.addNullOutput('Hey this is a random string without coins');
       //If no other output is set, coins in the input tx gets burned
 
-      txb.sign(vin: 0, keyPair: alice);
+      txb.sign(vin: 0, keyPair: aliceKey);
 
       // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
       expect(txb.build().toHex(),
@@ -106,18 +108,14 @@ main() {
 
     test('can create a P2SH output', () {
 
-      // Reusing key from above
-      final alice = ECPair.fromWIF(
-        'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy'
-      );
-
       final txb = TransactionBuilder();
       txb.setVersion(1);
       txb.addInput(
         '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d', 0
       );
       txb.addOutput('31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj', 1000);
-      txb.sign(vin: 0, keyPair: alice);
+      // Reusing key from above
+      txb.sign(vin: 0, keyPair: aliceKey);
 
       expect(
         txb.build().toHex(),
@@ -126,5 +124,22 @@ main() {
 
     });
 
+    test('can create a P2WSH output', () {
+
+      final txb = TransactionBuilder();
+      txb.setVersion(1);
+      txb.addInput(
+        '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d', 0
+      );
+      txb.addOutput('bc1qqqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0szrtjt7', 1000);
+      txb.sign(vin: 0, keyPair: aliceKey);
+
+      expect(
+        txb.build().toHex(),
+        '01000000019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d561000000006a47304402201e50539cc9a5789f33180dc39e234cc84516a3f06015372d8c85477771074b2d02206dbf4fa7b5ab619909a1bd4a1dfd5ac4e46bebe0722e3ef0a01a9eeca12ec1920121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffff01e803000000000000220020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00000000'
+      );
+
+
+    });
   });
 }
