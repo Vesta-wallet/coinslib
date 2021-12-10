@@ -60,7 +60,7 @@ main() {
         expect(Address.validateAddress('3333333casca'), false);
       });
 
-      test('wrong size address', () {
+      test('wrong size base58 address', () {
 
         expect(
           Address.validateAddress('12D2adLM3UKy4Z4giRbReR6gjWx1w6Dz'),
@@ -88,24 +88,68 @@ main() {
 
       });
 
+      test('wrong size bech32 addresses', () {
+
+        // 31 bytes
+        expect(
+            Address.validateAddress(
+                'bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpqy20t'
+            ),
+            false,
+            reason: "P2WSH too short"
+        );
+
+        // 33 bytes
+        expect(
+            Address.validateAddress(
+                'bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq88p3kr'
+            ),
+            false,
+            reason: "P2WSH too long"
+        );
+
+      });
+
     });
 
     group('addressToOutputScript', () {
 
+      expectScript(address, expectedScript) {
+        final actual = Address.addressToOutputScript(address);
+        expect(HEX.encode(actual), expectedScript);
+      }
+
       test('returns p2sh scripts', () {
 
-        expectScript(address, expectedHash) {
-          final actual = Address.addressToOutputScript(address);
-          expect(HEX.encode(actual), "a914" + expectedHash + "87");
-        }
-
-        expectScript(
-          "31h1vYVSYuKP6AhS86fbRdMw9XHieotbST",
-          "0000000000000000000000000000000000000000"
+        expectP2SH(address, expectedHash) => expectScript(
+            address, "a914" + expectedHash + "87"
         );
-        expectScript(
-          "3R2cuenjG5nFubqX9Wzuukdin2YfBbQ6Kw",
-          "ffffffffffffffffffffffffffffffffffffffff"
+
+        expectP2SH(
+            "31h1vYVSYuKP6AhS86fbRdMw9XHieotbST",
+            "0000000000000000000000000000000000000000"
+        );
+        expectP2SH(
+            "3R2cuenjG5nFubqX9Wzuukdin2YfBbQ6Kw",
+            "ffffffffffffffffffffffffffffffffffffffff"
+        );
+
+      });
+
+      test('returns p2wsh scripts', () {
+
+        expectP2WSH(address, expectedHash) => expectScript(
+            address, "0020" + expectedHash
+        );
+
+        expectP2WSH(
+            "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqthqst8",
+            "0000000000000000000000000000000000000000000000000000000000000000"
+        );
+
+        expectP2WSH(
+            "bc1qlllllllllllllllllllllllllllllllllllllllllllllllllllsffrpzs",
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
         );
 
       });
