@@ -35,6 +35,7 @@ main() {
     pubKeyHash: 0x37,
     scriptHash: 0x75,
     wif: 0xb7,
+    opreturnSize: 256,
   );
 
   var seed = bip39.mnemonicToSeed(

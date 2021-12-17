@@ -1,6 +1,6 @@
 name: coinslib
 description: A dart cryptocurrency library for Flutter, primarily build for Peercoin. BIP32, BIP39, P2PKH, bech32 integration.
-version: 3.0.3
+version: 3.1.1
 homepage: https://github.com/Vesta-wallet/coinslib
 publish_to: https://pub.dev
 
