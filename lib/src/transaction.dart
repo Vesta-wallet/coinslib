@@ -67,7 +67,7 @@ class Transaction {
   }
 
   hashForWitnessV0(
-      int inIndex, Uint8List prevOutScript, int value, int hashType
+      int inIndex, Uint8List scriptCode, int value, int hashType
   ) {
     var tbuffer = Uint8List.fromList([]);
     var toffset = 0;
@@ -83,18 +83,8 @@ class Transaction {
       toffset += slice.length as int;
     }
 
-    writeUInt8(i) {
-      bytes.setUint8(toffset, i);
-      toffset++;
-    }
-
     writeUInt32(i) {
       bytes.setUint32(toffset, i, Endian.little);
-      toffset += 4;
-    }
-
-    writeInt32(i) {
-      bytes.setInt32(toffset, i, Endian.little);
       toffset += 4;
     }
 
@@ -113,34 +103,28 @@ class Transaction {
       writeSlice(slice);
     }
 
-    writeVector(vector) {
-      writeVarInt(vector.length);
-      vector.forEach((buf) {
-        writeVarSlice(buf);
-      });
-    }
-
     if ((hashType & SIGHASH_ANYONECANPAY) == 0) {
-      tbuffer = Uint8List(36 * this.ins.length);
+      tbuffer = Uint8List(36 * ins.length);
       bytes = tbuffer.buffer.asByteData();
       toffset = 0;
 
-      ins.forEach((txIn) {
-        writeSlice(txIn.hash);
-        writeUInt32(txIn.index);
-      });
+      for (final input in ins) {
+        writeSlice(input.hash);
+        writeUInt32(input.index);
+      }
+
       hashPrevouts = bcrypto.hash256(tbuffer);
     }
 
     if ((hashType & SIGHASH_ANYONECANPAY) == 0 &&
         (hashType & 0x1f) != SIGHASH_SINGLE &&
         (hashType & 0x1f) != SIGHASH_NONE) {
-      tbuffer = Uint8List(4 * this.ins.length);
+      tbuffer = Uint8List(4 * ins.length);
       bytes = tbuffer.buffer.asByteData();
       toffset = 0;
-      ins.forEach((txIn) {
-        writeUInt32(txIn.sequence);
-      });
+      for (final input in ins) {
+        writeUInt32(input.sequence);
+      }
       hashSequence = bcrypto.hash256(tbuffer);
     }
 
@@ -151,10 +135,10 @@ class Transaction {
       tbuffer = Uint8List(txOutsSize);
       bytes = tbuffer.buffer.asByteData();
       toffset = 0;
-      outs.forEach((txOut) {
-        writeUInt64(txOut.value);
-        writeVarSlice(txOut.script);
-      });
+      for (final output in outs) {
+        writeUInt64(output.value);
+        writeVarSlice(output.script);
+      }
       hashOutputs = bcrypto.hash256(tbuffer);
     } else if ((hashType & 0x1f) == SIGHASH_SINGLE && inIndex < outs.length) {
       // SIGHASH_SINGLE only hash that according output
@@ -167,7 +151,7 @@ class Transaction {
       hashOutputs = bcrypto.hash256(tbuffer);
     }
 
-    tbuffer = Uint8List(156 + varSliceSize(prevOutScript));
+    tbuffer = Uint8List(156 + varSliceSize(scriptCode));
     bytes = tbuffer.buffer.asByteData();
     toffset = 0;
     var input = ins[inIndex];
@@ -176,11 +160,11 @@ class Transaction {
     writeSlice(hashSequence);
     writeSlice(input.hash);
     writeUInt32(input.index);
-    writeVarSlice(prevOutScript);
+    writeVarSlice(scriptCode);
     writeUInt64(value);
     writeUInt32(input.sequence);
     writeSlice(hashOutputs);
-    writeUInt32(this.locktime);
+    writeUInt32(locktime);
     writeUInt32(hashType);
 
     return bcrypto.hash256(tbuffer);
