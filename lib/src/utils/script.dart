@@ -90,6 +90,10 @@ List<dynamic>? decompile(dynamic buffer) {
   return chunks;
 }
 
+/// Creates the chunk for a uint8. It does not test that the integer is within
+/// the correct bounds.
+Uint8List pushUint8(int i) => Uint8List.fromList([i]);
+
 Uint8List fromASM(String asm) {
   if (asm == '') return Uint8List.fromList([]);
   return compile(asm.split(' ').map((chunkStr) {
@@ -118,7 +122,7 @@ String toASM(List<dynamic> c) {
 }
 
 int? asMinimalOP(Uint8List buffer) {
-  if (buffer.length == 0) return OPS['OP_0'];
+  if (buffer.isEmpty) return OPS['OP_0'];
   if (buffer.length != 1) return null;
   if (buffer[0] >= 1 && buffer[0] <= 16) return OP_INT_BASE! + buffer[0];
   if (buffer[0] == 0x81) return OPS['OP_1NEGATE'];
