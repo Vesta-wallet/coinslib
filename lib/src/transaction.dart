@@ -66,6 +66,7 @@ class Transaction {
     ins[index].witness = witness;
   }
 
+  /// Note that the scriptCode is without the varint prefix
   hashForWitnessV0(
       int inIndex, Uint8List scriptCode, int value, int hashType
   ) {
@@ -168,6 +169,7 @@ class Transaction {
     writeUInt32(hashType);
 
     return bcrypto.hash256(tbuffer);
+
   }
 
   hashForSignature(int inIndex, Uint8List prevOutScript, int hashType) {
@@ -227,6 +229,7 @@ class Transaction {
         .setUint32(buffer.length - 4, hashType, Endian.little);
     txTmp._toBuffer(buffer, 0);
     return bcrypto.hash256(buffer);
+
   }
 
   _byteLength(_ALLOW_WITNESS) {

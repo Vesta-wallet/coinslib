@@ -94,6 +94,21 @@ List<dynamic>? decompile(dynamic buffer) {
 /// the correct bounds.
 Uint8List pushUint8(int i) => Uint8List.fromList([i]);
 
+// Unfortunately using dynamic due to the existing code
+int? uint8FromChunk(dynamic chunk) {
+
+  if (chunk is Uint8List) {
+    return  chunk.length == 1 ? chunk[0] : null;
+  }
+
+  if (chunk == OPS['OP_0']) return 0;
+
+  int i = chunk - OP_INT_BASE;
+  if (i < 0 || i > 16) return null;
+  return i;
+
+}
+
 Uint8List fromASM(String asm) {
   if (asm == '') return Uint8List.fromList([]);
   return compile(asm.split(' ').map((chunkStr) {
