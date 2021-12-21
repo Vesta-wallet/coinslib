@@ -609,7 +609,7 @@
     "sign": [
       {
         "description": "Too many signatures - P2PKH",
-        "exception": "Signature already exists",
+        "exception": "Can't sign a complete transaction input",
         "inputs": [
           {
             "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",

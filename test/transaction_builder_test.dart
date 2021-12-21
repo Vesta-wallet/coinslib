@@ -80,6 +80,7 @@ main() {
     ].map((x) => Address.addressToOutputScript(x));
     final txHash = HEX.decode(
         '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2');
+
     group('fromTransaction', () {
       (fixtures['valid']['build'] as List<dynamic>).forEach((f) {
         test('returns TransactionBuilder, with ${f['description']}', () {
@@ -346,6 +347,7 @@ main() {
         }
       });
     });
+
     group('setLockTime', () {
       test('throws if if there exist any scriptSigs', () {
         final txb = new TransactionBuilder();
@@ -360,44 +362,54 @@ main() {
         }
       });
     });
+
     group('sign', () {
-      fixtures['invalid']['sign'] as List<dynamic>
-        ..forEach((f) {
-          test(
-              'throws ${f['exception']} ${f['description'] != null ? f['description'] : ''}',
-              () {
-            final txb = construct(f, true);
-            var threw = false;
-            final inputs = f['inputs'] as List;
-            for (var i = 0; i < inputs.length; i++) {
-              inputs[i]['signs'] as List<dynamic>
-                ..forEach((sign) {
+
+      for (final dynamic f in fixtures['invalid']['sign']) {
+        test(
+            'throws ${f['exception']} ${f['description'] != null ? f['description'] : ''}',
+            () {
+
+              final txb = construct(f, true);
+              var threw = false;
+              final inputs = f['inputs'] as List;
+
+              for (var i = 0; i < inputs.length; i++) {
+                for (final dynamic sign in inputs[i]['signs']) {
+
                   final keyPairNetwork =
-                      NETWORKS[sign['network'] ?? f['network']];
+                    NETWORKS[sign['network'] ?? f['network']];
                   final keyPair2 =
-                      ECPair.fromWIF(sign['keyPair'], network: keyPairNetwork);
+                    ECPair.fromWIF(sign['keyPair'], network: keyPairNetwork);
+
                   if (sign['throws'] != null && sign['throws']) {
                     try {
-                      expect(
-                          txb.sign(
-                              vin: i,
-                              keyPair: keyPair2,
-                              hashType: sign['hashType']),
-                          isArgumentError);
+                      txb.sign(
+                        vin: i,
+                        keyPair: keyPair2,
+                        hashType: sign['hashType']
+                      );
+                      fail("Should throw ArgumentError");
                     } catch (err) {
                       expect((err as ArgumentError).message, f['exception']);
                     }
                     threw = true;
                   } else {
                     txb.sign(
-                        vin: i, keyPair: keyPair2, hashType: sign['hashType']);
+                      vin: i, keyPair: keyPair2, hashType: sign['hashType']);
                   }
-                });
-            }
-            expect(threw, true);
-          });
-        });
-    });
+
+                }
+              }
+
+              expect(threw, true);
+
+            });
+
+          }
+
+      });
+
     group('build', () {
       fixtures['valid']['build'] as List<dynamic>
         ..forEach((f) {
