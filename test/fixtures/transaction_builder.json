@@ -699,6 +699,32 @@
           }
         ],
         "outputs": []
+      },
+      {
+        "description": "Double sign a multisig input",
+        "exception": "Can't sign a complete transaction input",
+        "inputs": [
+          {
+            "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "vout": 1,
+            "witnessScript": "OP_1 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 OP_1 OP_CHECKMULTISIG",
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn"
+              },
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "throws": true
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "script": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "value": 1000
+          }
+        ]
       }
     ],
     "fromTransaction": [
