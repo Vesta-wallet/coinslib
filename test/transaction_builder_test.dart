@@ -380,6 +380,8 @@ main() {
 
   group('TransactionBuilder.sign', () {
 
+    // Valid tests are implicit in the invalid fixtures that test that signing
+    // an already signed input is invalid
     for (final dynamic f in fixtures['invalid']['sign']) {
       test('throws ${f['exception']} ${f['description'] ?? ''}', () {
 
@@ -399,24 +401,24 @@ main() {
             final keyPair2 =
               ECPair.fromWIF(sign['keyPair'], network: keyPairNetwork);
 
-            if (sign['throws'] != null && sign['throws']) {
-              try {
-                txb.sign(
+            Matcher match = sign['throws'] == null || !sign['throws']
+              ? returnsNormally
+              : throwsA(
+                allOf(
+                  isArgumentError,
+                  predicate((ArgumentError err) => err.message == f['exception'])
+                )
+              );
+
+            expect(
+              () => txb.sign(
                   vin: i,
                   keyPair: keyPair2,
                   hashType: sign['hashType'],
                   witnessValue: witnessScript != null ? 10000 : null,
                   witnessScript: witnessScript
-                );
-                fail("Should throw ArgumentError");
-              } catch (err) {
-                expect((err as ArgumentError).message, f['exception']);
-              }
-            } else {
-              txb.sign(
-                vin: i, keyPair: keyPair2, hashType: sign['hashType']
-              );
-            }
+              ), match
+            );
 
           }
         }

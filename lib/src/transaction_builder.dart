@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:coinslib/src/payments/multisig.dart';
 import 'package:coinslib/src/utils/constants/op.dart';
+import 'package:collection/equality.dart';
 import 'package:hex/hex.dart';
 import 'utils/script.dart' as bscript;
 import 'ecpair.dart';
@@ -179,7 +180,7 @@ class TransactionBuilder {
     final input = _inputs[vin];
 
     // Do not sign if fully signed
-    if (_complete(input)) {
+    if (input.isComplete()) {
       throw ArgumentError("Can't sign a complete transaction input");
     }
 
@@ -201,6 +202,7 @@ class TransactionBuilder {
 
       // Extract public keys from the witnessScript
       input.pubkeys = multisig.pubkeys;
+      input.threshold = multisig.threshold;
 
     } else if (
         input.prevOutScript != null &&
@@ -243,7 +245,7 @@ class TransactionBuilder {
     var signed = false;
     for (var i = 0; i < input.pubkeys!.length; i++) {
 
-      if (ourPubKey != input.pubkeys![i]) continue;
+      if (!ListEquality().equals(ourPubKey, input.pubkeys![i])) continue;
 
       if (input.signatures![i] != null) {
         throw ArgumentError('Signature already exists');
@@ -376,13 +378,6 @@ class TransactionBuilder {
         }).contains(true);
   }
 
-  bool _complete(Input input) {
-    return input.pubkeys != null &&
-        input.signScript != null &&
-        input.signatures != null &&
-        !input.signatures!.any((sig) => sig == null) &&
-        input.pubkeys!.isNotEmpty;
-  }
 
   _addInputUnsafe(Uint8List hash, int vout, Input options) {
     String txHash = HEX.encode(hash);

@@ -540,6 +540,7 @@ class Input {
   bool hasWitness = false;
   List<Uint8List?>? pubkeys;
   List<Uint8List?>? signatures;
+  int? threshold;
   List<Uint8List>? witness;
 
   Input(
@@ -619,6 +620,17 @@ class Input {
               .toList()
           : null,
     );
+  }
+
+  int get _expectedSignatures => threshold ?? 1;
+  int get _actualSignatures => signatures == null
+    ? 0 : signatures!.where((sig) => sig != null).length;
+
+  bool isComplete() {
+    return pubkeys != null &&
+        signScript != null &&
+        _actualSignatures == _expectedSignatures &&
+        pubkeys!.isNotEmpty;
   }
 
   @override

@@ -781,10 +781,13 @@
           {
             "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
             "vout": 1,
-            "witnessScript": "OP_1 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 023e4287a9f1ed9a321ad5a0bcea4da36ba360a36b3ed65a8f45e22050e04d2f4a OP_2 OP_CHECKMULTISIG",
+            "witnessScript": "OP_2 02f1c7eac9200f8dee7e34e59318ff2076c8b3e3ac7f43121e57569a1aec1803d4 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 023e4287a9f1ed9a321ad5a0bcea4da36ba360a36b3ed65a8f45e22050e04d2f4a OP_3 OP_CHECKMULTISIG",
             "signs": [
               {
                 "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn"
+              },
+              {
+                "keyPair": "KzRGFiqhXB7SyX6idHQkt77B8mX7adnujdg3VG47jdVK2x4wbUYg"
               },
               {
                 "keyPair": "KzBQVXYUGDAvqG7VeU3C7ZMRYiwtsxSVVFcYGzKU9E4aUVDUquZU",
