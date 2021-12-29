@@ -43,7 +43,7 @@ main() {
         network: NETWORKS.peercoin
       );
 
-      final txb = new TransactionBuilder(network: NETWORKS.peercoin);
+      final txb = TransactionBuilder(network: NETWORKS.peercoin);
 
       txb.setVersion(3);
       txb.addInput(
@@ -59,7 +59,6 @@ main() {
 
       final tx = txb.build();
 
-      print(tx.txSize);
       // No witness data so size should equal buffer size
       expect(tx.txSize, tx.toBuffer().length);
       // Deterministically 244 bytes each time

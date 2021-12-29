@@ -2,7 +2,8 @@ import 'dart:typed_data';
 import '../src/utils/script.dart' as bscript;
 import 'templates/pubkeyhash.dart' as pubkeyhash;
 import 'templates/pubkey.dart' as pubkey;
-import 'templates/witnesspubkeyhash.dart' as witnessPubKeyHash;
+import 'templates/witnesspubkeyhash.dart' as witness_pubkey_hash;
+import 'templates/witness_script_hash.dart' as witness_script_hash;
 
 const SCRIPT_TYPES = {
   'P2SM': 'multisig',
@@ -17,24 +18,24 @@ const SCRIPT_TYPES = {
 };
 
 String? classifyOutput(Uint8List script) {
-  if (witnessPubKeyHash.outputCheck(script)) return SCRIPT_TYPES['P2WPKH'];
+  if (witness_pubkey_hash.outputCheck(script)) return SCRIPT_TYPES['P2WPKH'];
   if (pubkeyhash.outputCheck(script)) return SCRIPT_TYPES['P2PKH'];
   final chunks = bscript.decompile(script);
-  if (chunks == null) throw new ArgumentError('Invalid script');
+  if (chunks == null) throw ArgumentError('Invalid script');
   return SCRIPT_TYPES['NONSTANDARD'];
 }
 
 String? classifyInput(Uint8List script) {
   final chunks = bscript.decompile(script);
-  if (chunks == null) throw new ArgumentError('Invalid script');
+  if (chunks == null) throw ArgumentError('Invalid script');
   if (pubkeyhash.inputCheck(chunks)) return SCRIPT_TYPES['P2PKH'];
   if (pubkey.inputCheck(chunks)) return SCRIPT_TYPES['P2PK'];
   return SCRIPT_TYPES['NONSTANDARD'];
 }
 
 String? classifyWitness(List<Uint8List> script) {
-  final chunks = bscript.decompile(script);
-  if (chunks == null) throw new ArgumentError('Invalid script');
-  if (witnessPubKeyHash.inputCheck(chunks)) return SCRIPT_TYPES['P2WPKH'];
+  if (witness_pubkey_hash.inputCheck(script)) return SCRIPT_TYPES['P2WPKH'];
+  if (witness_script_hash.inputCheck(script)) return SCRIPT_TYPES['P2WSH'];
   return SCRIPT_TYPES['NONSTANDARD'];
 }
+

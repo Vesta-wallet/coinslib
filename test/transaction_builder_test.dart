@@ -13,28 +13,34 @@ import '../lib/src/utils/script.dart' as bscript;
 import '../lib/src/payments/index.dart' show PaymentData;
 import '../lib/src/payments/p2pkh.dart';
 
-final NETWORKS = {'bitcoin': bitcoin, 'testnet': testnet};
+final networks = {'bitcoin': bitcoin, 'testnet': testnet};
 
 constructSign(f, TransactionBuilder txb) {
-  final network = NETWORKS[f['network']];
+
+  final network = networks[f['network']];
   final inputs = f['inputs'] as List<dynamic>;
+
   for (var i = 0; i < inputs.length; i++) {
     if (inputs[i]['signs'] == null) continue;
-    (inputs[i]['signs'] as List<dynamic>).forEach((sign) {
+    for (final sign in inputs[i]['signs']) {
       ECPair keyPair = ECPair.fromWIF(sign['keyPair'], network: network);
       txb.sign(
           vin: i,
           keyPair: keyPair,
           witnessValue: sign['value'],
-          hashType: sign['hashType']);
-    });
+          witnessScript: compileWitnessScriptFromInput(inputs[i]),
+          hashType: sign['hashType']
+      );
+    }
   }
+
   return txb;
+
 }
 
 TransactionBuilder construct(f, [bool dontSign = false]) {
 
-  final network = NETWORKS[f['network']];
+  final network = networks[f['network']];
   final txb = TransactionBuilder(network: network);
 
   if (f['version'] != null) txb.setVersion(f['version']);
@@ -76,6 +82,12 @@ TransactionBuilder construct(f, [bool dontSign = false]) {
 
 }
 
+Uint8List? compileWitnessScriptFromInput(dynamic input) {
+  final witnessScriptASM = input['witnessScript'];
+  return witnessScriptASM == null
+    ? null : bscript.fromASM(witnessScriptASM);
+}
+
 main() {
 
   final fixtures = json.decode(
@@ -94,9 +106,10 @@ main() {
       '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2');
 
   group('TransactionBuilder.fromTransaction', () {
-    (fixtures['valid']['build'] as List<dynamic>).forEach((f) {
+
+    for (final f in fixtures['valid']['build']) {
       test('returns TransactionBuilder, with ${f['description']}', () {
-        final network = NETWORKS[f['network'] ?? 'bitcoin'];
+        final network = networks[f['network'] ?? 'bitcoin'];
         final tx = Transaction.fromHex(f['txHex']);
         final txb = TransactionBuilder.fromTransaction(tx, network);
         final txAfter =
@@ -104,7 +117,8 @@ main() {
         expect(txAfter.toHex(), f['txHex']);
         expect(txb.network, network);
       });
-    });
+    }
+
     (fixtures['valid']['fromTransaction'] as List<dynamic>).forEach((f) {
       test('returns TransactionBuilder, with ${f['description']}', () {
         final tx = Transaction();
@@ -390,14 +404,12 @@ main() {
 
         for (var i = 0; i < inputs.length; i++) {
 
-          final witnessScriptASM = inputs[i]['witnessScript'];
-          final witnessScript = witnessScriptASM == null
-            ? null : bscript.fromASM(witnessScriptASM);
+          final witnessScript = compileWitnessScriptFromInput(inputs[i]);
 
           for (final dynamic sign in inputs[i]['signs']) {
 
             final keyPairNetwork =
-              NETWORKS[sign['network'] ?? f['network']];
+              networks[sign['network'] ?? f['network']];
             final keyPair2 =
               ECPair.fromWIF(sign['keyPair'], network: keyPairNetwork);
 
@@ -429,62 +441,67 @@ main() {
   });
 
   group('TransactionBuilder.build', () {
-    fixtures['valid']['build'] as List<dynamic>
-      ..forEach((f) {
-        test('builds ${f['description']}', () {
-          final txb = construct(f);
-          final tx =
-              f['incomplete'] != null ? txb.buildIncomplete() : txb.build();
 
-          expect(tx.toHex(), f['txHex']);
-        });
+    for (final f in fixtures['valid']['build']) {
+      test('builds ${f['description']}', () {
+        final txb = construct(f);
+        final tx = f['incomplete'] != null
+          ? txb.buildIncomplete() : txb.build();
+        expect(tx.toHex(), f['txHex']);
       });
-    fixtures['invalid']['build'] as List<dynamic>
-      ..forEach((f) {
-        group('for ${f['description'] ?? f['exception']}', () {
+    }
+
+    for (final f in fixtures['invalid']['build']) {
+
+      group('for ${f['description'] ?? f['exception']}', () {
+
+        test('throws ${f['exception']}', () {
+          try {
+            TransactionBuilder txb;
+            if (f['txHex'] != null) {
+              txb = TransactionBuilder.fromTransaction(
+                Transaction.fromHex(f['txHex']));
+            } else {
+              txb = construct(f);
+            }
+            expect(txb.build(), isArgumentError);
+          } catch (err) {
+            expect((err as ArgumentError).message, f['exception']);
+          }
+        });
+
+        // if throws on incomplete too, enforce that
+        if (f['incomplete'] != null && f['incomplete']) {
           test('throws ${f['exception']}', () {
             try {
               TransactionBuilder txb;
               if (f['txHex'] != null) {
                 txb = TransactionBuilder.fromTransaction(
-                    Transaction.fromHex(f['txHex']));
+                  Transaction.fromHex(f['txHex']));
               } else {
                 txb = construct(f);
               }
-              expect(txb.build(), isArgumentError);
+              expect(txb.buildIncomplete(), isArgumentError);
             } catch (err) {
               expect((err as ArgumentError).message, f['exception']);
             }
           });
-          // if throws on incomplete too, enforce that
-          if (f['incomplete'] != null && f['incomplete']) {
-            test('throws ${f['exception']}', () {
-              try {
-                TransactionBuilder txb;
-                if (f['txHex'] != null) {
-                  txb = TransactionBuilder.fromTransaction(
-                      Transaction.fromHex(f['txHex']));
-                } else {
-                  txb = construct(f);
-                }
-                expect(txb.buildIncomplete(), isArgumentError);
-              } catch (err) {
-                expect((err as ArgumentError).message, f['exception']);
-              }
-            });
-          } else {
-            test('does not throw if buildIncomplete', () {
-              TransactionBuilder txb;
-              if (f['txHex'] != null) {
-                txb = TransactionBuilder.fromTransaction(
-                    Transaction.fromHex(f['txHex']));
-              } else {
-                txb = construct(f);
-              }
-              txb.buildIncomplete();
-            });
-          }
-        });
+        } else {
+          test('does not throw if buildIncomplete', () {
+            TransactionBuilder txb;
+            if (f['txHex'] != null) {
+              txb = TransactionBuilder.fromTransaction(
+                Transaction.fromHex(f['txHex']));
+            } else {
+              txb = construct(f);
+            }
+            txb.buildIncomplete();
+          });
+        }
+
       });
+    }
+
   });
 }
+

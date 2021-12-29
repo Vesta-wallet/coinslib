@@ -17,29 +17,31 @@ import 'classify.dart';
 class TransactionBuilder {
   NetworkType network;
   int maximumFeeRate;
-  List<Input> _inputs = [];
-  Transaction _tx = Transaction()..version = 2;
-  Map _prevTxSet = {};
+  final List<Input> _inputs = [];
+  final Transaction _tx = Transaction()..version = 2;
+  final Map _prevTxSet = {};
 
   TransactionBuilder({NetworkType? network, int? maximumFeeRate})
       : network = network ?? bitcoin,
-        maximumFeeRate = maximumFeeRate ?? 2500 {}
+        maximumFeeRate = maximumFeeRate ?? 2500;
 
   List<Input> get inputs => _inputs;
 
-  factory TransactionBuilder.fromTransaction(Transaction transaction,
-      [NetworkType? network]) {
+  factory TransactionBuilder.fromTransaction(
+    Transaction transaction, [NetworkType? network]
+  ) {
+
     final txb = TransactionBuilder(network: network);
     // Copy transaction fields
     txb.setVersion(transaction.version);
     txb.setLockTime(transaction.locktime);
 
     // Copy outputs (done first to avoid signature invalidation)
-    transaction.outs.forEach((txOut) {
+    for (final txOut in transaction.outs) {
       txb.addOutput(txOut.script, txOut.value!);
-    });
+    }
 
-    transaction.ins.forEach((txIn) {
+    for (final txIn in transaction.ins) {
       txb._addInputUnsafe(
           txIn.hash!,
           txIn.index!,
@@ -49,15 +51,10 @@ class TransactionBuilder {
               witness: txIn.witness
           )
       );
-    });
-
-    // fix some things not possible through the public API
-    // print(txb.toString());
-    // txb.__INPUTS.forEach((input, i) => {
-    //   fixMultisigOrder(input, transaction, i);
-    // });
+    }
 
     return txb;
+
   }
 
   setVersion(int version) {
@@ -283,30 +280,58 @@ class TransactionBuilder {
     final tx = Transaction.clone(_tx);
 
     for (var i = 0; i < _inputs.length; i++) {
-      if (_inputs[i].pubkeys != null &&
-          _inputs[i].signatures != null &&
-          _inputs[i].pubkeys!.length != 0 &&
-          _inputs[i].signatures!.length != 0) {
-        if (_inputs[i].prevOutType == SCRIPT_TYPES['P2PKH']) {
-          P2PKH payment = P2PKH(
-              data: PaymentData(
-                  pubkey: _inputs[i].pubkeys![0],
-                  signature: _inputs[i].signatures![0]),
-              network: network);
-          tx.setInputScript(i, payment.data.input!);
-          tx.setWitness(i, payment.data.witness);
-        } else if (_inputs[i].prevOutType == SCRIPT_TYPES['P2WPKH']) {
-          P2WPKH payment = P2WPKH(
-              data: PaymentData(
-                  pubkey: _inputs[i].pubkeys![0],
-                  signature: _inputs[i].signatures![0]),
-              network: network);
-          tx.setInputScript(i, payment.data.input!);
-          tx.setWitness(i, payment.data.witness!);
-        }
-      } else if (!allowIncomplete) {
+
+      final input = _inputs[i];
+
+      if (!input.isComplete()) {
+        if (allowIncomplete) continue;
         throw ArgumentError('Transaction is not complete');
       }
+
+      if (input.prevOutType == SCRIPT_TYPES['P2PKH']) {
+
+        P2PKH payment = P2PKH(
+            data: PaymentData(
+                pubkey: input.pubkeys![0],
+                signature: input.signatures![0]
+            ),
+            network: network
+        );
+        tx.setInputScript(i, payment.data.input!);
+        tx.setWitness(i, payment.data.witness);
+
+      } else if (input.prevOutType == SCRIPT_TYPES['P2WPKH']) {
+
+        P2WPKH payment = P2WPKH(
+            data: PaymentData(
+                pubkey: input.pubkeys![0],
+                signature: input.signatures![0]
+            ),
+            network: network
+        );
+        tx.setInputScript(i, payment.data.input!);
+        tx.setWitness(i, payment.data.witness!);
+
+      } else if (input.prevOutType == SCRIPT_TYPES['P2WSH']) {
+
+        tx.setInputScript(i, Uint8List(0));
+
+        // If we don't yet have the witness data, construct it here.
+        // The code is all over the place, with no clear structure. It would be
+        // much better if there were clear abstractions for all parts of the
+        // transaction that are serialised in one place
+        if (input.witness == null) {
+          // Remove all null signatures
+          final signatures = input.signatures!.whereType<Uint8List>();
+          input.witness = [
+              Uint8List.fromList([0]), ...signatures, input.signScript!
+          ];
+        }
+
+        tx.setWitness(i, input.witness);
+
+      }
+
     }
 
     if (!allowIncomplete) {
@@ -317,6 +342,7 @@ class TransactionBuilder {
     }
 
     return tx;
+
   }
 
   bool _overMaximumFees(int bytes) {
@@ -380,25 +406,31 @@ class TransactionBuilder {
 
 
   _addInputUnsafe(Uint8List hash, int vout, Input options) {
+
     String txHash = HEX.encode(hash);
     Input input;
+
     if (isCoinbaseHash(hash)) {
       throw ArgumentError('coinbase inputs not supported');
     }
+
     final prevTxOut = '$txHash:$vout';
-    if (_prevTxSet[prevTxOut] != null)
+
+    if (_prevTxSet[prevTxOut] != null) {
       throw ArgumentError('Duplicate TxOut: ' + prevTxOut);
-    if (options.script != null) {
-      input =
-          Input.expandInput(options.script!, options.witness ?? EMPTY_WITNESS);
-    } else {
-      input = Input();
     }
+
+    input = options.script != null
+      ? Input.expandInput(
+          options.script!, options.witness ?? EMPTY_WITNESS
+      )
+      : Input();
+
     if (options.value != null) input.value = options.value;
     if (input.prevOutScript == null && options.prevOutScript != null) {
       if (input.pubkeys == null && input.signatures == null) {
         var expanded = Output.expandOutput(options.prevOutScript!);
-        if (expanded.pubkeys != null && !expanded.pubkeys!.isEmpty) {
+        if (expanded.pubkeys != null && expanded.pubkeys!.isNotEmpty) {
           input.pubkeys = expanded.pubkeys;
           input.signatures = expanded.signatures;
         }

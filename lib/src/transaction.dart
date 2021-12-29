@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:coinslib/src/payments/multisig.dart';
 import 'package:hex/hex.dart';
 import 'payments/index.dart' show PaymentData;
 import 'payments/p2pkh.dart' show P2PKH;
@@ -36,14 +37,19 @@ class Transaction {
 
   Transaction();
 
-  int addInput(Uint8List hash, int index,
-      [int? sequence, Uint8List? scriptSig]) {
-    ins.add(Input(
-        hash: hash,
-        index: index,
-        sequence: sequence ?? DEFAULT_SEQUENCE,
-        script: scriptSig ?? EMPTY_SCRIPT,
-        witness: EMPTY_WITNESS));
+  int addInput(
+    Uint8List hash, int index,
+    [int? sequence, Uint8List? scriptSig]
+  ) {
+    ins.add(
+        Input(
+            hash: hash,
+            index: index,
+            sequence: sequence ?? DEFAULT_SEQUENCE,
+            script: scriptSig ?? EMPTY_SCRIPT,
+            witness: EMPTY_WITNESS
+        )
+    );
     return ins.length - 1;
   }
 
@@ -52,11 +58,9 @@ class Transaction {
     return outs.length - 1;
   }
 
-  bool hasWitnesses() {
-    var witness = ins.indexWhere(
-        (input) => input.witness != null && input.witness!.length != 0);
-    return witness != -1;
-  }
+  bool hasWitnesses() => ins.any(
+      (input) => input.witness != null && input.witness!.isNotEmpty
+  );
 
   setInputScript(int index, Uint8List scriptSig) {
     ins[index].script = scriptSig;
@@ -269,11 +273,11 @@ class Transaction {
   }
 
   Uint8List toBuffer([Uint8List? buffer, int? initialOffset]) {
-    return this._toBuffer(buffer, initialOffset, true);
+    return _toBuffer(buffer, initialOffset, true);
   }
 
   String toHex() {
-    return HEX.encode(this.toBuffer());
+    return HEX.encode(toBuffer());
   }
 
   bool isCoinbaseHash(buffer) {
@@ -298,8 +302,9 @@ class Transaction {
   }
 
   _toBuffer([Uint8List? buffer, initialOffset, bool _ALLOW_WITNESS = false]) {
+
     // _ALLOW_WITNESS is used to separate witness part when calculating tx id
-    if (buffer == null) buffer = Uint8List(_byteLength(_ALLOW_WITNESS));
+    buffer ??= Uint8List(_byteLength(_ALLOW_WITNESS));
 
     // Any changes made to the ByteData will also change the buffer, and vice versa.
     // https://api.dart.dev/stable/2.7.1/dart-typed_data/ByteBuffer/asByteData.html
@@ -356,39 +361,40 @@ class Transaction {
       writeUInt8(ADVANCED_TRANSACTION_FLAG);
     }
 
-    writeVarInt(this.ins.length);
+    writeVarInt(ins.length);
 
-    ins.forEach((txIn) {
+    for (final txIn in ins) {
       writeSlice(txIn.hash);
       writeUInt32(txIn.index);
       writeVarSlice(txIn.script);
       writeUInt32(txIn.sequence);
-    });
+    }
 
-    writeVarInt(this.outs.length);
+    writeVarInt(outs.length);
 
-    outs.forEach((txOut) {
+    for (final txOut in outs) {
       if (txOut.valueBuffer == null) {
         writeUInt64(txOut.value);
       } else {
         writeSlice(txOut.valueBuffer);
       }
       writeVarSlice(txOut.script);
-    });
-
-    if (_ALLOW_WITNESS && hasWitnesses()) {
-      ins.forEach((txInt) {
-        writeVector(txInt.witness);
-      });
     }
 
-    writeUInt32(this.locktime);
+    if (_ALLOW_WITNESS && hasWitnesses()) {
+      for (final txIn in ins) {
+        writeVector(txIn.witness);
+      }
+    }
+
+    writeUInt32(locktime);
     // End writeBuffer
 
     // avoid slicing unless necessary
     if (initialOffset != null) return buffer.sublist(initialOffset, offset);
 
     return buffer;
+
   }
 
   factory Transaction.clone(Transaction _tx) {
@@ -468,8 +474,10 @@ class Transaction {
     final flag = readUInt8();
 
     var hasWitnesses = false;
-    if (marker == ADVANCED_TRANSACTION_MARKER &&
-        flag == ADVANCED_TRANSACTION_FLAG) {
+    if (
+      marker == ADVANCED_TRANSACTION_MARKER &&
+      flag == ADVANCED_TRANSACTION_FLAG
+    ) {
       hasWitnesses = true;
     } else {
       offset -= 2; // Reset offset if not segwit tx
@@ -477,11 +485,14 @@ class Transaction {
 
     final vinLen = readVarInt();
     for (var i = 0; i < vinLen; ++i) {
-      tx.ins.add(Input(
-          hash: readSlice(32),
-          index: readUInt32(),
-          script: readVarSlice(),
-          sequence: readUInt32()));
+      tx.ins.add(
+          Input(
+              hash: readSlice(32),
+              index: readUInt32(),
+              script: readVarSlice(),
+              sequence: readUInt32()
+          )
+      );
     }
 
     final voutLen = readVarInt();
@@ -499,10 +510,12 @@ class Transaction {
 
     if (noStrict) return tx;
 
-    if (offset != buffer.length)
+    if (offset != buffer.length) {
       throw ArgumentError('Transaction has unexpected data');
+    }
 
     return tx;
+
   }
 
   factory Transaction.fromHex(
@@ -543,8 +556,8 @@ class Input {
   int? threshold;
   List<Uint8List>? witness;
 
-  Input(
-      {this.hash,
+  Input({
+      this.hash,
       this.index,
       this.script,
       this.sequence,
@@ -553,19 +566,28 @@ class Input {
       this.pubkeys,
       this.signatures,
       this.witness,
-      this.prevOutType}) {
-    if (this.hash != null && !isHash256bit(this.hash!))
+      this.prevOutType,
+      this.threshold
+  }) {
+    if (hash != null && !isHash256bit(hash!)) {
       throw ArgumentError('Invalid input hash');
-    if (this.index != null && !isUint(this.index!, 32))
+    }
+    if (index != null && !isUint(index!, 32)) {
       throw ArgumentError('Invalid input index');
-    if (this.sequence != null && !isUint(this.sequence!, 32))
+    }
+    if (sequence != null && !isUint(sequence!, 32)) {
       throw ArgumentError('Invalid input sequence');
-    if (this.value != null && !isShatoshi(this.value!))
+    }
+    if (value != null && !isShatoshi(value!)) {
       throw ArgumentError('Invalid ouput value');
+    }
   }
 
-  factory Input.expandInput(Uint8List scriptSig, List<Uint8List> witness,
-      [String? type, Uint8List? scriptPubKey]) {
+  factory Input.expandInput(
+      Uint8List scriptSig, List<Uint8List> witness,
+      [String? type, Uint8List? scriptPubKey]
+  ) {
+
     if (type == null || type == '') {
       var ssType = classifyInput(scriptSig);
       var wsType = classifyWitness(witness);
@@ -573,28 +595,49 @@ class Input {
       if (wsType == SCRIPT_TYPES['NONSTANDARD']) wsType = null;
       type = ssType ?? wsType;
     }
+
     if (type == SCRIPT_TYPES['P2WPKH']) {
       P2WPKH p2wpkh = P2WPKH(data: PaymentData(witness: witness));
       return Input(
           prevOutScript: p2wpkh.data.output,
-          prevOutType: SCRIPT_TYPES['P2WPKH'],
+          prevOutType: type,
           pubkeys: [p2wpkh.data.pubkey!],
-          signatures: [p2wpkh.data.signature!]);
+          signatures: [p2wpkh.data.signature!]
+      );
+    } else if (type == SCRIPT_TYPES['P2WSH']) {
+
+      // TODO: Having witness data handled in a class would be nicer, but I'm
+      // sticking reasonably close to the library interface as-is
+      final signatures = witness.sublist(1, witness.length-1);
+      final threshold = MultisigScript.fromScriptBytes(witness.last).threshold;
+
+      return Input(
+          prevOutType: type,
+          pubkeys: [],
+          signatures: signatures,
+          threshold: threshold,
+          witness: witness
+      );
+
     } else if (type == SCRIPT_TYPES['P2PKH']) {
       P2PKH p2pkh = P2PKH(data: PaymentData(input: scriptSig));
       return Input(
           prevOutScript: p2pkh.data.output,
-          prevOutType: SCRIPT_TYPES['P2PKH'],
+          prevOutType: type,
           pubkeys: [p2pkh.data.pubkey!],
-          signatures: [p2pkh.data.signature!]);
+          signatures: [p2pkh.data.signature!]
+      );
     } else if (type == SCRIPT_TYPES['P2PK']) {
       P2PK p2pk = P2PK(data: PaymentData(input: scriptSig));
       return Input(
-          prevOutType: SCRIPT_TYPES['P2PK'],
+          prevOutType: type,
           pubkeys: [],
-          signatures: [p2pk.data.signature!]);
+          signatures: [p2pk.data.signature!]
+      );
     }
+
     throw UnsupportedError('type "$type"');
+
   }
 
   factory Input.clone(Input input) {
@@ -627,10 +670,7 @@ class Input {
     ? 0 : signatures!.where((sig) => sig != null).length;
 
   bool isComplete() {
-    return pubkeys != null &&
-        signScript != null &&
-        _actualSignatures == _expectedSignatures &&
-        pubkeys!.isNotEmpty;
+    return _actualSignatures == _expectedSignatures;
   }
 
   @override
