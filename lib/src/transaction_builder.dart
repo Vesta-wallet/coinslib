@@ -183,10 +183,6 @@ class TransactionBuilder {
 
     final ourPubKey = keyPair.publicKey!;
 
-    if (witnessValue != null) {
-      input.value = witnessValue;
-    }
-
     if (witnessScript != null) {
       // Assume multisig P2WSH when witnessScript provided
 
@@ -221,6 +217,13 @@ class TransactionBuilder {
       input.pubkeys = [ourPubKey];
       input.signScript = prevOutScript;
 
+    }
+
+    if (input.hasWitness) {
+      if (witnessValue == null) {
+        throw ArgumentError('Require previous output value for witness inputs');
+      }
+      input.value = witnessValue;
     }
 
     // Make signatures list equal to the number of public keys so that they are

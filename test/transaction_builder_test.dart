@@ -427,7 +427,7 @@ main() {
                   vin: i,
                   keyPair: keyPair2,
                   hashType: sign['hashType'],
-                  witnessValue: witnessScript != null ? 10000 : null,
+                  witnessValue: sign['value'],
                   witnessScript: witnessScript
               ), match
             );
