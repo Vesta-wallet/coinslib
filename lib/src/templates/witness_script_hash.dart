@@ -3,10 +3,14 @@ import 'package:coinslib/src/payments/multisig.dart';
 
 import '../utils/script.dart' as bscript;
 
-/// Checks the input is a multisig P2WSH. All P2WSH are expected to be multisig.
+/// Checks the input witness is a multisig P2WSH. All P2WSH are expected to be
+/// multisig.
 bool inputCheck(List<Uint8List> witness) {
 
   if (witness.isEmpty) return false;
+
+  // Check that the first argument is a single 0 byte
+  if (witness.first.length != 1 || witness.first[0] != 0) return false;
 
   // Check witnessScript
   try {
