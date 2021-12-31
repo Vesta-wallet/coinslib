@@ -123,13 +123,18 @@ class TransactionBuilder {
 
   }
 
-  int addInput(dynamic txHash, int vout,
-      [int? sequence, Uint8List? prevOutScript]) {
+  int addInput(
+    dynamic txHash, int vout,
+    [int? sequence, Uint8List? prevOutScript]
+  ) {
+
     if (!_canModifyInputs()) {
       throw ArgumentError('No, this would invalidate signatures');
     }
+
     Uint8List hash;
-    var value;
+    int? value;
+
     if (txHash is String) {
       hash = Uint8List.fromList(HEX.decode(txHash).reversed.toList());
     } else if (txHash is Uint8List) {
@@ -142,11 +147,13 @@ class TransactionBuilder {
     } else {
       throw ArgumentError('txHash invalid');
     }
+
     return _addInputUnsafe(
         hash,
         vout,
         Input(sequence: sequence, prevOutScript: prevOutScript, value: value)
     );
+
   }
 
   /// Sign the transaction input at [vin] with [keyPair]. The [witnessScript]
@@ -286,36 +293,12 @@ class TransactionBuilder {
 
       final input = _inputs[i];
 
-      if (!input.isComplete()) {
-        if (allowIncomplete) continue;
+      if (!input.isComplete() && !allowIncomplete) {
         throw ArgumentError('Transaction is not complete');
       }
 
-      if (input.prevOutType == SCRIPT_TYPES['P2PKH']) {
-
-        P2PKH payment = P2PKH(
-            data: PaymentData(
-                pubkey: input.pubkeys![0],
-                signature: input.signatures![0]
-            ),
-            network: network
-        );
-        tx.setInputScript(i, payment.data.input!);
-        tx.setWitness(i, payment.data.witness);
-
-      } else if (input.prevOutType == SCRIPT_TYPES['P2WPKH']) {
-
-        P2WPKH payment = P2WPKH(
-            data: PaymentData(
-                pubkey: input.pubkeys![0],
-                signature: input.signatures![0]
-            ),
-            network: network
-        );
-        tx.setInputScript(i, payment.data.input!);
-        tx.setWitness(i, payment.data.witness!);
-
-      } else if (input.prevOutType == SCRIPT_TYPES['P2WSH']) {
+      if (input.prevOutType == SCRIPT_TYPES['P2WSH']) {
+        // Build multisig P2WSH even when incomplete
 
         tx.setInputScript(i, Uint8List(0));
 
@@ -332,6 +315,24 @@ class TransactionBuilder {
         }
 
         tx.setWitness(i, input.witness);
+
+      } else if (input.isComplete()) {
+        // Build the following types of input only when complete
+
+        final paymentData = PaymentData(
+            pubkey: input.pubkeys![0], signature: input.signatures![0]
+        );
+
+        if (input.prevOutType == SCRIPT_TYPES['P2PKH']) {
+          P2PKH(data: paymentData, network: network);
+        } else if (input.prevOutType == SCRIPT_TYPES['P2WPKH']) {
+          P2WPKH(data: paymentData, network: network);
+        } else {
+          continue;
+        }
+
+        tx.setInputScript(i, paymentData.input!);
+        tx.setWitness(i, paymentData.witness);
 
       }
 
@@ -388,23 +389,28 @@ class TransactionBuilder {
   }
 
   bool _needsOutputs(int signingHashType) {
+
     if (signingHashType == SIGHASH_ALL) {
-      return this._tx.outs.length == 0;
+      return _tx.outs.isEmpty;
     }
+
     // if inputs are being signed with SIGHASH_NONE, we don't strictly need outputs
     // .build() will fail, but .buildIncomplete() is OK
-    return (this._tx.outs.length == 0) &&
-        _inputs.map((input) {
-          if (input.signatures == null || input.signatures!.length == 0)
-            return false;
-          return input.signatures!.map((signature) {
-            if (signature == null) return false; // no signature, no issue
-            final hashType = _signatureHashType(signature);
-            if (hashType & SIGHASH_NONE != 0)
-              return false; // SIGHASH_NONE doesn't care about outputs
-            return true; // SIGHASH_* does care
-          }).contains(true);
-        }).contains(true);
+    return _tx.outs.isEmpty && _inputs.any(
+      (input) {
+
+        if (input.signatures == null || input.signatures!.isEmpty) {
+          return false;
+        }
+
+        return input.signatures!.any((signature) {
+          if (signature == null) return false; // no signature, no issue
+          final hashType = _signatureHashType(signature);
+          return hashType & SIGHASH_NONE == 0;
+        });
+
+      }
+    );
   }
 
 
@@ -430,6 +436,7 @@ class TransactionBuilder {
       : Input();
 
     if (options.value != null) input.value = options.value;
+
     if (input.prevOutScript == null && options.prevOutScript != null) {
       if (input.pubkeys == null && input.signatures == null) {
         var expanded = Output.expandOutput(options.prevOutScript!);
@@ -441,10 +448,13 @@ class TransactionBuilder {
       input.prevOutScript = options.prevOutScript;
       input.prevOutType = classifyOutput(options.prevOutScript!);
     }
+
     int vin = _tx.addInput(hash, vout, options.sequence, options.script);
     _inputs.add(input);
     _prevTxSet[prevTxOut] = true;
+
     return vin;
+
   }
 
   int _signatureHashType(Uint8List buffer) {

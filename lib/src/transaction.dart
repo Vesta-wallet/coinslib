@@ -609,7 +609,11 @@ class Input {
       // TODO: Having witness data handled in a class would be nicer, but I'm
       // sticking reasonably close to the library interface as-is
       final signatures = witness.sublist(1, witness.length-1);
-      final threshold = MultisigScript.fromScriptBytes(witness.last).threshold;
+      final multisig = MultisigScript.fromScriptBytes(witness.last);
+      final threshold = multisig.threshold;
+
+      // TODO: Add null signatures in place where a signature doesn't exist for
+      // a given public key
 
       return Input(
           prevOutType: type,
@@ -636,7 +640,7 @@ class Input {
       );
     }
 
-    throw UnsupportedError('type "$type"');
+    throw UnsupportedError('Unsupported input type "$type"');
 
   }
 

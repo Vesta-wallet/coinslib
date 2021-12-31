@@ -179,9 +179,11 @@ bool bip66check(buffer) {
   if (lenR > 1 && (buffer[4] == 0x00) && buffer[5] & 0x80 == 0) return false;
 
   if (buffer[lenR + 6] & 0x80 != 0) return false;
-  if (lenS > 1 && (buffer[lenR + 6] == 0x00) && buffer[lenR + 7] & 0x80 == 0)
-    return false;
-  return true;
+
+  return !(
+    lenS > 1 && (buffer[lenR + 6] == 0x00) && buffer[lenR + 7] & 0x80 == 0
+  );
+
 }
 
 Uint8List bip66encode(r, s) {

@@ -43,8 +43,12 @@ main() {
 
     // Single signature
     expectSuccess(["00", validSig, validOneOfOneScript]);
+    // Allow no signatures
+    expectSuccess(["00", validOneOfOneScript]);
     // Double signature
     expectSuccess(["00", validSig, validSig, validTwoOfTwoScript]);
+    // Allow partial signature
+    expectSuccess(["00", validSig, validTwoOfTwoScript]);
 
   });
 
@@ -58,10 +62,6 @@ main() {
     expectFail(["0001", validSig, validOneOfOneScript]);
     // Too many signatures
     expectFail(["00", validSig, validSig, validOneOfOneScript]);
-    // Too few signatures
-    expectFail(["00", validSig, validTwoOfTwoScript]);
-    // No signatures
-    expectFail(["00", validOneOfOneScript]);
     // Invalid signature
     expectFail(["00", invalidSig, validOneOfOneScript]);
     // Invalid script
