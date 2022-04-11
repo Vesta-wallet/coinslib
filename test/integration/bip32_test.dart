@@ -6,22 +6,15 @@ import 'package:coinslib/src/payments/p2pkh.dart';
 import 'package:test/test.dart';
 import 'package:hex/hex.dart';
 import 'package:bip39/bip39.dart' as bip39;
-import 'package:bip32/bip32.dart' as bip32;
+import 'package:coinslib/src/bip32_base.dart' as bip32;
 
 void main() {
   group('bitcoin-dart (BIP32)', () {
     test('can import a BIP32 testnet xpriv and export to WIF', () {
       const xpriv =
           'tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK';
-      final node = bip32.BIP32.fromBase58(
-          xpriv,
-          bip32.NetworkType(
-              wif: testnet.wif,
-              bip32: new bip32.Bip32Type(
-                  public: testnet.bip32.public,
-                  private: testnet.bip32.private)));
-      expect(
-          node.toWIF(), 'cQfoY67cetFNunmBUX5wJiw3VNoYx3gG9U9CAofKE6BfiV1fSRw7');
+      final node = bip32.BIP32.fromBase58(xpriv, testnet);
+      expect(node.toWIF(), 'cQfoY67cetFNunmBUX5wJiw3VNoYx3gG9U9CAofKE6BfiV1fSRw7');
     });
     test('can export a BIP32 xpriv, then import it', () {
       const mnemonic =
