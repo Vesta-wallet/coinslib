@@ -122,13 +122,17 @@ class TransactionBuilder {
 
   }
 
-  int addInput(dynamic txHash, int vout,
-      [int? sequence, Uint8List? prevOutScript]) {
+  int addInput(
+      dynamic txHash, int vout, [int? sequence, Uint8List? prevOutScript]
+  ) {
+
     if (!_canModifyInputs()) {
       throw new ArgumentError('No, this would invalidate signatures');
     }
+
     Uint8List hash;
     var value;
+
     if (txHash is String) {
       hash = Uint8List.fromList(HEX.decode(txHash).reversed.toList());
     } else if (txHash is Uint8List) {
@@ -141,11 +145,12 @@ class TransactionBuilder {
     } else {
       throw new ArgumentError('txHash invalid');
     }
+
     return _addInputUnsafe(
-        hash,
-        vout,
-        new Input(
-            sequence: sequence, prevOutScript: prevOutScript, value: value));
+        hash, vout,
+        Input(sequence: sequence, prevOutScript: prevOutScript, value: value)
+    );
+
   }
 
   sign(
