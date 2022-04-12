@@ -140,26 +140,52 @@ main() {
 
     group('sign', () {
 
-      test('r and s values are low', () {
+      final aliceKey = ECPair.fromWIF(
+        'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
+        network: NETWORKS.peercoin
+      );
 
-        final aliceKey = ECPair.fromWIF(
-          'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
-          network: NETWORKS.peercoin
-        );
+      test('gives low r and s values and unique r values', () {
 
         Uint8List fakeHash = Uint8List(32);
+        List<Uint8List> rValues = [];
 
         for (int i = 0; i < 256; i++) {
           fakeHash[0] = i;
           final sig = aliceKey.sign(fakeHash);
           final r = sig.sublist(0, 32);
           final s = sig.sublist(32, 64);
+          rValues.add(r);
           // Require r and s values to be low
           expect(r[0] & 0x80, 0);
           expect(s[0] & 0x80, 0);
         }
 
+        // Check r-value uniqueness
+        void expectUnique(Uint8List a, Uint8List b) {
+
+          expect(a.length, b.length);
+
+          bool same = true;
+          for (int i = 0; i < a.length; i++) {
+            if (a[i] != b[i]) {
+              same = false;
+              break;
+            }
+          }
+
+          expect(same, isFalse);
+
+        }
+
+        for (int i = 0; i < rValues.length; i++) {
+          for (int j = 0; j < i; j++) {
+            expectUnique(rValues[i], rValues[j]);
+          }
+        }
+
       });
+
 
     });
 
