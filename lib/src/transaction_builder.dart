@@ -160,8 +160,7 @@ class TransactionBuilder {
       int? witnessValue,
       Uint8List? witnessScript,
       int? hashType}) {
-    if (keyPair.network != null &&
-        keyPair.network.toString().compareTo(network.toString()) != 0)
+    if (keyPair.network.toString().compareTo(network.toString()) != 0)
       throw new ArgumentError('Inconsistent network');
     if (vin >= _inputs.length)
       throw new ArgumentError('No input at index: $vin');

@@ -40,22 +40,22 @@ void main() {
 
   group('Failing ecc test', () {
     test('Should fail with the third set of key-msg', () {
-      var key, msg, sig;
+      var key, msg;
 
       key = 'f92ca9fe5f77afa489214a7ba2bd6b36d30dd4acdb55c70d1378b5c45c831820';
       msg = '045a7448dffff67c08023d16279c57c0bd16af6467580c183cc4672e768b8a77';
 
-      sig = ecc.sign(HEX.decode(msg) as Uint8List, HEX.decode(key) as Uint8List);
+      ecc.sign(HEX.decode(msg) as Uint8List, HEX.decode(key) as Uint8List);
 
       key = '8c39fb3d889b6be22850254dc7ce3247c559d9f968785d88251ee4457633e335';
       msg = '6ad99bc30926fd79cf5a977044088fd298a59728c5b0c1040713d3a8e1c1e69b';
 
-      sig = ecc.sign(HEX.decode(msg) as Uint8List, HEX.decode(key) as Uint8List);
+      ecc.sign(HEX.decode(msg) as Uint8List, HEX.decode(key) as Uint8List);
 
       key = '2de619ea940d31927e0a7bbd5ebf855ab66f488b94a65cf929a1eb70b54ec771';
       msg = 'd82a6db2583353856dd4dadc38cdb6373b092ea1f026fa04f03aa3c4e972454f';
 
-      sig = ecc.sign(HEX.decode(msg) as Uint8List, HEX.decode(key) as Uint8List);
+      ecc.sign(HEX.decode(msg) as Uint8List, HEX.decode(key) as Uint8List);
     });
   });
 }
