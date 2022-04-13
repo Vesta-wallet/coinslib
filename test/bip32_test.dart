@@ -189,13 +189,14 @@ void main() {
   test("ecdsa", () {
     Uint8List seed = Uint8List.fromList(List.generate(32, (index) => 1));
     Uint8List hash = Uint8List.fromList(List.generate(32, (index) => 2));
-    String sigStr = "9636ee2fac31b795a308856b821ebe297dda7b28220fb46ea1fbbd7285977cc04c82b734956246a0f15a9698f03f546d8d96fe006c8e7bd2256ca7c8229e6f5c";
+    String sigStr = "7c3cdc1c72516338c3ef505452a429473397ac924ee190dfb4cc945c284fff7f239aaa21d3162701753454519a62d47045d4dd0c46be2c74d50c358a3953c874";
     Uint8List signature = HEX.decode(sigStr) as Uint8List;
     BIP32 node = BIP32.fromSeed(seed);
     expect(HEX.encode(node.sign(hash)), sigStr);
     expect(node.verify(hash, signature), true);
     expect(node.verify(seed, signature), false);
   });
+
 }
 
 void verify(BIP32 hd, prv, f, network) {

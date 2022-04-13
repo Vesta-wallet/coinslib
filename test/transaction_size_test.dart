@@ -62,8 +62,8 @@ main() {
 
       // No witness data so size should equal buffer size
       expect(tx.txSize, tx.toBuffer().length);
-      // Deterministically 244 bytes each time
-      expect(tx.txSize, 244);
+      // Deterministically 243 bytes each time
+      expect(tx.txSize, 243);
 
     });
 
