@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
 import '../lib/src/address.dart' show Address;

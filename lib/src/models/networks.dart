@@ -1,3 +1,5 @@
+import '../bip32_base.dart';
+
 class NetworkType {
   String messagePrefix;
   String? bech32;
@@ -19,18 +21,6 @@ class NetworkType {
   @override
   String toString() {
     return 'NetworkType{messagePrefix: $messagePrefix, bech32: $bech32, bip32: ${bip32.toString()}, pubKeyHash: $pubKeyHash, scriptHash: $scriptHash, wif: $wif, op return max size: $opreturnSize}';
-  }
-}
-
-class Bip32Type {
-  int public;
-  int private;
-
-  Bip32Type({required this.public, required this.private});
-
-  @override
-  String toString() {
-    return 'Bip32Type{public: $public, private: $private}';
   }
 }
 

@@ -3,19 +3,22 @@ import 'dart:typed_data';
 import '../../lib/src/models/networks.dart' as NETWORKS;
 import '../../lib/src/ecpair.dart' show ECPair;
 import '../../lib/src/payments/index.dart' show PaymentData;
-import '../../lib/src/payments/p2pkh.dart' show P2PKH, P2PKHData;
+import '../../lib/src/payments/p2pkh.dart' show P2PKH;
 import '../../lib/src/payments/p2wpkh.dart' show P2WPKH;
+import '../../lib/src/bip32_base.dart' show Bip32Type;
 import 'package:pointycastle/digests/sha256.dart';
 import 'dart:convert';
 import 'package:test/test.dart';
 
 NETWORKS.NetworkType litecoin = new NETWORKS.NetworkType(
     messagePrefix: '\x19Litecoin Signed Message:\n',
-    bip32: new NETWORKS.Bip32Type(public: 0x019da462, private: 0x019d9cfe),
+    bip32: Bip32Type(public: 0x019da462, private: 0x019d9cfe),
     pubKeyHash: 0x30,
     scriptHash: 0x32,
     wif: 0xb0,
-    opreturnSize: 80);
+    opreturnSize: 80
+);
+
 // deterministic RNG for testing only
 rng(int number) {
   return utf8.encode('zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz');

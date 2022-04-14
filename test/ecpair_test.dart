@@ -11,9 +11,13 @@ final ONE = HEX.decode(
     as Uint8List;
 
 main() {
+
   final fixtures = json.decode(
-      new File('test/fixtures/ecpair.json').readAsStringSync(encoding: utf8));
+      File('test/fixtures/ecpair.json').readAsStringSync(encoding: utf8)
+  );
+
   group('ECPair', () {
+
     group('fromPrivateKey', () {
       test('defaults to compressed', () {
         final keyPair = ECPair.fromPrivateKey(ONE);
@@ -46,6 +50,7 @@ main() {
         });
       });
     });
+
     group('fromPublicKey', () {
       (fixtures['invalid']['fromPublicKey'] as List).forEach((f) {
         test('throws ' + f['exception'], () {
@@ -58,6 +63,7 @@ main() {
         });
       });
     });
+
     group('fromWIF', () {
       (fixtures['valid'] as List).forEach((f) {
         test('imports ${f['WIF']}', () {
@@ -79,6 +85,7 @@ main() {
         });
       });
     });
+
     group('toWIF', () {
       (fixtures['valid'] as List).forEach((f) {
         test('export ${f['WIF']}', () {
@@ -87,6 +94,7 @@ main() {
         });
       });
     });
+
     group('makeRandom', () {
       final d = Uint8List.fromList(List.generate(32, (i) => 4));
       final exWIF = 'KwMWvwRJeFqxYyhZgNwYuYjbQENDAPAudQx5VEmKJrUZcq6aL2pv';
@@ -119,6 +127,7 @@ main() {
         }
       });
     });
+
     group('.network', () {
       (fixtures['valid'] as List).forEach((f) {
         test('return ${f['network']} for ${f['WIF']}', () {
@@ -128,6 +137,58 @@ main() {
         });
       });
     });
+
+    group('sign', () {
+
+      final aliceKey = ECPair.fromWIF(
+        'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
+        network: NETWORKS.peercoin
+      );
+
+      test('gives low r and s values and unique r values', () {
+
+        Uint8List fakeHash = Uint8List(32);
+        List<Uint8List> rValues = [];
+
+        for (int i = 0; i < 256; i++) {
+          fakeHash[0] = i;
+          final sig = aliceKey.sign(fakeHash);
+          final r = sig.sublist(0, 32);
+          final s = sig.sublist(32, 64);
+          rValues.add(r);
+          // Require r and s values to be low
+          expect(r[0] & 0x80, 0);
+          expect(s[0] & 0x80, 0);
+        }
+
+        // Check r-value uniqueness
+        void expectUnique(Uint8List a, Uint8List b) {
+
+          expect(a.length, b.length);
+
+          bool same = true;
+          for (int i = 0; i < a.length; i++) {
+            if (a[i] != b[i]) {
+              same = false;
+              break;
+            }
+          }
+
+          expect(same, isFalse);
+
+        }
+
+        for (int i = 0; i < rValues.length; i++) {
+          for (int j = 0; j < i; j++) {
+            expectUnique(rValues[i], rValues[j]);
+          }
+        }
+
+      });
+
+
+    });
+
   });
 }
 
