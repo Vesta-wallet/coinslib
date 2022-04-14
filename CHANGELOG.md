@@ -1,3 +1,6 @@
+## 3.1.2
+- Produce fixed-size signatures with low r-values (no more inconsistent tx sizes)
+
 ## 3.1.1
 - Add P2WSH outputs
 
