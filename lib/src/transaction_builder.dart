@@ -124,8 +124,7 @@ class TransactionBuilder {
   }
 
   int addInput(
-    dynamic txHash, int vout,
-    [int? sequence, Uint8List? prevOutScript]
+      dynamic txHash, int vout, [int? sequence, Uint8List? prevOutScript]
   ) {
 
     if (!_canModifyInputs()) {
@@ -149,8 +148,7 @@ class TransactionBuilder {
     }
 
     return _addInputUnsafe(
-        hash,
-        vout,
+        hash, vout,
         Input(sequence: sequence, prevOutScript: prevOutScript, value: value)
     );
 

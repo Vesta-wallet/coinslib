@@ -2,7 +2,7 @@
 import 'dart:typed_data';
 import 'package:coinslib/src/utils/magic_hash.dart';
 import 'package:hex/hex.dart';
-import 'package:bip32/bip32.dart' as bip32;
+import 'bip32_base.dart' as bip32;
 import 'models/networks.dart';
 import 'payments/index.dart' show PaymentData;
 import 'payments/p2pkh.dart';
@@ -71,12 +71,7 @@ class HDWallet {
   factory HDWallet.fromSeed(Uint8List seed, {NetworkType? network}) {
     network = network ?? bitcoin;
     final seedHex = HEX.encode(seed);
-    final wallet = bip32.BIP32.fromSeed(
-        seed,
-        bip32.NetworkType(
-            bip32: bip32.Bip32Type(
-                public: network.bip32.public, private: network.bip32.private),
-            wif: network.wif));
+    final wallet = bip32.BIP32.fromSeed(seed, network);
     final p2pkh = new P2PKH(
         data: new PaymentData(pubkey: wallet.publicKey), network: network);
     return HDWallet(
@@ -85,12 +80,7 @@ class HDWallet {
 
   factory HDWallet.fromBase58(String xpub, {NetworkType? network}) {
     network = network ?? bitcoin;
-    final wallet = bip32.BIP32.fromBase58(
-        xpub,
-        bip32.NetworkType(
-            bip32: bip32.Bip32Type(
-                public: network.bip32.public, private: network.bip32.private),
-            wif: network.wif));
+    final wallet = bip32.BIP32.fromBase58(xpub, network);
     final p2pkh = new P2PKH(
         data: new PaymentData(pubkey: wallet.publicKey), network: network);
     return HDWallet(bip32: wallet, p2pkh: p2pkh, network: network, seed: null);

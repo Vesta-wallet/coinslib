@@ -95,15 +95,19 @@ main() {
       .readAsStringSync(encoding: utf8)
   );
 
-  final keyPair = ECPair.fromPrivateKey(HEX.decode(
-          '0000000000000000000000000000000000000000000000000000000000000001')
-      as Uint8List);
+  final keyPair = ECPair.fromPrivateKey(
+      HEX.decode('0000000000000000000000000000000000000000000000000000000000000001')
+      as Uint8List
+  );
+
   final scripts = [
     '1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH',
     '1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP'
   ].map((x) => Address.addressToOutputScript(x));
+
   final txHash = HEX.decode(
-      '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2');
+      '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2'
+  );
 
   group('TransactionBuilder.fromTransaction', () {
 
@@ -147,6 +151,7 @@ main() {
         }
       });
     });
+
     fixtures['invalid']['fromTransaction'] as List
       ..forEach((f) {
         test('throws ${f['exception']}', () {
@@ -158,13 +163,16 @@ main() {
           }
         });
       });
+
   });
 
   group('TransactionBuilder.addInput', () {
+
     late TransactionBuilder txb;
     setUp(() {
       txb = TransactionBuilder();
     });
+
     test('accepts a txHash, index [and sequence number]', () {
       final vin = txb.addInput(txHash, 1, 54);
       expect(vin, 0);
@@ -174,6 +182,7 @@ main() {
       expect(txIn.sequence, 54);
       expect(txb.inputs[0].prevOutScript, null);
     });
+
     test('accepts a txHash, index [, sequence number and scriptPubKey]', () {
       final vin = txb.addInput(txHash, 1, 54, scripts.elementAt(1));
       expect(vin, 0);
@@ -183,6 +192,7 @@ main() {
       expect(txIn.sequence, 54);
       expect(txb.inputs[0].prevOutScript, scripts.elementAt(1));
     });
+
     test('accepts a prevTx, index [and sequence number]', () {
       final prevTx = Transaction();
       prevTx.addOutput(scripts.elementAt(0), 0);
@@ -197,10 +207,12 @@ main() {
       expect(txIn.sequence, 54);
       expect(txb.inputs[0].prevOutScript, scripts.elementAt(1));
     });
+
     test('returns the input index', () {
       expect(txb.addInput(txHash, 0), 0);
       expect(txb.addInput(txHash, 1), 1);
     });
+
     test(
         'throws if SIGHASH_ALL has been used to sign any existing scriptSigs',
         () {
@@ -214,13 +226,16 @@ main() {
             'No, this would invalidate signatures');
       }
     });
+
   });
 
   group('TransactionBuilder.addOutput', () {
+
     late TransactionBuilder txb;
     setUp(() {
       txb = TransactionBuilder();
     });
+
     test('accepts an address string and value', () {
       final address =
           P2PKH(data: PaymentData(pubkey: keyPair.publicKey))
@@ -232,6 +247,7 @@ main() {
       expect(txout.script, scripts.elementAt(0));
       expect(txout.value, 1000);
     });
+
     test('accepts a ScriptPubKey and value', () {
       final vout = txb.addOutput(scripts.elementAt(0), 1000);
       expect(vout, 0);
@@ -239,6 +255,7 @@ main() {
       expect(txout.script, scripts.elementAt(0));
       expect(txout.value, 1000);
     });
+
     test('throws if address is of the wrong network', () {
       try {
         expect(txb.addOutput('2NGHjvjw83pcVFgMcA7QvSMh2c246rxLVz9', 1000),
@@ -248,17 +265,20 @@ main() {
             'Invalid version or Network mismatch');
       }
     });
+
     test('add second output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
       txb.addOutput(scripts.elementAt(0), 2000);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
       expect(txb.addOutput(scripts.elementAt(1), 9000), 1);
     });
+
     test('add first output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
       expect(txb.addOutput(scripts.elementAt(0), 2000), 0);
     });
+
     test('add second output after signed first input with SIGHASH_SINGLE',
         () {
       txb.addInput(txHash, 0);
@@ -266,6 +286,7 @@ main() {
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
       expect(txb.addOutput(scripts.elementAt(1), 9000), 1);
     });
+
     test('add first output after signed first input with SIGHASH_SINGLE', () {
       txb.addInput(txHash, 0);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
@@ -276,6 +297,7 @@ main() {
             'No, this would invalidate signatures');
       }
     });
+
     test(
         'throws if SIGHASH_ALL has been used to sign any existing scriptSigs',
         () {
@@ -289,6 +311,7 @@ main() {
             'No, this would invalidate signatures');
       }
     });
+
   });
 
   group('TransactionBuilder.addNullOutput', () {
@@ -334,17 +357,20 @@ main() {
             'Too much data, max OP_RETURN size is 80');
       }
     });
+
     test('add second output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
       txb.addNullOutput(data);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
       expect(txb.addNullOutput(data2), 1);
     });
+
     test('add first output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
       expect(txb.addNullOutput(data), 0);
     });
+
     test('add second output after signed first input with SIGHASH_SINGLE',
         () {
       txb.addInput(txHash, 0);
@@ -352,6 +378,7 @@ main() {
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
       expect(txb.addNullOutput(data2), 1);
     });
+
     test('add first output after signed first input with SIGHASH_SINGLE', () {
       txb.addInput(txHash, 0);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
@@ -362,6 +389,7 @@ main() {
             'No, this would invalidate signatures');
       }
     });
+
     test(
         'throws if SIGHASH_ALL has been used to sign any existing scriptSigs',
         () {
@@ -375,6 +403,7 @@ main() {
             'No, this would invalidate signatures');
       }
     });
+
   });
 
   group('TransactionBuilder.setLockTime', () {

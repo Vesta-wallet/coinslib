@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
-import 'package:bip32/src/utils/ecurve.dart' as ecc;
+import './ecurve.dart' as ecc;
 import 'constants/op.dart';
 import 'push_data.dart' as pushData;
 import 'check_types.dart';

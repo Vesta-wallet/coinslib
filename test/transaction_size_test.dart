@@ -8,6 +8,16 @@ main() {
 
   group('Transaction.txSize', () {
 
+    // Peercoin WIF format
+    final aliceKey = ECPair.fromWIF(
+      'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
+      network: NETWORKS.peercoin
+    );
+
+    final mockHash =
+      '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d';
+    final mockAddress = 'P8gWEwpDSPPohHMHcNA5cg7di7pgRrXGGk';
+
     test('transaction size is not 1 byte under', () {
 
       // Taken from
@@ -46,12 +56,9 @@ main() {
       final txb = TransactionBuilder(network: NETWORKS.peercoin);
 
       txb.setVersion(3);
-      txb.addInput(
-        '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d',
-        0
-      );
+      txb.addInput(mockHash, 0);
 
-      txb.addOutput('P8gWEwpDSPPohHMHcNA5cg7di7pgRrXGGk', 12000);
+      txb.addOutput(mockAddress, 12000);
       // Do null outputs break it?
       txb.addNullOutput('Hey this is a random string without coins');
 
@@ -61,8 +68,33 @@ main() {
 
       // No witness data so size should equal buffer size
       expect(tx.txSize, tx.toBuffer().length);
-      // Deterministically 244 bytes each time
-      expect(tx.txSize, 244);
+      // Deterministically 243 bytes each time
+      expect(tx.txSize, 243);
+
+    });
+
+    test('should sign with small signatures', () {
+
+      // Loop through 10 different possible transactions with 3 inputs each,
+      // ensuring that all meet the minimum signature size
+      for (int i = 0; i < 10; i++) {
+
+        final txb = TransactionBuilder(network: NETWORKS.peercoin);
+        txb.setVersion(3);
+
+        for (int j = 0; j < 3; j++)
+          txb.addInput(mockHash, j);
+
+        txb.addOutput(mockAddress, 1000*(i+1));
+
+        for (int j = 0; j < 3; j++)
+          txb.sign(vin: j, keyPair: aliceKey);
+
+        // A tx with 3 single-sig inputs, plus one P2PKH output should have the
+        // length of 485 if all r-values are low
+        expect(txb.build().txSize, 485);
+
+      }
 
     });
 
