@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:bip32/src/utils/ecurve.dart' show isPoint;
+import '../utils/ecurve.dart' show isPoint;
 import '../utils/script.dart' as bscript;
 import '../utils/constants/op.dart';
 
