@@ -24,7 +24,7 @@ class P2WPKH {
         data.hash == null &&
         data.output == null &&
         data.pubkey == null &&
-        data.witness == null) throw new ArgumentError('Not enough data');
+        data.witness == null) throw ArgumentError('Not enough data');
 
     if (data.address != null) {
       _getDataFromAddress(data.address!);
@@ -39,7 +39,7 @@ class P2WPKH {
       if (output.length != 22 ||
           output[0] != OPS['OP_0'] ||
           output[1] != 20) // 0x14
-        throw new ArgumentError('Output is invalid');
+        throw ArgumentError('Output is invalid');
       if (data.hash == null) {
         data.hash = output.sublist(2);
       }
@@ -53,11 +53,13 @@ class P2WPKH {
 
     final witness = data.witness;
     if (witness != null) {
-      if (witness.length != 2) throw new ArgumentError('Witness is invalid');
-      if (!bscript.isCanonicalScriptSignature(witness[0]))
-        throw new ArgumentError('Witness has invalid signature');
-      if (!isPoint(witness[1]))
-        throw new ArgumentError('Witness has invalid pubkey');
+      if (witness.length != 2) throw ArgumentError('Witness is invalid');
+      if (!bscript.isCanonicalScriptSignature(witness[0])) {
+        throw ArgumentError('Witness has invalid signature');
+      }
+      if (!isPoint(witness[1])) {
+        throw ArgumentError('Witness has invalid pubkey');
+      }
       _getDataFromWitness(witness);
     } else if (data.pubkey != null && data.signature != null) {
       data.witness = [data.signature!, data.pubkey!];
@@ -66,14 +68,10 @@ class P2WPKH {
   }
 
   void _getDataFromWitness(List<Uint8List> witness) {
-    if (data.input == null) {
-      data.input = EMPTY_SCRIPT;
-    }
+    data.input ??= EMPTY_SCRIPT;
     if (data.pubkey == null) {
       data.pubkey = witness[1];
-      if (data.hash == null) {
-        data.hash = hash160(data.pubkey!);
-      }
+      data.hash ??= hash160(data.pubkey!);
       _getDataFromHash();
     }
     if (data.signature == null) data.signature = witness[0];
@@ -92,16 +90,16 @@ class P2WPKH {
     try {
       Segwit _address = segwit.decode(address);
       if (network.bech32 != _address.hrp)
-        throw new ArgumentError('Invalid prefix or Network mismatch');
+        throw ArgumentError('Invalid prefix or Network mismatch');
       if (_address.version != 0) // Only support version 0 now;
-        throw new ArgumentError('Invalid address version');
+        throw ArgumentError('Invalid address version');
       data.hash = Uint8List.fromList(_address.program);
     } on InvalidHrp {
-      throw new ArgumentError('Invalid prefix or Network mismatch');
+      throw ArgumentError('Invalid prefix or Network mismatch');
     } on InvalidProgramLength {
-      throw new ArgumentError('Invalid address data');
+      throw ArgumentError('Invalid address data');
     } on InvalidWitnessVersion {
-      throw new ArgumentError('Invalid witness address version');
+      throw ArgumentError('Invalid witness address version');
     }
   }
 }

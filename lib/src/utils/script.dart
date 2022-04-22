@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
 import './ecurve.dart' as ecc;
@@ -6,7 +7,7 @@ import 'push_data.dart' as pushData;
 import 'check_types.dart';
 
 Map<int, String> REVERSE_OPS =
-    OPS.map((String string, int number) => new MapEntry(number, string));
+    OPS.map((String string, int number) => MapEntry(number, string));
 final OP_INT_BASE = OPS['OP_RESERVED'];
 final ZERO = Uint8List.fromList([0]);
 
@@ -18,7 +19,7 @@ Uint8List compile(List<dynamic> chunks) {
     }
     return acc + pushData.encodingLength(chunk.length) + chunk.length as int;
   });
-  var buffer = new Uint8List(bufferSize);
+  var buffer = Uint8List(bufferSize);
 
   var offset = 0;
   chunks.forEach((chunk) {
@@ -44,8 +45,9 @@ Uint8List compile(List<dynamic> chunks) {
     }
   });
 
-  if (offset != buffer.length)
-    throw new ArgumentError("Could not decode chunks");
+  if (offset != buffer.length) {
+    throw ArgumentError("Could not decode chunks");
+  }
   return buffer;
 }
 
@@ -189,18 +191,18 @@ bool bip66check(buffer) {
 Uint8List bip66encode(r, s) {
   var lenR = r.length;
   var lenS = s.length;
-  if (lenR == 0) throw new ArgumentError('R length is zero');
-  if (lenS == 0) throw new ArgumentError('S length is zero');
-  if (lenR > 33) throw new ArgumentError('R length is too long');
-  if (lenS > 33) throw new ArgumentError('S length is too long');
-  if (r[0] & 0x80 != 0) throw new ArgumentError('R value is negative');
-  if (s[0] & 0x80 != 0) throw new ArgumentError('S value is negative');
+  if (lenR == 0) throw ArgumentError('R length is zero');
+  if (lenS == 0) throw ArgumentError('S length is zero');
+  if (lenR > 33) throw ArgumentError('R length is too long');
+  if (lenS > 33) throw ArgumentError('S length is too long');
+  if (r[0] & 0x80 != 0) throw ArgumentError('R value is negative');
+  if (s[0] & 0x80 != 0) throw ArgumentError('S value is negative');
   if (lenR > 1 && (r[0] == 0x00) && r[1] & 0x80 == 0)
-    throw new ArgumentError('R value excessively padded');
+    throw ArgumentError('R value excessively padded');
   if (lenS > 1 && (s[0] == 0x00) && s[1] & 0x80 == 0)
-    throw new ArgumentError('S value excessively padded');
+    throw ArgumentError('S value excessively padded');
 
-  var signature = new Uint8List(6 + (lenR as int) + (lenS as int));
+  var signature = Uint8List(6 + (lenR as int) + (lenS as int));
 
   // 0x30 [total-length] 0x02 [R-length] [R] 0x02 [S-length] [S]
   signature[0] = 0x30;
@@ -219,9 +221,9 @@ Uint8List encodeSignature(Uint8List signature, int hashType) {
   if (signature.length != 64) throw ArgumentError("Invalid signature");
   final hashTypeMod = hashType & ~0x80;
   if (hashTypeMod <= 0 || hashTypeMod >= 4)
-    throw new ArgumentError('Invalid hashType $hashType');
+    throw ArgumentError('Invalid hashType $hashType');
 
-  final hashTypeBuffer = new Uint8List(1);
+  final hashTypeBuffer = Uint8List(1);
   hashTypeBuffer.buffer.asByteData().setUint8(0, hashType);
   final r = toDER(signature.sublist(0, 32));
   final s = toDER(signature.sublist(32, 64));
@@ -240,3 +242,15 @@ Uint8List toDER(Uint8List x) {
   if (x[0] & 0x80 != 0) return Uint8List.fromList(combine);
   return x;
 }
+
+/// Convert [bytes] representing an integer into a list of [length] padded with
+/// zeros on the front
+Uint8List padZeroBigEndian(Uint8List bytes, int length) => Uint8List.fromList(
+  List.filled(max(length - bytes.length, 0), 0) + bytes
+);
+
+/// Converts a DER encoded integer ([der]) to a big endian Uint8List with a
+/// given [length].
+Uint8List toBigEndianFromDER(Uint8List der, int length)
+  => padZeroBigEndian(der.sublist(der[0] == 0 ? 1 : 0), length);
+

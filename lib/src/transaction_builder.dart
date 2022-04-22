@@ -13,6 +13,7 @@ import 'payments/index.dart' show PaymentData;
 import 'payments/p2pkh.dart';
 import 'payments/p2wpkh.dart';
 import 'classify.dart';
+import 'input_signature.dart';
 
 class TransactionBuilder {
   NetworkType network;
@@ -58,22 +59,19 @@ class TransactionBuilder {
   }
 
   setVersion(int version) {
-    if (version < 0 || version > 0xFFFFFFFF)
+    if (version < 0 || version > 0xFFFFFFFF) {
       throw ArgumentError('Expected Uint32');
+    }
     _tx.version = version;
   }
 
   setLockTime(int locktime) {
-    if (locktime < 0 || locktime > 0xFFFFFFFF)
+    if (locktime < 0 || locktime > 0xFFFFFFFF) {
       throw ArgumentError('Expected Uint32');
+    }
     // if any signatures exist, throw
-    if (this._inputs.map((input) {
-      if (input.signatures == null) return false;
-      return input.signatures!.map((s) {
-        return s != null;
-      }).contains(true);
-    }).contains(true)) {
-      throw ArgumentError('No, this would invalidate signatures');
+    if (_inputs.any((input) => input.signatures.isNotEmpty)) {
+      throw ArgumentError('Can\'t set lock time; this would invalidate signatures');
     }
     _tx.locktime = locktime;
   }
@@ -88,7 +86,7 @@ class TransactionBuilder {
   int addOutput(dynamic data, int value) {
     late Uint8List scriptPubKey;
     if (data is String) {
-      scriptPubKey = Address.addressToOutputScript(data, this.network);
+      scriptPubKey = Address.addressToOutputScript(data, network);
     } else if (data is Uint8List) {
       scriptPubKey = data;
     } else {
@@ -224,6 +222,11 @@ class TransactionBuilder {
 
     }
 
+    // Check outPubKey is in input.pubkeys or we cannot sign
+    if (input.pubkeys!.every((pk) => !ListEquality().equals(ourPubKey, pk))) {
+      throw ArgumentError('Key pair cannot sign for this input');
+    }
+
     if (input.hasWitness) {
       if (witnessValue == null) {
         throw ArgumentError('Require previous output value for witness inputs');
@@ -231,38 +234,13 @@ class TransactionBuilder {
       input.value = witnessValue;
     }
 
-    // Make signatures list equal to the number of public keys so that they are
-    // mapped one to one in order. Null signatures will be removed upon build.
-    input.signatures ??= List.filled(input.pubkeys!.length, null);
-
-    late Uint8List signatureHash;
-    if (input.hasWitness) {
-      signatureHash = _tx.hashForWitnessV0(
-          vin, input.signScript!, input.value!, hashType
-      );
-    } else {
-      signatureHash = _tx.hashForSignature(
-          vin, input.signScript!, hashType
-      );
-    }
-
-    // enforce in order signing of public keys
-    var signed = false;
-    for (var i = 0; i < input.pubkeys!.length; i++) {
-
-      if (!ListEquality().equals(ourPubKey, input.pubkeys![i])) continue;
-
-      if (input.signatures![i] != null) {
-        throw ArgumentError('Signature already exists');
-      }
-
-      final signature = keyPair.sign(signatureHash);
-      input.signatures![i] = bscript.encodeSignature(signature, hashType);
-      signed = true;
-
-    }
-
-    if (!signed) throw ArgumentError('Key pair cannot sign for this input');
+    // Add signature to list of signatures
+    Uint8List sighash = _tx.signatureHash(vin, input, hashType);
+    final newSignature = InputSignature(
+        rawSignature: keyPair.sign(sighash),
+        hashType: hashType,
+    );
+    input.addSignature(newSignature);
 
   }
 
@@ -272,6 +250,44 @@ class TransactionBuilder {
 
   Transaction buildIncomplete() {
     return _build(true);
+  }
+
+  Iterable<InputSignature> _orderSigsForPubkeys({
+     required int inIndex,
+     required Input input,
+     required Iterable<InputSignature> signatures,
+     required List<Uint8List> pubkeys
+  }) {
+    // Ensure signatures are matched to public keys in the correct order
+
+    List<InputSignature?> positionedSigs = List.filled(pubkeys.length, null);
+
+    for (final sig in signatures) {
+
+      var matched = false;
+      for (var i = 0; i < pubkeys.length; i++) {
+        // Check if the signature matches the public key
+        if (
+          sig.verify(
+              pubkeys[i], _tx.signatureHash(inIndex, input, sig.hashType)
+          )
+        ) {
+          // Add signature in this position
+          positionedSigs[i] = sig;
+          matched = true;
+          break;
+        }
+      }
+
+      if (!matched) {
+        throw ArgumentError('A signature in an input has no corresponding public key');
+      }
+
+    }
+
+    // Remove nulls
+    return positionedSigs.whereType<InputSignature>();
+
   }
 
   Transaction _build(bool allowIncomplete) {
@@ -304,13 +320,17 @@ class TransactionBuilder {
         // The code is all over the place, with no clear structure. It would be
         // much better if there were clear abstractions for all parts of the
         // transaction that are serialised in one place
-        if (input.witness == null) {
-          // Remove all null signatures
-          final signatures = input.signatures!.whereType<Uint8List>();
-          input.witness = [
-              Uint8List.fromList([0]), ...signatures, input.signScript!
-          ];
-        }
+        input.witness ??= [
+            Uint8List.fromList([0]),
+            // Ensure signatures are in the correct order for multisig
+            ..._orderSigsForPubkeys(
+                inIndex: i,
+                input: input,
+                signatures: input.signatures,
+                pubkeys: input.pubkeys!
+            ).map((sig) => sig.encode()),
+            input.signScript!
+        ];
 
         tx.setWitness(i, input.witness);
 
@@ -318,7 +338,8 @@ class TransactionBuilder {
         // Build the following types of input only when complete
 
         final paymentData = PaymentData(
-            pubkey: input.pubkeys![0], signature: input.signatures![0]
+            pubkey: input.pubkeys![0],
+            signature: input.signatures.first.encode()
         );
 
         if (input.prevOutType == SCRIPT_TYPES['P2PKH']) {
@@ -357,11 +378,10 @@ class TransactionBuilder {
 
   bool _canModifyInputs() {
     return _inputs.every((input) {
-      if (input.signatures == null) return true;
-      return input.signatures!.every((signature) {
-        if (signature == null) return true;
-        return _signatureHashType(signature) & SIGHASH_ANYONECANPAY != 0;
-      });
+      if (input.signatures.isEmpty) return true;
+      return input.signatures.every(
+        (signature) => signature.hashType & SIGHASH_ANYONECANPAY != 0
+      );
     });
   }
 
@@ -369,11 +389,9 @@ class TransactionBuilder {
     final nInputs = _tx.ins.length;
     final nOutputs = _tx.outs.length;
     return _inputs.every((input) {
-      if (input.signatures == null) return true;
-      return input.signatures!.every((signature) {
-        if (signature == null) return true;
-        final hashType = _signatureHashType(signature);
-        final hashTypeMod = hashType & 0x1f;
+      if (input.signatures.isEmpty) return true;
+      return input.signatures.every((signature) {
+        final hashTypeMod = signature.hashType & 0x1f;
         if (hashTypeMod == SIGHASH_NONE) return true;
         if (hashTypeMod == SIGHASH_SINGLE) {
           // if SIGHASH_SINGLE is set, and nInputs > nOutputs
@@ -397,15 +415,11 @@ class TransactionBuilder {
     return _tx.outs.isEmpty && _inputs.any(
       (input) {
 
-        if (input.signatures == null || input.signatures!.isEmpty) {
-          return false;
-        }
+        if (input.signatures.isEmpty) return false;
 
-        return input.signatures!.any((signature) {
-          if (signature == null) return false; // no signature, no issue
-          final hashType = _signatureHashType(signature);
-          return hashType & SIGHASH_NONE == 0;
-        });
+        return input.signatures.any(
+          (signature) => signature.hashType & SIGHASH_NONE == 0
+        );
 
       }
     );
@@ -436,11 +450,10 @@ class TransactionBuilder {
     if (options.value != null) input.value = options.value;
 
     if (input.prevOutScript == null && options.prevOutScript != null) {
-      if (input.pubkeys == null && input.signatures == null) {
+      if (input.pubkeys == null && input.signatures.isEmpty) {
         var expanded = Output.expandOutput(options.prevOutScript!);
         if (expanded.pubkeys != null && expanded.pubkeys!.isNotEmpty) {
           input.pubkeys = expanded.pubkeys;
-          input.signatures = expanded.signatures;
         }
       }
       input.prevOutScript = options.prevOutScript;
@@ -453,10 +466,6 @@ class TransactionBuilder {
 
     return vin;
 
-  }
-
-  int _signatureHashType(Uint8List buffer) {
-    return buffer.buffer.asByteData().getUint8(buffer.length - 1);
   }
 
   Transaction get tx => _tx;

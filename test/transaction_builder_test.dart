@@ -415,8 +415,10 @@ main() {
       try {
         expect(txb.setLockTime(65535), isArgumentError);
       } catch (err) {
-        expect((err as ArgumentError).message,
-            'No, this would invalidate signatures');
+        expect(
+          (err as ArgumentError).message,
+            'Can\'t set lock time; this would invalidate signatures'
+        );
       }
     });
   });

@@ -11,6 +11,7 @@ import 'utils/check_types.dart';
 import 'utils/script.dart' as bscript;
 import 'utils/constants/op.dart';
 import 'utils/varuint.dart' as varuint;
+import 'input_signature.dart';
 
 const DEFAULT_SEQUENCE = 0xffffffff;
 const SIGHASH_ALL = 0x01;
@@ -68,6 +69,12 @@ class Transaction {
 
   setWitness(int index, List<Uint8List>? witness) {
     ins[index].witness = witness;
+  }
+
+  Uint8List signatureHash(int inIndex, Input input, int hashType) {
+    return input.hasWitness
+      ? hashForWitnessV0(inIndex, input.signScript!, input.value!, hashType)
+      : hashForSignature(inIndex, input.signScript!, hashType);
   }
 
   /// Note that the scriptCode is without the varint prefix
@@ -551,8 +558,8 @@ class Input {
   Uint8List? prevOutScript;
   String? prevOutType;
   bool hasWitness = false;
-  List<Uint8List?>? pubkeys;
-  List<Uint8List?>? signatures;
+  List<Uint8List>? pubkeys;
+  List<InputSignature> signatures;
   int? threshold;
   List<Uint8List>? witness;
 
@@ -564,11 +571,11 @@ class Input {
       this.value,
       this.prevOutScript,
       this.pubkeys,
-      this.signatures,
+      List<InputSignature>? signatures,
       this.witness,
       this.prevOutType,
       this.threshold
-  }) {
+  }) : signatures = signatures ?? [] {
     if (hash != null && !isHash256bit(hash!)) {
       throw ArgumentError('Invalid input hash');
     }
@@ -602,18 +609,16 @@ class Input {
           prevOutScript: p2wpkh.data.output,
           prevOutType: type,
           pubkeys: [p2wpkh.data.pubkey!],
-          signatures: [p2wpkh.data.signature!]
+          signatures: [InputSignature.decode(p2wpkh.data.signature!)]
       );
     } else if (type == SCRIPT_TYPES['P2WSH']) {
 
-      // TODO: Having witness data handled in a class would be nicer, but I'm
+      // Having witness data handled in a class would be nicer, but I'm
       // sticking reasonably close to the library interface as-is
-      final signatures = witness.sublist(1, witness.length-1);
+      final signatures = witness.sublist(1, witness.length-1)
+        .map((encoded) => InputSignature.decode(encoded)).toList();
       final multisig = MultisigScript.fromScriptBytes(witness.last);
       final threshold = multisig.threshold;
-
-      // TODO: Add null signatures in place where a signature doesn't exist for
-      // a given public key
 
       return Input(
           prevOutType: type,
@@ -629,14 +634,14 @@ class Input {
           prevOutScript: p2pkh.data.output,
           prevOutType: type,
           pubkeys: [p2pkh.data.pubkey!],
-          signatures: [p2pkh.data.signature!]
+          signatures: [InputSignature.decode(p2pkh.data.signature!)]
       );
     } else if (type == SCRIPT_TYPES['P2PK']) {
       P2PK p2pk = P2PK(data: PaymentData(input: scriptSig));
       return Input(
           prevOutType: type,
           pubkeys: [],
-          signatures: [p2pk.data.signature!]
+          signatures: [InputSignature.decode(p2pk.data.signature!)]
       );
     }
 
@@ -654,28 +659,19 @@ class Input {
       prevOutScript: input.prevOutScript != null
           ? Uint8List.fromList(input.prevOutScript!)
           : null,
-      pubkeys: input.pubkeys != null
-          ? input.pubkeys!
-              .map((pubkey) =>
-                  pubkey != null ? Uint8List.fromList(pubkey) : null)
-              .toList()
-          : null,
-      signatures: input.signatures != null
-          ? input.signatures!
-              .map((signature) =>
-                  signature != null ? Uint8List.fromList(signature) : null)
-              .toList()
-          : null,
+      pubkeys: input.pubkeys != null ? List.of(input.pubkeys!) : null,
+      signatures: List.of(input.signatures)
     );
   }
 
   int get _expectedSignatures => threshold ?? 1;
-  int get _actualSignatures => signatures == null
-    ? 0 : signatures!.where((sig) => sig != null).length;
+  int get _actualSignatures => signatures.length;
 
   bool isComplete() {
     return _actualSignatures == _expectedSignatures;
   }
+
+  void addSignature(InputSignature sig) => signatures.add(sig);
 
   @override
   String toString() {
@@ -687,17 +683,19 @@ class Output {
   Uint8List? script;
   int? value;
   Uint8List? valueBuffer;
-  List<Uint8List?>? pubkeys;
+  List<Uint8List>? pubkeys;
   List<Uint8List?>? signatures;
 
-  Output(
-      {this.script,
+  Output({
+      this.script,
       this.value,
       this.pubkeys,
       this.signatures,
-      this.valueBuffer}) {
-    if (value != null && !isShatoshi(value!))
+      this.valueBuffer
+  }) {
+    if (value != null && !isShatoshi(value!)) {
       throw ArgumentError('Invalid ouput value');
+    }
   }
 
   factory Output.expandOutput(Uint8List script, [Uint8List? ourPubKey]) {
@@ -724,12 +722,7 @@ class Output {
       valueBuffer: output.valueBuffer != null
           ? Uint8List.fromList(output.valueBuffer!)
           : null,
-      pubkeys: output.pubkeys != null
-          ? output.pubkeys!
-              .map((pubkey) =>
-                  pubkey != null ? Uint8List.fromList(pubkey) : null)
-              .toList()
-          : null,
+      pubkeys: output.pubkeys == null ? null : List.of(output.pubkeys!),
       signatures: output.signatures != null
           ? output.signatures!
               .map((signature) =>
