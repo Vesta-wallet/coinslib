@@ -316,11 +316,7 @@ class TransactionBuilder {
 
         tx.setInputScript(i, Uint8List(0));
 
-        // If we don't yet have the witness data, construct it here.
-        // The code is all over the place, with no clear structure. It would be
-        // much better if there were clear abstractions for all parts of the
-        // transaction that are serialised in one place
-        input.witness ??= [
+        input.witness = [
             Uint8List.fromList([0]),
             // Ensure signatures are in the correct order for multisig
             ..._orderSigsForPubkeys(

@@ -184,10 +184,19 @@ main() {
       witnessScript: witnessScript
     );
 
-    expect(
-        txb.build().toHex(),
-        ''
-    );
+    final hexStr = '010000000001019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d5610000000000ffffffff01e02e0000000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac040100473044022013f4f7b304d0d934cfefe3429188eff9484c681bb772ceff60d6a48e31bc39e302203b6ab05a7a90e7e525f7d8263bfec40f5d0ed7c10e3141d65b9bfb8e5c3bfb220147304402200afb1a6c72b437179a83b4557e6f1ce6101187b2884bd5f6dd68b294d4a9353502202896dd07c2cc3b5b303944b9a1c32ab724070d77f0ac34d247d2cfad1a589c8901475221029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a28952ae00000000';
+
+    final tx = txb.build();
+
+    // Ensure that the transaction has 4 witness items: dummy 0, 2 signatures
+    // and the serialised script
+    expect(tx.ins[0].witness!.length, 4);
+
+
+    expect(tx.toHex(), hexStr);
+
+    // Should remain the same after decode and encode again
+    expect(Transaction.fromBuffer(tx.toBuffer()).toHex(), hexStr);
 
   });
 
