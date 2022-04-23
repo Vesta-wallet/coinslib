@@ -72,7 +72,7 @@ class Address {
       }
 
       if (progLen == 32) {
-        return createP2wshOutputScript(program);
+        return P2WSH.fromScriptHash(program).outputScript;
       }
 
       throw ArgumentError('The bech32 witness program is not the correct size');
