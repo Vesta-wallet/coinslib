@@ -548,6 +548,7 @@ class Transaction {
   }
 }
 
+// TODO: In dire need of complete refactoring
 class Input {
   Uint8List? hash;
   int? index;
@@ -562,6 +563,7 @@ class Input {
   List<InputSignature> signatures;
   int? threshold;
   List<Uint8List>? witness;
+  bool hasNewSignatures = false;
 
   Input({
       this.hash,
@@ -587,6 +589,10 @@ class Input {
     }
     if (value != null && !isShatoshi(value!)) {
       throw ArgumentError('Invalid ouput value');
+    }
+    if (witness != null && witness!.isNotEmpty) {
+      hasWitness = true;
+      signScript = witness!.last;
     }
   }
 
@@ -622,10 +628,10 @@ class Input {
 
       return Input(
           prevOutType: type,
-          pubkeys: [],
+          pubkeys: multisig.pubkeys,
           signatures: signatures,
           threshold: threshold,
-          witness: witness
+          witness: witness,
       );
 
     } else if (type == SCRIPT_TYPES['P2PKH']) {
@@ -671,7 +677,10 @@ class Input {
     return _actualSignatures == _expectedSignatures;
   }
 
-  void addSignature(InputSignature sig) => signatures.add(sig);
+  void addSignature(InputSignature sig) {
+    signatures.add(sig);
+    hasNewSignatures = true;
+  }
 
   @override
   String toString() {

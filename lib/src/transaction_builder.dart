@@ -316,17 +316,21 @@ class TransactionBuilder {
 
         tx.setInputScript(i, Uint8List(0));
 
-        input.witness = [
-            Uint8List.fromList([0]),
-            // Ensure signatures are in the correct order for multisig
-            ..._orderSigsForPubkeys(
-                inIndex: i,
-                input: input,
-                signatures: input.signatures,
-                pubkeys: input.pubkeys!
-            ).map((sig) => sig.encode()),
-            input.signScript!
-        ];
+        if (input.hasNewSignatures) {
+          // Need to rebuild witness with new signature data, ensuring that it
+          // is ordered correctly
+          input.witness = [
+              Uint8List.fromList([]),
+              // Ensure signatures are in the correct order for multisig
+              ..._orderSigsForPubkeys(
+                  inIndex: i,
+                  input: input,
+                  signatures: input.signatures,
+                  pubkeys: input.pubkeys!
+              ).map((sig) => sig.encode()),
+              input.signScript!
+          ];
+        }
 
         tx.setWitness(i, input.witness);
 
