@@ -19,7 +19,7 @@ main() {
       txb.addInput(
           '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d',
           0); // Alice's previous transaction output, has 15000 satoshis
-      txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', 12000);
+      txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', BigInt.from(12000));
       // (in)15000 - (out)12000 = (fee)3000, this is the miner fee
 
       txb.sign(vin: 0, keyPair: aliceKey);
@@ -45,8 +45,8 @@ main() {
       txb.addInput(
           '7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730',
           0); // Bob's previous transaction output, has 300000 satoshis
-      txb.addOutput('1CUNEBjYrCn2y1SdiUMohaKUi4wpP326Lb', 180000);
-      txb.addOutput('1JtK9CQw1syfWj1WtFMWomrYdV3W2tWBF9', 170000);
+      txb.addOutput('1CUNEBjYrCn2y1SdiUMohaKUi4wpP326Lb', BigInt.from(180000));
+      txb.addOutput('1JtK9CQw1syfWj1WtFMWomrYdV3W2tWBF9', BigInt.from(170000));
       // (in)(200000 + 300000) - (out)(180000 + 170000) = (fee)150000, this is the miner fee
 
       txb.sign(
@@ -102,10 +102,14 @@ main() {
           null,
           p2wpkh
               .output); // Alice's previous transaction output, has 200000 satoshis
-      txb.addOutput('tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt', 1000000);
-      txb.addOutput('tb1qn40fftdp6z2lvzmsz4s0gyks3gq86y2e8svgap', 8995000);
+      txb.addOutput(
+          'tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt', BigInt.from(1000000)
+      );
+      txb.addOutput(
+          'tb1qn40fftdp6z2lvzmsz4s0gyks3gq86y2e8svgap', BigInt.from(8995000)
+      );
 
-      txb.sign(vin: 0, keyPair: alice, witnessValue: 10000000);
+      txb.sign(vin: 0, keyPair: alice, witnessValue: BigInt.from(10000000));
       // // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
       expect(
           txb.build().toHex(),
@@ -120,7 +124,7 @@ main() {
       txb.addInput(
         '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d', 0
       );
-      txb.addOutput('31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj', 1000);
+      txb.addOutput('31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj', BigInt.from(1000));
       // Reusing key from above
       txb.sign(vin: 0, keyPair: aliceKey);
 
@@ -138,14 +142,16 @@ main() {
       txb.addInput(
         '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d', 0
       );
-      txb.addOutput('bc1qqqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0szrtjt7', 1000);
+      txb.addOutput(
+          'bc1qqqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0szrtjt7',
+          BigInt.from(1000)
+      );
       txb.sign(vin: 0, keyPair: aliceKey);
 
       expect(
         txb.build().toHex(),
         '01000000019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d561000000006a47304402205cf3fe67ea8eb0fb92dcbc489117834b7cd75c8fa17c12b4a0d4ed59d912ff7a02204ebeecdc9e3d0552b52c7d3b09b7c04110ba9dc7e39181575d38e2bd37bdf35c0121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffff01e803000000000000220020000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f00000000'
       );
-
 
     });
   });

@@ -48,7 +48,7 @@ class Transaction {
     return ins.length - 1;
   }
 
-  int addOutput(Uint8List scriptPubKey, int value) {
+  int addOutput(Uint8List scriptPubKey, BigInt value) {
     outs.add(Output(script: scriptPubKey, value: value));
     return outs.length - 1;
   }
@@ -68,7 +68,7 @@ class Transaction {
   }
 
   hashForWitnessV0(
-    int inIndex, Uint8List prevOutScript, int value, int hashType
+    int inIndex, Uint8List prevOutScript, BigInt value, int hashType
   ) {
 
     var hashOutputs = ZERO;
@@ -402,7 +402,7 @@ class Input {
   Uint8List? hash;
   int? index;
   int? sequence;
-  int? value;
+  BigInt? value;
   Uint8List? script;
   Uint8List? signScript;
   Uint8List? prevOutScript;
@@ -429,7 +429,7 @@ class Input {
       throw ArgumentError('Invalid input index');
     if (this.sequence != null && !isUint(this.sequence!, 32))
       throw ArgumentError('Invalid input sequence');
-    if (this.value != null && !isShatoshi(this.value!))
+    if (this.value != null && !isSatoshi(this.value!))
       throw ArgumentError('Invalid ouput value');
   }
 
@@ -499,18 +499,19 @@ class Input {
 
 class Output {
   Uint8List? script;
-  int? value;
+  BigInt? value;
   Uint8List? valueBuffer;
   List<Uint8List?>? pubkeys;
   List<Uint8List?>? signatures;
 
-  Output(
-      {this.script,
+  Output({
+      this.script,
       this.value,
       this.pubkeys,
       this.signatures,
-      this.valueBuffer}) {
-    if (value != null && !isShatoshi(value!))
+      this.valueBuffer
+  }) {
+    if (value != null && !isSatoshi(value!))
       throw ArgumentError('Invalid ouput value');
   }
 
@@ -567,25 +568,8 @@ bool isCoinbaseHash(Uint8List buffer) {
   return true;
 }
 
-bool _isP2PKHInput(script) {
-  final chunks = bscript.decompile(script);
-  return chunks != null &&
-      chunks.length == 2 &&
-      bscript.isCanonicalScriptSignature(chunks[0]) &&
-      bscript.isCanonicalPubKey(chunks[1]);
-}
-
-bool _isP2PKHOutput(script) {
-  final buffer = bscript.compile(script);
-  return buffer.length == 25 &&
-      buffer[0] == OPS['OP_DUP'] &&
-      buffer[1] == OPS['OP_HASH160'] &&
-      buffer[2] == 0x14 &&
-      buffer[23] == OPS['OP_EQUALVERIFY'] &&
-      buffer[24] == OPS['OP_CHECKSIG'];
-}
-
 int varSliceSize(Uint8List someScript) {
   final length = someScript.length;
   return varuint.encodingLength(length) + length;
 }
+

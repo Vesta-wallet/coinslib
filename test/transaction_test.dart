@@ -90,8 +90,8 @@ main() {
 
     test('addOutput returns an index', () {
       final tx = new Transaction();
-      expect(tx.addOutput(new Uint8List(0), 0), 0);
-      expect(tx.addOutput(new Uint8List(0), 0), 1);
+      expect(tx.addOutput(Uint8List(0), BigInt.zero), 0);
+      expect(tx.addOutput(Uint8List(0), BigInt.zero), 1);
     });
 
     group('getHash/getId', () {
@@ -177,7 +177,7 @@ Transaction fromRaw(raw, [isWitness]) {
     } else if (txOut['script'] != null) {
       script = bscript.fromASM(txOut['script']);
     }
-    tx.addOutput(script, txOut['value']);
+    tx.addOutput(script, BigInt.from(txOut['value']));
   });
 
   return tx;

@@ -22,10 +22,10 @@ class BytesReaderWriter {
     return i;
   }
 
-  int readUInt64() {
-    final i = bytes.getUint64(offset, Endian.little);
-    offset += 8;
-    return i;
+  /// Returns a BigInt to ensure that a full 64 unsigned bits are represented.
+  /// Web targets do not have enough precision and native ints are signed.
+  BigInt readUInt64() {
+    return BigInt.from(readInt32()) & (BigInt.from(readInt32()) << 32);
   }
 
   Uint8List readSlice(int n) {
@@ -67,9 +67,9 @@ class BytesReaderWriter {
     offset += 4;
   }
 
-  writeUInt64(int i) {
-    bytes.setUint64(offset, i, Endian.little);
-    offset += 8;
+  writeUInt64(BigInt i) {
+    writeUInt32(i.toUnsigned(32).toInt());
+    writeUInt32((i >> 32).toUnsigned(32).toInt());
   }
 
   writeSlice(List<int> slice) {

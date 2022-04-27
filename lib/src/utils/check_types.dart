@@ -1,10 +1,11 @@
 import 'dart:typed_data';
 import 'dart:math';
 
-const SATOSHI_MAX = 21 * 1e14;
+// TODO: This is not network specific
+final SATOSHI_MAX = BigInt.from(21 * 1e14);
 
-bool isShatoshi(int value) {
-  return isUint(value, 53) && value <= SATOSHI_MAX;
+bool isSatoshi(BigInt value) {
+  return !value.isNegative && value <= SATOSHI_MAX;
 }
 
 bool isUint(int value, int bit) {
