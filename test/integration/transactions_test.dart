@@ -1,22 +1,19 @@
 import 'dart:typed_data';
 
 import 'package:coinslib/src/payments/multisig.dart';
+import 'package:coinslib/src/payments/p2wsh.dart';
 import 'package:coinslib/src/transaction.dart';
+import 'package:hex/hex.dart';
 import 'package:test/test.dart';
 import 'package:coinslib/src/ecpair.dart';
 import 'package:coinslib/src/transaction_builder.dart';
 import 'package:coinslib/src/models/networks.dart' as NETWORKS;
 import 'package:coinslib/src/payments/p2wpkh.dart' show P2WPKH;
+import 'package:coinslib/src/payments/p2pkh.dart' show P2PKH;
 import 'package:coinslib/src/payments/index.dart' show PaymentData;
+import '../keys.dart';
 
 main() {
-
-  final aliceKey = ECPair.fromWIF(
-      'L1uyy5qTuGrVXrmrsvHWHgVzW9kKdrp27wBC7Vs6nZDTF2BRUVwy'
-  );
-  final bobKey = ECPair.fromWIF(
-      'KwcN2pT3wnRAurhy7qMczzbkpY5nXMW2ubh696UBc1bcwctTx26z'
-  );
 
   getTxBuilderWithIn() {
     final txb = TransactionBuilder();
@@ -45,11 +42,6 @@ main() {
 
   test('can create a 2-to-2 Transaction', () {
 
-    final alice = ECPair.fromWIF(
-        'L1Knwj9W3qK3qMKdTvmg3VfzUs3ij2LETTFhxza9LfD5dngnoLG1');
-    final bob = ECPair.fromWIF(
-        'KwcN2pT3wnRAurhy7qMczzbkpY5nXMW2ubh696UBc1bcwctTx26z');
-
     final txb = TransactionBuilder();
     txb.setVersion(1);
     txb.addInput(
@@ -63,9 +55,9 @@ main() {
     // (in)(200000 + 300000) - (out)(180000 + 170000) = (fee)150000, this is the miner fee
 
     // Bob signs his input, which was the second input (1th)
-    txb.sign(vin: 1, keyPair: bob);
-    // Alice signs her input, which was the first input (0th)
-    txb.sign(vin: 0, keyPair: alice);
+    txb.sign(vin: 1, keyPair: bobKey);
+    // Carol signs her input, which was the first input (0th)
+    txb.sign(vin: 0, keyPair: carolKey);
 
     // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
     expect(
@@ -192,11 +184,67 @@ main() {
     // and the serialised script
     expect(tx.ins[0].witness!.length, 4);
 
-
     expect(tx.toHex(), hexStr);
 
     // Should remain the same after decode and encode again
     expect(Transaction.fromBuffer(tx.toBuffer()).toHex(), hexStr);
+
+  });
+
+  test('sign P2WSH multisig transaction, out of order', () {
+
+    // Sign 3-of-4 with keys 3, 1, 2 on the second input
+    // TODO: This is a transaction successfully tested on peercoin testnet, with the
+    // tx hash of f3f5abecc10696ec9a8a40df97b130510b1f2acc8e3b7200a0548c98e2f2c552
+
+    var txb = TransactionBuilder();
+    // PPC using v3 txs
+    txb.setVersion(3);
+    // Output of 180PPC
+    txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', 180000000);
+
+    Uint8List witnessScript = MultisigScript(
+        pubkeys: [aliceKey, bobKey, carolKey, davidKey]
+          .map((key) => key.publicKey!).toList(),
+        threshold: 3
+    ).scriptBytes;
+
+    // Add first P2PKH input of 90 PPC
+    txb.addInput(
+        "fbffd416274f6afb8256a34224aa1600db28944bafd4c5cecb3c3b12cadbceb9", 0
+    );
+
+    // Add input for multisig address of 100 PCC
+    txb.addInput(
+        "1aee88cfbac542586a3fbc69f74d8cde29c8debc38d2db7df6684f397727e23e", 0
+    );
+
+    // Sign first input
+    txb.sign(vin: 0, keyPair: aliceKey);
+
+    // Out of order signing with encode/decode between each
+
+    void partialSign(ECPair key) {
+      txb.sign(
+          vin: 1,
+          keyPair: key,
+          witnessValue: 100000000,
+          witnessScript: witnessScript
+      );
+      txb = TransactionBuilder.fromTransaction(
+          Transaction.fromBuffer(txb.buildIncomplete().toBuffer())
+      );
+    }
+
+    // 3, 2, 1
+    partialSign(carolKey);
+    partialSign(aliceKey);
+    partialSign(bobKey);
+
+    expect(
+      txb.build().toHex(),
+      "030000000001013ee22777394f68f67ddbd238bcdec829de8c4df769bc3f6a5842c5bacf88ee1a0000000000ffffffff0150000000000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac050047304402204745f785413301fb872a95fa64e0e87a264521082499de9d54c082f8a675e871022068d6ee1102d526bb61649bf540fdfae59e3def13584917c22be807a872d2df2c01473044022042d86818028864136f3e7505732d6d041dcdd4f4bb675898b0ae4a3d41e3217a02202ed2e512dfe3e98ea1d6f650e5415a988c7c7cdf1d7169d6f8e64cf7dfc1d23801473044022033f642cac741b58c2d8c9b6568357428c0acdab32e5daa06db1c75b9e588af60022032633af5c594b9bdbe86e369941e1ea9107e6031390441f25083db58da938720018b5321029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a2892103e05ce435e462ec503143305feb6c00e06a3ad52fbf939e85c65f3a765bb7baac2103aea0dfd576151cb399347aa6732f8fdf027b9ea3ea2e65fb754803f776e0a50954ae00000000"
+    );
 
   });
 

@@ -59,9 +59,7 @@ class Transaction {
     return outs.length - 1;
   }
 
-  bool hasWitnesses() => ins.any(
-      (input) => input.witness != null && input.witness!.isNotEmpty
-  );
+  bool hasWitnesses() => ins.any((input) => input.hasWitness);
 
   setInputScript(int index, Uint8List scriptSig) {
     ins[index].script = scriptSig;
@@ -243,16 +241,18 @@ class Transaction {
 
   }
 
-  _byteLength(_ALLOW_WITNESS) {
-    var hasWitness = _ALLOW_WITNESS && hasWitnesses();
+  _byteLength(bool allowWitness) {
+    var hasWitness = allowWitness && hasWitnesses();
     return (hasWitness ? 10 : 8) +
         varuint.encodingLength(ins.length) +
         varuint.encodingLength(outs.length) +
         ins.fold(0, (sum, input) => sum + 40 + varSliceSize(input.script!)) +
         outs.fold(0, (sum, output) => sum + 8 + varSliceSize(output.script!)) +
-        (hasWitness
-            ? ins.fold(0, (sum, input) => sum + vectorSize(input.witness!))
-            : 0);
+        ins.fold(
+            0,
+            (sum, input) => sum +
+              (input.hasWitness ? vectorSize(input.witness!) : 0)
+        );
   }
 
   int vectorSize(List<Uint8List> someVector) {
@@ -558,7 +558,6 @@ class Input {
   Uint8List? signScript;
   Uint8List? prevOutScript;
   String? prevOutType;
-  bool hasWitness = false;
   List<Uint8List>? pubkeys;
   List<InputSignature> signatures;
   int? threshold;
@@ -591,7 +590,6 @@ class Input {
       throw ArgumentError('Invalid ouput value');
     }
     if (witness != null && witness!.isNotEmpty) {
-      hasWitness = true;
       signScript = witness!.last;
     }
   }
@@ -686,6 +684,9 @@ class Input {
   String toString() {
     return 'Input{hash: $hash, index: $index, sequence: $sequence, value: $value, script: $script, signScript: $signScript, prevOutScript: $prevOutScript, pubkeys: $pubkeys, signatures: $signatures, witness: $witness, prevOutType: $prevOutType}';
   }
+
+  bool get hasWitness => witness != null;
+
 }
 
 class Output {

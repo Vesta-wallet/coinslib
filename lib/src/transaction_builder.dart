@@ -190,7 +190,7 @@ class TransactionBuilder {
       // Assume multisig P2WSH when witnessScript provided
 
       input.prevOutType = SCRIPT_TYPES['P2WSH'];
-      input.hasWitness = true;
+      input.witness = [];
       input.signScript = witnessScript;
 
       // Decompile and parse the multisig script
@@ -206,7 +206,7 @@ class TransactionBuilder {
     ) {
 
       input.prevOutType = SCRIPT_TYPES['P2WPKH'];
-      input.hasWitness = true;
+      input.witness = [];
       input.pubkeys = [ourPubKey];
       input.signScript = P2PKH(
         data: PaymentData(pubkey: ourPubKey),

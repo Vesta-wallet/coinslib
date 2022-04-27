@@ -134,6 +134,30 @@ main() {
         });
       });
     });
+
+    group('hashForWitnessV0', () {
+
+      for (final f in fixtures['hashForWitnessV0']) {
+
+        final hash = f['hash'];
+        final description = f['description'];
+        final script = bscript.fromASM(f['script']);
+        final inIndex = f['inIndex'];
+        final type = f['type'];
+        final value = f['value'];
+        final tx = Transaction.fromHex(f['txHex']);
+
+        test('should return $hash for $description', () {
+          expect(
+              HEX.encode(tx.hashForWitnessV0(inIndex, script, value, type)),
+              hash
+          );
+        });
+
+      }
+
+    });
+
   });
 }
 

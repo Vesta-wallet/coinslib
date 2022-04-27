@@ -108,8 +108,6 @@ main() {
 
   test('can generate multisig P2WSH address', () {
 
-    // Used to test multisig on testnet
-
     final p2wsh = P2WSH.fromMultisig(
         MultisigScript(
             pubkeys: [aliceKey, bobKey, carolKey, davidKey]
