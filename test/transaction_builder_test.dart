@@ -325,7 +325,7 @@ main() {
         expect(vout, 0);
         final txout = txb.tx.outs[0];
         expect(txout.script, expectScript);
-        expect(txout.value, 0);
+        expect(txout.value, BigInt.zero);
       }
 
       test('accepts a string', () {

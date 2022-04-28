@@ -25,7 +25,7 @@ class BytesReaderWriter {
   /// Returns a BigInt to ensure that a full 64 unsigned bits are represented.
   /// Web targets do not have enough precision and native ints are signed.
   BigInt readUInt64() {
-    return BigInt.from(readInt32()) & (BigInt.from(readInt32()) << 32);
+    return BigInt.from(readUInt32()) | (BigInt.from(readUInt32()) << 32);
   }
 
   Uint8List readSlice(int n) {
