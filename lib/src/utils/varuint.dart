@@ -66,17 +66,3 @@ int encodingLength(int number) {
               : 9);
 }
 
-int readUInt64LE(ByteData bytes, int offset) {
-  final a = bytes.getUint32(offset, Endian.little);
-  var b = bytes.getUint32(offset + 4, Endian.little);
-  b *= 0x100000000;
-  isUint(b + a, 64);
-  return b + a;
-}
-
-int writeUInt64LE(ByteData bytes, int offset, int value) {
-  isUint(value, 64);
-  bytes.setInt32(offset, value & -1, Endian.little);
-  bytes.setUint32(offset + 4, value ~/ 0x100000000, Endian.little);
-  return offset + 8;
-}

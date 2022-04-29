@@ -9,6 +9,7 @@ import 'classify.dart';
 import 'utils/check_types.dart';
 import 'utils/script.dart' as bscript;
 import 'utils/constants/op.dart';
+import 'utils/serialisation.dart';
 import 'utils/varuint.dart' as varuint;
 
 const DEFAULT_SEQUENCE = 0xffffffff;
@@ -25,7 +26,7 @@ final ZERO = HEX
 final ONE = HEX
     .decode('0000000000000000000000000000000000000000000000000000000000000001');
 final VALUE_UINT64_MAX = HEX.decode('ffffffffffffffff');
-final BLANK_OUTPUT = new Output(
+final BLANK_OUTPUT = Output(
     script: EMPTY_SCRIPT, valueBuffer: VALUE_UINT64_MAX as Uint8List);
 
 class Transaction {
@@ -38,7 +39,7 @@ class Transaction {
 
   int addInput(Uint8List hash, int index,
       [int? sequence, Uint8List? scriptSig]) {
-    ins.add(new Input(
+    ins.add(Input(
         hash: hash,
         index: index,
         sequence: sequence ?? DEFAULT_SEQUENCE,
@@ -47,8 +48,8 @@ class Transaction {
     return ins.length - 1;
   }
 
-  int addOutput(Uint8List scriptPubKey, int value) {
-    outs.add(new Output(script: scriptPubKey, value: value));
+  int addOutput(Uint8List scriptPubKey, BigInt value) {
+    outs.add(Output(script: scriptPubKey, value: value));
     return outs.length - 1;
   }
 
@@ -67,122 +68,76 @@ class Transaction {
   }
 
   hashForWitnessV0(
-      int inIndex, Uint8List prevOutScript, int value, int hashType) {
-    var tbuffer = Uint8List.fromList([]);
-    var toffset = 0;
-    // Any changes made to the ByteData will also change the buffer, and vice versa.
-    // https://api.dart.dev/stable/2.7.1/dart-typed_data/ByteBuffer/asByteData.html
-    ByteData bytes = tbuffer.buffer.asByteData();
+    int inIndex, Uint8List prevOutScript, BigInt value, int hashType
+  ) {
+
     var hashOutputs = ZERO;
     var hashPrevouts = ZERO;
     var hashSequence = ZERO;
 
-    writeSlice(slice) {
-      tbuffer.setRange(toffset, toffset + slice.length as int, slice);
-      toffset += slice.length as int;
-    }
-
-    writeUInt8(i) {
-      bytes.setUint8(toffset, i);
-      toffset++;
-    }
-
-    writeUInt32(i) {
-      bytes.setUint32(toffset, i, Endian.little);
-      toffset += 4;
-    }
-
-    writeInt32(i) {
-      bytes.setInt32(toffset, i, Endian.little);
-      toffset += 4;
-    }
-
-    writeUInt64(i) {
-      bytes.setUint64(toffset, i, Endian.little);
-      toffset += 8;
-    }
-
-    writeVarInt(i) {
-      varuint.encode(i, tbuffer, toffset);
-      toffset += varuint.encodingLength(i);
-    }
-
-    writeVarSlice(slice) {
-      writeVarInt(slice.length);
-      writeSlice(slice);
-    }
-
-    writeVector(vector) {
-      writeVarInt(vector.length);
-      vector.forEach((buf) {
-        writeVarSlice(buf);
-      });
-    }
-
     if ((hashType & SIGHASH_ANYONECANPAY) == 0) {
-      tbuffer = new Uint8List(36 * this.ins.length);
-      bytes = tbuffer.buffer.asByteData();
-      toffset = 0;
-
-      ins.forEach((txIn) {
-        writeSlice(txIn.hash);
-        writeUInt32(txIn.index);
-      });
-      hashPrevouts = bcrypto.hash256(tbuffer);
+      final buffer = Uint8List(36 * ins.length);
+      final writer = BytesReaderWriter(buffer);
+      for (final txIn in ins) {
+        writer.writeSlice(txIn.hash!);
+        writer.writeUInt32(txIn.index!);
+      }
+      hashPrevouts = bcrypto.hash256(buffer);
     }
 
-    if ((hashType & SIGHASH_ANYONECANPAY) == 0 &&
-        (hashType & 0x1f) != SIGHASH_SINGLE &&
-        (hashType & 0x1f) != SIGHASH_NONE) {
-      tbuffer = new Uint8List(4 * this.ins.length);
-      bytes = tbuffer.buffer.asByteData();
-      toffset = 0;
-      ins.forEach((txIn) {
-        writeUInt32(txIn.sequence);
-      });
-      hashSequence = bcrypto.hash256(tbuffer);
+    if (
+      (hashType & SIGHASH_ANYONECANPAY) == 0 &&
+      (hashType & 0x1f) != SIGHASH_SINGLE &&
+      (hashType & 0x1f) != SIGHASH_NONE
+    ) {
+      final buffer = Uint8List(4 * ins.length);
+      final writer = BytesReaderWriter(buffer);
+      for (final txIn in ins) {
+        writer.writeUInt32(txIn.sequence!);
+      }
+      hashSequence = bcrypto.hash256(buffer);
     }
 
-    if ((hashType & 0x1f) != SIGHASH_SINGLE &&
-        (hashType & 0x1f) != SIGHASH_NONE) {
-      var txOutsSize = outs.fold(
-          0, (int sum, output) => sum + 8 + varSliceSize(output.script!));
-      tbuffer = new Uint8List(txOutsSize);
-      bytes = tbuffer.buffer.asByteData();
-      toffset = 0;
-      outs.forEach((txOut) {
-        writeUInt64(txOut.value);
-        writeVarSlice(txOut.script);
-      });
-      hashOutputs = bcrypto.hash256(tbuffer);
+    if (
+      (hashType & 0x1f) != SIGHASH_SINGLE && (hashType & 0x1f) != SIGHASH_NONE
+    ) {
+      final txOutsSize = outs.fold(
+          0, (int sum, output) => sum + 8 + varSliceSize(output.script!)
+      );
+      final buffer = Uint8List(txOutsSize);
+      final writer = BytesReaderWriter(buffer);
+      for (final txOut in outs) {
+        writer.writeUInt64(txOut.value!);
+        writer.writeVarSlice(txOut.script!);
+      }
+      hashOutputs = bcrypto.hash256(buffer);
     } else if ((hashType & 0x1f) == SIGHASH_SINGLE && inIndex < outs.length) {
       // SIGHASH_SINGLE only hash that according output
-      var output = outs[inIndex];
-      tbuffer = new Uint8List(8 + varSliceSize(output.script!));
-      bytes = tbuffer.buffer.asByteData();
-      toffset = 0;
-      writeUInt64(output.value);
-      writeVarSlice(output.script);
-      hashOutputs = bcrypto.hash256(tbuffer);
+      final output = outs[inIndex];
+      final buffer = Uint8List(8 + varSliceSize(output.script!));
+      final writer = BytesReaderWriter(buffer);
+      writer.writeUInt64(output.value!);
+      writer.writeVarSlice(output.script!);
+      hashOutputs = bcrypto.hash256(buffer);
     }
 
-    tbuffer = new Uint8List(156 + varSliceSize(prevOutScript));
-    bytes = tbuffer.buffer.asByteData();
-    toffset = 0;
-    var input = ins[inIndex];
-    writeUInt32(version);
-    writeSlice(hashPrevouts);
-    writeSlice(hashSequence);
-    writeSlice(input.hash);
-    writeUInt32(input.index);
-    writeVarSlice(prevOutScript);
-    writeUInt64(value);
-    writeUInt32(input.sequence);
-    writeSlice(hashOutputs);
-    writeUInt32(this.locktime);
-    writeUInt32(hashType);
+    final buffer = Uint8List(156 + varSliceSize(prevOutScript));
+    final writer = BytesReaderWriter(buffer);
+    final input = ins[inIndex];
+    writer.writeUInt32(version);
+    writer.writeSlice(hashPrevouts);
+    writer.writeSlice(hashSequence);
+    writer.writeSlice(input.hash!);
+    writer.writeUInt32(input.index!);
+    writer.writeVarSlice(prevOutScript);
+    writer.writeUInt64(value);
+    writer.writeUInt32(input.sequence!);
+    writer.writeSlice(hashOutputs);
+    writer.writeUInt32(locktime);
+    writer.writeUInt32(hashType);
 
-    return bcrypto.hash256(tbuffer);
+    return bcrypto.hash256(buffer);
+
   }
 
   hashForSignature(int inIndex, Uint8List prevOutScript, int hashType) {
@@ -280,7 +235,7 @@ class Transaction {
     return virtualSize();
   }
 
-  Uint8List toBuffer([Uint8List? buffer, int? initialOffset]) {
+  Uint8List toBuffer([Uint8List? buffer, int initialOffset = 0]) {
     return this._toBuffer(buffer, initialOffset, true);
   }
 
@@ -302,109 +257,64 @@ class Transaction {
 
   Uint8List getHash() {
     // if (isCoinbase()) return Uint8List.fromList(List.generate(32, (i) => 0));
-    return bcrypto.hash256(_toBuffer(null, null, false));
+    return bcrypto.hash256(_toBuffer(null, 0, false));
   }
 
   String getId() {
     return HEX.encode(getHash().reversed.toList());
   }
 
-  _toBuffer([Uint8List? buffer, initialOffset, bool _ALLOW_WITNESS = false]) {
+  _toBuffer([Uint8List? buffer, int initialOffset = 0, bool _ALLOW_WITNESS = false]) {
+
     // _ALLOW_WITNESS is used to separate witness part when calculating tx id
-    if (buffer == null) buffer = new Uint8List(_byteLength(_ALLOW_WITNESS));
+    if (buffer == null) buffer = Uint8List(_byteLength(_ALLOW_WITNESS));
 
-    // Any changes made to the ByteData will also change the buffer, and vice versa.
-    // https://api.dart.dev/stable/2.7.1/dart-typed_data/ByteBuffer/asByteData.html
-    var bytes = buffer.buffer.asByteData();
-    var offset = initialOffset ?? 0;
-
-    writeSlice(slice) {
-      buffer!.setRange(offset, offset + slice.length, slice);
-      offset += slice.length;
-    }
-
-    writeUInt8(i) {
-      bytes.setUint8(offset, i);
-      offset++;
-    }
-
-    writeUInt32(i) {
-      bytes.setUint32(offset, i, Endian.little);
-      offset += 4;
-    }
-
-    writeInt32(i) {
-      bytes.setInt32(offset, i, Endian.little);
-      offset += 4;
-    }
-
-    writeUInt64(i) {
-      bytes.setUint64(offset, i, Endian.little);
-      offset += 8;
-    }
-
-    writeVarInt(i) {
-      varuint.encode(i, buffer!, offset);
-      offset += varuint.encodingLength(i);
-    }
-
-    writeVarSlice(slice) {
-      writeVarInt(slice.length);
-      writeSlice(slice);
-    }
-
-    writeVector(vector) {
-      writeVarInt(vector.length);
-      vector.forEach((buf) {
-        writeVarSlice(buf);
-      });
-    }
+    var writer = BytesReaderWriter(buffer, initialOffset);
 
     // Start writeBuffer
-    writeInt32(version);
+    writer.writeInt32(version);
 
     if (_ALLOW_WITNESS && hasWitnesses()) {
-      writeUInt8(ADVANCED_TRANSACTION_MARKER);
-      writeUInt8(ADVANCED_TRANSACTION_FLAG);
+      writer.writeUInt8(ADVANCED_TRANSACTION_MARKER);
+      writer.writeUInt8(ADVANCED_TRANSACTION_FLAG);
     }
 
-    writeVarInt(this.ins.length);
+    writer.writeVarInt(this.ins.length);
 
     ins.forEach((txIn) {
-      writeSlice(txIn.hash);
-      writeUInt32(txIn.index);
-      writeVarSlice(txIn.script);
-      writeUInt32(txIn.sequence);
+      writer.writeSlice(txIn.hash!);
+      writer.writeUInt32(txIn.index!);
+      writer.writeVarSlice(txIn.script!);
+      writer.writeUInt32(txIn.sequence!);
     });
 
-    writeVarInt(this.outs.length);
+    writer.writeVarInt(this.outs.length);
 
     outs.forEach((txOut) {
       if (txOut.valueBuffer == null) {
-        writeUInt64(txOut.value);
+        writer.writeUInt64(txOut.value!);
       } else {
-        writeSlice(txOut.valueBuffer);
+        writer.writeSlice(txOut.valueBuffer!);
       }
-      writeVarSlice(txOut.script);
+      writer.writeVarSlice(txOut.script!);
     });
 
     if (_ALLOW_WITNESS && hasWitnesses()) {
       ins.forEach((txInt) {
-        writeVector(txInt.witness);
+        writer.writeVector(txInt.witness!);
       });
     }
 
-    writeUInt32(this.locktime);
-    // End writeBuffer
+    writer.writeUInt32(locktime);
 
     // avoid slicing unless necessary
-    if (initialOffset != null) return buffer.sublist(initialOffset, offset);
+    if (initialOffset > 0) return buffer.sublist(initialOffset, writer.offset);
 
     return buffer;
   }
 
   factory Transaction.clone(Transaction _tx) {
-    Transaction tx = new Transaction();
+    Transaction tx = Transaction();
     tx.version = _tx.version;
     tx.locktime = _tx.locktime;
     tx.ins = _tx.ins.map((input) {
@@ -420,99 +330,47 @@ class Transaction {
     Uint8List buffer, {
     bool noStrict = false,
   }) {
-    var offset = 0;
-    // Any changes made to the ByteData will also change the buffer, and vice versa.
-    // https://api.dart.dev/stable/2.7.1/dart-typed_data/ByteBuffer/asByteData.html
-    ByteData bytes = buffer.buffer.asByteData();
 
-    int readUInt8() {
-      final i = bytes.getUint8(offset);
-      offset++;
-      return i;
-    }
+    final tx = Transaction();
+    final reader = BytesReaderWriter(buffer);
 
-    int readUInt32() {
-      final i = bytes.getUint32(offset, Endian.little);
-      offset += 4;
-      return i;
-    }
+    tx.version = reader.readInt32();
 
-    int readInt32() {
-      final i = bytes.getInt32(offset, Endian.little);
-      offset += 4;
-      return i;
-    }
+    final marker = reader.readUInt8();
+    final flag = reader.readUInt8();
 
-    int readUInt64() {
-      final i = bytes.getUint64(offset, Endian.little);
-      offset += 8;
-      return i;
-    }
+    final hasWitnesses = marker == ADVANCED_TRANSACTION_MARKER &&
+      flag == ADVANCED_TRANSACTION_FLAG;
 
-    Uint8List readSlice(int n) {
-      offset += n;
-      return buffer.sublist(offset - n, offset);
-    }
+    if (!hasWitnesses) reader.offset -= 2; // Reset offset if not segwit tx
 
-    int readVarInt() {
-      final vi = varuint.decode(buffer, offset);
-      offset += varuint.encodingLength(vi);
-      return vi;
-    }
-
-    Uint8List readVarSlice() {
-      return readSlice(readVarInt());
-    }
-
-    List<Uint8List> readVector() {
-      var count = readVarInt();
-      List<Uint8List> vector = [];
-      for (var i = 0; i < count; ++i) {
-        vector.add(readVarSlice());
-      }
-      return vector;
-    }
-
-    final tx = new Transaction();
-    tx.version = readInt32();
-
-    final marker = readUInt8();
-    final flag = readUInt8();
-
-    var hasWitnesses = false;
-    if (marker == ADVANCED_TRANSACTION_MARKER &&
-        flag == ADVANCED_TRANSACTION_FLAG) {
-      hasWitnesses = true;
-    } else {
-      offset -= 2; // Reset offset if not segwit tx
-    }
-
-    final vinLen = readVarInt();
+    final vinLen = reader.readVarInt();
     for (var i = 0; i < vinLen; ++i) {
-      tx.ins.add(new Input(
-          hash: readSlice(32),
-          index: readUInt32(),
-          script: readVarSlice(),
-          sequence: readUInt32()));
+      tx.ins.add(Input(
+          hash: reader.readSlice(32),
+          index: reader.readUInt32(),
+          script: reader.readVarSlice(),
+          sequence: reader.readUInt32()
+      ));
     }
 
-    final voutLen = readVarInt();
+    final voutLen = reader.readVarInt();
     for (var i = 0; i < voutLen; ++i) {
-      tx.outs.add(new Output(value: readUInt64(), script: readVarSlice()));
+      tx.outs.add(Output(value: reader.readUInt64(), script: reader.readVarSlice()));
     }
 
     if (hasWitnesses) {
       for (var i = 0; i < vinLen; ++i) {
-        tx.ins[i].witness = readVector();
+        tx.ins[i].witness = reader.readVector();
       }
     }
 
-    tx.locktime = readUInt32();
+    tx.locktime = reader.readUInt32();
 
     if (noStrict) return tx;
 
-    if (offset != buffer.length)
-      throw new ArgumentError('Transaction has unexpected data');
+    if (!reader.atEnd)
+      throw ArgumentError('Transaction has unexpected data');
 
     return tx;
   }
@@ -544,7 +402,7 @@ class Input {
   Uint8List? hash;
   int? index;
   int? sequence;
-  int? value;
+  BigInt? value;
   Uint8List? script;
   Uint8List? signScript;
   Uint8List? prevOutScript;
@@ -566,12 +424,12 @@ class Input {
       this.witness,
       this.prevOutType}) {
     if (this.hash != null && !isHash256bit(this.hash!))
-      throw new ArgumentError('Invalid input hash');
+      throw ArgumentError('Invalid input hash');
     if (this.index != null && !isUint(this.index!, 32))
-      throw new ArgumentError('Invalid input index');
+      throw ArgumentError('Invalid input index');
     if (this.sequence != null && !isUint(this.sequence!, 32))
-      throw new ArgumentError('Invalid input sequence');
-    if (this.value != null && !isShatoshi(this.value!))
+      throw ArgumentError('Invalid input sequence');
+    if (this.value != null && !isSatoshi(this.value!))
       throw ArgumentError('Invalid ouput value');
   }
 
@@ -585,22 +443,22 @@ class Input {
       type = ssType ?? wsType;
     }
     if (type == SCRIPT_TYPES['P2WPKH']) {
-      P2WPKH p2wpkh = P2WPKH(data: new PaymentData(witness: witness));
-      return new Input(
+      P2WPKH p2wpkh = P2WPKH(data: PaymentData(witness: witness));
+      return Input(
           prevOutScript: p2wpkh.data.output,
           prevOutType: SCRIPT_TYPES['P2WPKH'],
           pubkeys: [p2wpkh.data.pubkey!],
           signatures: [p2wpkh.data.signature!]);
     } else if (type == SCRIPT_TYPES['P2PKH']) {
-      P2PKH p2pkh = new P2PKH(data: new PaymentData(input: scriptSig));
-      return new Input(
+      P2PKH p2pkh = P2PKH(data: PaymentData(input: scriptSig));
+      return Input(
           prevOutScript: p2pkh.data.output,
           prevOutType: SCRIPT_TYPES['P2PKH'],
           pubkeys: [p2pkh.data.pubkey!],
           signatures: [p2pkh.data.signature!]);
     } else if (type == SCRIPT_TYPES['P2PK']) {
-      P2PK p2pk = new P2PK(data: new PaymentData(input: scriptSig));
-      return new Input(
+      P2PK p2pk = P2PK(data: PaymentData(input: scriptSig));
+      return Input(
           prevOutType: SCRIPT_TYPES['P2PK'],
           pubkeys: [],
           signatures: [p2pk.data.signature!]);
@@ -609,7 +467,7 @@ class Input {
   }
 
   factory Input.clone(Input input) {
-    return new Input(
+    return Input(
       hash: input.hash != null ? Uint8List.fromList(input.hash!) : null,
       index: input.index,
       script: input.script != null ? Uint8List.fromList(input.script!) : null,
@@ -641,18 +499,19 @@ class Input {
 
 class Output {
   Uint8List? script;
-  int? value;
+  BigInt? value;
   Uint8List? valueBuffer;
   List<Uint8List?>? pubkeys;
   List<Uint8List?>? signatures;
 
-  Output(
-      {this.script,
+  Output({
+      this.script,
       this.value,
       this.pubkeys,
       this.signatures,
-      this.valueBuffer}) {
-    if (value != null && !isShatoshi(value!))
+      this.valueBuffer
+  }) {
+    if (value != null && !isSatoshi(value!))
       throw ArgumentError('Invalid ouput value');
   }
 
@@ -674,7 +533,7 @@ class Output {
   }
 
   factory Output.clone(Output output) {
-    return new Output(
+    return Output(
       script: output.script != null ? Uint8List.fromList(output.script!) : null,
       value: output.value,
       valueBuffer: output.valueBuffer != null
@@ -702,32 +561,15 @@ class Output {
 }
 
 bool isCoinbaseHash(Uint8List buffer) {
-  if (!isHash256bit(buffer)) throw new ArgumentError('Invalid hash');
+  if (!isHash256bit(buffer)) throw ArgumentError('Invalid hash');
   for (var i = 0; i < 32; ++i) {
     if (buffer[i] != 0) return false;
   }
   return true;
 }
 
-bool _isP2PKHInput(script) {
-  final chunks = bscript.decompile(script);
-  return chunks != null &&
-      chunks.length == 2 &&
-      bscript.isCanonicalScriptSignature(chunks[0]) &&
-      bscript.isCanonicalPubKey(chunks[1]);
-}
-
-bool _isP2PKHOutput(script) {
-  final buffer = bscript.compile(script);
-  return buffer.length == 25 &&
-      buffer[0] == OPS['OP_DUP'] &&
-      buffer[1] == OPS['OP_HASH160'] &&
-      buffer[2] == 0x14 &&
-      buffer[23] == OPS['OP_EQUALVERIFY'] &&
-      buffer[24] == OPS['OP_CHECKSIG'];
-}
-
 int varSliceSize(Uint8List someScript) {
   final length = someScript.length;
   return varuint.encodingLength(length) + length;
 }
+
