@@ -1,3 +1,6 @@
+## 3.1.3
+**Breaking change**: - Change transaction builder addOutput argument to BigInt for better flutter web compatability 
+
 ## 3.1.2
 - Produce fixed-size signatures with low r-values (no more inconsistent tx sizes)
 
