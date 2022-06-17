@@ -87,7 +87,7 @@ class HDWallet {
 
   Uint8List sign(String message) {
     Uint8List messageHash = magicHash(message, network);
-    return _bip32!.sign(messageHash);
+    return _bip32!.signRecoverable(messageHash);
   }
 
   bool verify({required String message, required Uint8List signature}) {
@@ -131,7 +131,7 @@ class Wallet {
 
   Uint8List sign(String message) {
     Uint8List messageHash = magicHash(message, network);
-    return _keyPair!.sign(messageHash);
+    return _keyPair!.signRecoverable(messageHash);
   }
 
   bool verify({required String message, required Uint8List signature}) {

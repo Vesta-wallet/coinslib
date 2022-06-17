@@ -34,6 +34,10 @@ class ECPair {
     return ecc.sign(hash, privateKey!);
   }
 
+  Uint8List signRecoverable(Uint8List hash) {
+    return ecc.signRecoverable(hash, privateKey!);
+  }
+
   bool verify(Uint8List hash, Uint8List signature) {
     return ecc.verify(hash, publicKey!, signature);
   }

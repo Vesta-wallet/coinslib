@@ -7,6 +7,7 @@ import "package:pointycastle/signers/ecdsa_signer.dart";
 import 'package:pointycastle/macs/hmac.dart';
 import "package:pointycastle/digests/blake2b.dart";
 import 'package:pointycastle/src/utils.dart';
+import 'package:collection/collection.dart';
 
 final ZERO32 = Uint8List.fromList(List.generate(32, (index) => 0));
 final EC_GROUP_ORDER = HEX.decode("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
@@ -125,19 +126,89 @@ Uint8List? privateAdd(Uint8List d, Uint8List tweak) {
 }
 
 Uint8List sign(Uint8List hash, Uint8List x) {
+
   if (!isScalar(hash)) throw ArgumentError(THROW_BAD_HASH);
   if (!isPrivate(x)) throw ArgumentError(THROW_BAD_PRIVATE);
+
   ECSignature sig = deterministicSignature(hash, x);
-  Uint8List buffer = Uint8List(64);
-  buffer.setRange(0, 32, _encodeBigInt(sig.r));
-  var s;
-  if (sig.s.compareTo(nDiv2) > 0) {
-    s = n - sig.s;
-  } else {
-    s = sig.s;
+  final bb = BytesBuilder();
+  bb.add(_encodeBigInt(sig.r));
+  final s = sig.s.compareTo(nDiv2) > 0 ? n - sig.s : sig.s;
+  bb.add(_encodeBigInt(s));
+  return bb.toBytes();
+
+}
+
+Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
+
+  Uint8List sig = sign(hash, privKey);
+  Uint8List pubKey = pointFromScalar(privKey, true)!;
+
+  // Need to add "recid" byte to specify how to derive the public key from the
+  // signature, thus making it recoverable.
+  // As we do not have the R point y coordinate, try recovery with recids of
+  // 0 and 1 and choose the one that corresponds to the public key
+  for (int recid = 0; recid < 2; recid++) {
+    final fullSig = Uint8List.fromList([31 + recid] + sig);
+    if (ListEquality().equals(recover(fullSig, hash), pubKey))
+      return fullSig;
   }
-  buffer.setRange(32, 64, _encodeBigInt(s));
-  return buffer;
+
+  throw ArgumentError(
+    "Could not generate a recoverable signature from private key"
+  );
+
+}
+
+/// This function is used to check the recids for recoverable signatures. It
+/// could be used to recover public keys to verify signatures too but it should
+/// probably do more checks first.
+Uint8List recover(Uint8List sig, Uint8List hash) {
+
+  if (sig.length != 65) {
+    throw ArgumentError(
+      "Can only recover from signatures with 65 bytes including recid"
+    );
+  }
+
+  final recid = (sig[0] - 27) & 3;
+  if (recid > 1) {
+    throw ArgumentError("Can only recover from 0 or 1 recids");
+  }
+
+  if (!isSignature(sig.sublist(1))) throw ArgumentError(THROW_BAD_SIGNATURE);
+
+  final r = fromBuffer(sig.sublist(1, 33));
+  final s = fromBuffer(sig.sublist(33, 65));
+
+  // Obtain R point and e scalar
+  final R = secp256k1.curve.decompressPoint(recid, r);
+  final e = _calculateE(hash);
+
+  // Invert r scalar
+  final invr = r.modInverse(secp256k1.n);
+
+  // Calculate candidate Q
+  final sR = R*s;
+  final eG = G*e;
+
+  final Q = (sR! - eG!)!*invr;
+
+  return Q!.getEncoded();
+
+}
+
+// Adapted from pointycastle
+BigInt _calculateE(Uint8List message) {
+
+  final log2n = secp256k1.n.bitLength;
+  final messageBitLength = message.length * 8;
+  final decoded = decodeBigIntWithSign(1, message);
+
+  return log2n >= messageBitLength
+    ? decoded
+    : decoded >> (messageBitLength - log2n);
+
 }
 
 bool verify(Uint8List hash, Uint8List q, Uint8List signature) {

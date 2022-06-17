@@ -25,25 +25,27 @@ class NetworkType {
 }
 
 final bitcoin = new NetworkType(
-    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    messagePrefix: 'Bitcoin Signed Message:\n',
     bech32: 'bc',
     bip32: new Bip32Type(public: 0x0488b21e, private: 0x0488ade4),
     pubKeyHash: 0x00,
     scriptHash: 0x05,
     wif: 0x80,
-    opreturnSize: 80);
+    opreturnSize: 80
+);
 
 final testnet = new NetworkType(
-    messagePrefix: '\x18Bitcoin Signed Message:\n',
+    messagePrefix: 'Bitcoin Signed Message:\n',
     bech32: 'tb',
     bip32: new Bip32Type(public: 0x043587cf, private: 0x04358394),
     pubKeyHash: 0x6f,
     scriptHash: 0xc4,
     wif: 0xef,
-    opreturnSize: 80);
+    opreturnSize: 80
+);
 
 final peercoin = NetworkType(
-  messagePrefix: '\x18Peercoin Signed Message:\n',
+  messagePrefix: 'Peercoin Signed Message:\n',
   bech32: 'pc',
   bip32: Bip32Type(public: 0x043587cf, private: 0x04358394),
   pubKeyHash: 0x37,
@@ -53,8 +55,18 @@ final peercoin = NetworkType(
 );
 
 final peercoinTestnet = NetworkType(
-  messagePrefix: '\x18Peercoin Signed Message:\n',
+  messagePrefix: 'Peercoin Signed Message:\n',
   bech32: 'tpc',
+  bip32: Bip32Type(public: 0x043587cf, private: 0x04358394),
+  pubKeyHash: 0x6f,
+  scriptHash: 0xc4,
+  wif: 0xef,
+  opreturnSize: 256,
+);
+
+final peercoinRegtest = NetworkType(
+  messagePrefix: 'Peercoin Signed Message:\n',
+  bech32: 'pcrt',
   bip32: Bip32Type(public: 0x043587cf, private: 0x04358394),
   pubKeyHash: 0x6f,
   scriptHash: 0xc4,
