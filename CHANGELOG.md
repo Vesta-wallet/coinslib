@@ -1,3 +1,6 @@
+# 3.1.4
+- Fix message signing
+
 ## 3.1.3
 **Breaking change**: - Change transaction builder addOutput argument to BigInt for better flutter web compatability 
 
