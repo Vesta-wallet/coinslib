@@ -150,6 +150,10 @@ class BIP32 {
     return ecc.sign(hash, privateKey!);
   }
 
+  signRecoverable(Uint8List hash) {
+    return ecc.signRecoverable(hash, privateKey!);
+  }
+
   verify(Uint8List hash, Uint8List signature) {
     return ecc.verify(hash, publicKey, signature);
   }
