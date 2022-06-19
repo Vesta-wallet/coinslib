@@ -29,7 +29,7 @@ import 'package:bip39/bip39.dart' as bip39;
 
 main() {
   var Peercoin = NetworkType(
-    messagePrefix: '\x18Peercoin Signed Message:\n',
+    messagePrefix: 'Peercoin Signed Message:\n',
     bech32: 'pc',
     bip32: Bip32Type(public: 0x043587cf, private: 0x04358394),
     pubKeyHash: 0x37,
