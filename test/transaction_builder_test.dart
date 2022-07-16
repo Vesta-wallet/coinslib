@@ -4,23 +4,23 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
-import '../lib/src/models/networks.dart';
-import '../lib/src/ecpair.dart';
-import '../lib/src/transaction.dart';
-import '../lib/src/address.dart';
-import '../lib/src/transaction_builder.dart';
-import '../lib/src/utils/script.dart' as bscript;
-import '../lib/src/payments/index.dart' show PaymentData;
-import '../lib/src/payments/p2pkh.dart';
+import 'package:coinslib/src/models/networks.dart';
+import 'package:coinslib/src/ecpair.dart';
+import 'package:coinslib/src/transaction.dart';
+import 'package:coinslib/src/address.dart';
+import 'package:coinslib/src/transaction_builder.dart';
+import 'package:coinslib/src/utils/script.dart' as bscript;
+import 'package:coinslib/src/payments/index.dart' show PaymentData;
+import 'package:coinslib/src/payments/p2pkh.dart';
 
-final NETWORKS = {'bitcoin': bitcoin, 'testnet': testnet};
+final networks = {'bitcoin': bitcoin, 'testnet': testnet};
 
 constructSign(f, TransactionBuilder txb) {
-  final network = NETWORKS[f['network']];
+  final network = networks[f['network']];
   final inputs = f['inputs'] as List<dynamic>;
   for (var i = 0; i < inputs.length; i++) {
     if (inputs[i]['signs'] == null) continue;
-    (inputs[i]['signs'] as List<dynamic>).forEach((sign) {
+    for (var sign in (inputs[i]['signs'] as List<dynamic>)) {
       ECPair keyPair = ECPair.fromWIF(sign['keyPair'], network: network);
       int? value = sign['value'];
       txb.sign(
@@ -28,61 +28,55 @@ constructSign(f, TransactionBuilder txb) {
           keyPair: keyPair,
           witnessValue: value != null ? BigInt.from(value) : null,
           hashType: sign['hashType']);
-    });
+    }
   }
   return txb;
 }
 
 TransactionBuilder construct(f, [bool? dontSign]) {
-  final network = NETWORKS[f['network']];
+  final network = networks[f['network']];
   final txb = TransactionBuilder(network: network);
   if (f['version'] != null) txb.setVersion(f['version']);
-  (f['inputs'] as List<dynamic>).forEach((input) {
-    var prevTx;
+  for (var input in (f['inputs'] as List<dynamic>)) {
+    dynamic prevTx;
     if (input['txRaw'] != null) {
       final constructed = construct(input['txRaw']);
-      if (input['txRaw']['incomplete'])
+      if (input['txRaw']['incomplete']) {
         prevTx = constructed.buildIncomplete();
-      else
+      } else {
         prevTx = constructed.build();
+      }
     } else if (input['txHex'] != null) {
       prevTx = Transaction.fromHex(input['txHex']);
     } else {
       prevTx = input['txId'];
     }
-    var prevTxScript;
+    Uint8List? prevTxScript;
     if (input['prevTxScript'] != null) {
       prevTxScript = bscript.fromASM(input['prevTxScript']);
     }
     txb.addInput(prevTx, input['vout'], input['sequence'], prevTxScript);
-  });
-  (f['outputs'] as List<dynamic>).forEach((output) {
+  }
+  for (var output in (f['outputs'] as List<dynamic>)) {
     if (output['address'] != null) {
       txb.addOutput(output['address'], BigInt.from(output['value']));
     } else {
       txb.addOutput(
-          bscript.fromASM(output['script']),
-          BigInt.from(output['value'])
-      );
+          bscript.fromASM(output['script']), BigInt.from(output['value']));
     }
-  });
+  }
   if (dontSign != null && dontSign) return txb;
   return constructSign(f, txb);
 }
 
 main() {
-
-  final fixtures = json.decode(
-      File('test/fixtures/transaction_builder.json')
-          .readAsStringSync(encoding: utf8)
-  );
+  final fixtures = json.decode(File('test/fixtures/transaction_builder.json')
+      .readAsStringSync(encoding: utf8));
 
   group('TransactionBuilder', () {
-
-    final keyPair = ECPair.fromPrivateKey(
-        HEX.decode('0000000000000000000000000000000000000000000000000000000000000001')
-        as Uint8List
-    );
+    final keyPair = ECPair.fromPrivateKey(HEX.decode(
+            '0000000000000000000000000000000000000000000000000000000000000001')
+        as Uint8List);
 
     final scripts = [
       '1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH',
@@ -90,14 +84,12 @@ main() {
     ].map((x) => Address.addressToOutputScript(x));
 
     final txHash = HEX.decode(
-        '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2'
-    );
+        '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2');
 
     group('fromTransaction', () {
-
-      (fixtures['valid']['build'] as List<dynamic>).forEach((f) {
+      for (var f in (fixtures['valid']['build'] as List<dynamic>)) {
         test('returns TransactionBuilder, with ${f['description']}', () {
-          final network = NETWORKS[f['network'] ?? 'bitcoin'];
+          final network = networks[f['network'] ?? 'bitcoin'];
           final tx = Transaction.fromHex(f['txHex']);
           final txb = TransactionBuilder.fromTransaction(tx, network);
           final txAfter =
@@ -105,22 +97,23 @@ main() {
           expect(txAfter.toHex(), f['txHex']);
           expect(txb.network, network);
         });
-      });
+      }
 
-      (fixtures['valid']['fromTransaction'] as List<dynamic>).forEach((f) {
+      for (var f in (fixtures['valid']['fromTransaction'] as List<dynamic>)) {
         test('returns TransactionBuilder, with ${f['description']}', () {
           final tx = Transaction();
-          f['inputs'] as List<dynamic>
-            ..forEach((input) {
-              final txHash2 = Uint8List.fromList(
-                  HEX.decode(input['txId']).reversed.toList());
-              tx.addInput(txHash2, input['vout'], null,
-                  bscript.fromASM(input['scriptSig']));
-            });
-          f['outputs'] as List<dynamic>
-            ..forEach((output) {
-              tx.addOutput(bscript.fromASM(output['script']), output['value']);
-            });
+          final fInputList = f['inputs'] as List<dynamic>;
+          final fOutputList = f['inputs'] as List<dynamic>;
+
+          for (var input in fInputList) {
+            final txHash2 =
+                Uint8List.fromList(HEX.decode(input['txId']).reversed.toList());
+            tx.addInput(txHash2, input['vout'], null,
+                bscript.fromASM(input['scriptSig']));
+          }
+          for (var output in fOutputList) {
+            tx.addOutput(bscript.fromASM(output['script']), output['value']);
+          }
 
           final txb = TransactionBuilder.fromTransaction(tx);
           final txAfter = f['incomplete'] ? txb.buildIncomplete() : txb.build();
@@ -134,24 +127,23 @@ main() {
                 f['outputs'][i]['script']);
           }
         });
-      });
+      }
 
-      fixtures['invalid']['fromTransaction'] as List
-        ..forEach((f) {
-          test('throws ${f['exception']}', () {
-            final tx = Transaction.fromHex(f['txHex']);
-            try {
-              expect(TransactionBuilder.fromTransaction(tx), isArgumentError);
-            } catch (err) {
-              expect((err as ArgumentError).message, f['exception']);
-            }
-          });
+      final fList = fixtures['invalid']['fromTransaction'] as List;
+
+      for (var f in fList) {
+        test('throws ${f['exception']}', () {
+          final tx = Transaction.fromHex(f['txHex']);
+          try {
+            expect(TransactionBuilder.fromTransaction(tx), isArgumentError);
+          } catch (err) {
+            expect((err as ArgumentError).message, f['exception']);
+          }
         });
-
+      }
     });
 
     group('addInput', () {
-
       late TransactionBuilder txb;
       setUp(() {
         txb = TransactionBuilder();
@@ -210,11 +202,9 @@ main() {
               'No, this would invalidate signatures');
         }
       });
-
     });
 
     group('addOutput', () {
-
       late TransactionBuilder txb;
       setUp(() {
         txb = TransactionBuilder();
@@ -222,9 +212,7 @@ main() {
 
       test('accepts an address string and value', () {
         final address =
-            P2PKH(data: PaymentData(pubkey: keyPair.publicKey))
-                .data
-                .address;
+            P2PKH(data: PaymentData(pubkey: keyPair.publicKey)).data.address;
         final vout = txb.addOutput(address, BigInt.from(1000));
         expect(vout, 0);
         final txout = txb.tx.outs[0];
@@ -243,9 +231,9 @@ main() {
       test('throws if address is of the wrong network', () {
         try {
           expect(
-              txb.addOutput('2NGHjvjw83pcVFgMcA7QvSMh2c246rxLVz9', BigInt.from(1000)),
-              isArgumentError
-          );
+              txb.addOutput(
+                  '2NGHjvjw83pcVFgMcA7QvSMh2c246rxLVz9', BigInt.from(1000)),
+              isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message,
               'Invalid version or Network mismatch');
@@ -255,13 +243,13 @@ main() {
       test('add second output after signed first input with SIGHASH_NONE', () {
         txb.addInput(txHash, 0);
         txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
         expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)), 1);
       });
 
       test('add first output after signed first input with SIGHASH_NONE', () {
         txb.addInput(txHash, 0);
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
         expect(txb.addOutput(scripts.elementAt(0), BigInt.from(2000)), 0);
       });
 
@@ -269,18 +257,16 @@ main() {
           () {
         txb.addInput(txHash, 0);
         txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
         expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)), 1);
       });
 
       test('add first output after signed first input with SIGHASH_SINGLE', () {
         txb.addInput(txHash, 0);
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
         try {
-          expect(
-              txb.addOutput(scripts.elementAt(0), BigInt.from(2000)),
-              isArgumentError
-          );
+          expect(txb.addOutput(scripts.elementAt(0), BigInt.from(2000)),
+              isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message,
               'No, this would invalidate signatures');
@@ -294,32 +280,29 @@ main() {
         txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
         txb.sign(vin: 0, keyPair: keyPair);
         try {
-          expect(
-              txb.addOutput(scripts.elementAt(1), BigInt.from(9000)),
-              isArgumentError
-          );
+          expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)),
+              isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message,
               'No, this would invalidate signatures');
         }
       });
-
     });
 
     group('addNullOutput', () {
-
       late TransactionBuilder txb;
       late String data;
       late String data2;
 
       setUp(() {
         txb = TransactionBuilder();
-        data = 'Hey this is a random string without coins. Extended to 80 characters............';
+        data =
+            'Hey this is a random string without coins. Extended to 80 characters............';
         data2 = 'And this is another string.';
       });
 
       expectOutputScript(input, Uint8List expectPushData) {
-        final opReturn = OPS['OP_RETURN']!;
+        final opReturn = ops['OP_RETURN']!;
         final expectScript = bscript.compile([opReturn, expectPushData]);
         final vout = txb.addNullOutput(input);
         expect(vout, 0);
@@ -353,26 +336,27 @@ main() {
       test('add second output after signed first input with SIGHASH_NONE', () {
         txb.addInput(txHash, 0);
         txb.addNullOutput(data);
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
         expect(txb.addNullOutput(data2), 1);
       });
 
       test('add first output after signed first input with SIGHASH_NONE', () {
         txb.addInput(txHash, 0);
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
         expect(txb.addNullOutput(data), 0);
       });
 
-      test('add second output after signed first input with SIGHASH_SINGLE', () {
+      test('add second output after signed first input with SIGHASH_SINGLE',
+          () {
         txb.addInput(txHash, 0);
         txb.addNullOutput(data);
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
         expect(txb.addNullOutput(data2), 1);
       });
 
       test('add first output after signed first input with SIGHASH_SINGLE', () {
         txb.addInput(txHash, 0);
-        txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+        txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
         try {
           expect(txb.addNullOutput(data), isArgumentError);
         } catch (err) {
@@ -394,7 +378,6 @@ main() {
               'No, this would invalidate signatures');
         }
       });
-
     });
 
     group('setLockTime', () {
@@ -413,60 +396,72 @@ main() {
     });
 
     group('sign', () {
-      fixtures['invalid']['sign'] as List<dynamic>
-        ..forEach((f) {
-          test(
-              'throws ${f['exception']} ${f['description'] != null ? f['description'] : ''}',
-              () {
-            final txb = construct(f, true);
-            var threw = false;
-            final inputs = f['inputs'] as List;
-            for (var i = 0; i < inputs.length; i++) {
-              inputs[i]['signs'] as List<dynamic>
-                ..forEach((sign) {
-                  final keyPairNetwork =
-                      NETWORKS[sign['network'] ?? f['network']];
-                  final keyPair2 =
-                      ECPair.fromWIF(sign['keyPair'], network: keyPairNetwork);
-                  if (sign['throws'] != null && sign['throws']) {
-                    try {
-                      expect(
-                          txb.sign(
-                              vin: i,
-                              keyPair: keyPair2,
-                              hashType: sign['hashType']),
-                          isArgumentError);
-                    } catch (err) {
-                      expect((err as ArgumentError).message, f['exception']);
-                    }
-                    threw = true;
-                  } else {
-                    txb.sign(
-                        vin: i, keyPair: keyPair2, hashType: sign['hashType']);
-                  }
-                });
+      final fList = fixtures['invalid']['sign'] as List<dynamic>;
+
+      for (var f in fList) {
+        test('throws ${f['exception']} ${f['description'] ?? ''}', () {
+          final txb = construct(f, true);
+          var threw = false;
+          final inputs = f['inputs'] as List;
+          for (var i = 0; i < inputs.length; i++) {
+            final inputList = inputs[i]['signs'] as List<dynamic>;
+            for (var sign in inputList) {
+              final keyPairNetwork = networks[sign['network'] ?? f['network']];
+              final keyPair2 =
+                  ECPair.fromWIF(sign['keyPair'], network: keyPairNetwork);
+              if (sign['throws'] != null && sign['throws']) {
+                try {
+                  expect(
+                      txb.sign(
+                          vin: i,
+                          keyPair: keyPair2,
+                          hashType: sign['hashType']),
+                      isArgumentError);
+                } catch (err) {
+                  expect((err as ArgumentError).message, f['exception']);
+                }
+                threw = true;
+              } else {
+                txb.sign(vin: i, keyPair: keyPair2, hashType: sign['hashType']);
+              }
             }
-            expect(threw, true);
-          });
+          }
+          expect(threw, true);
         });
+      }
     });
 
     group('build', () {
+      final fList = fixtures['valid']['build'] as List<dynamic>;
+      for (var f in fList) {
+        test('builds ${f['description']}', () {
+          final txb = construct(f);
+          final tx =
+              f['incomplete'] != null ? txb.buildIncomplete() : txb.build();
 
-      fixtures['valid']['build'] as List<dynamic>
-        ..forEach((f) {
-          test('builds ${f['description']}', () {
-            final txb = construct(f);
-            final tx =
-                f['incomplete'] != null ? txb.buildIncomplete() : txb.build();
-
-            expect(tx.toHex(), f['txHex']);
-          });
+          expect(tx.toHex(), f['txHex']);
         });
+      }
 
-      fixtures['invalid']['build'] as List<dynamic>
-        ..forEach((f) {
-          group('for ${f['description'] ?? f['exception']}', () {
+      final fListInvalid = fixtures['invalid']['build'] as List<dynamic>;
+      for (var f in fListInvalid) {
+        group('for ${f['description'] ?? f['exception']}', () {
+          test('throws ${f['exception']}', () {
+            try {
+              TransactionBuilder txb;
+              if (f['txHex'] != null) {
+                txb = TransactionBuilder.fromTransaction(
+                    Transaction.fromHex(f['txHex']));
+              } else {
+                txb = construct(f);
+              }
+              expect(txb.build(), isArgumentError);
+            } catch (err) {
+              expect((err as ArgumentError).message, f['exception']);
+            }
+          });
+          // if throws on incomplete too, enforce that
+          if (f['incomplete'] != null && f['incomplete']) {
             test('throws ${f['exception']}', () {
               try {
                 TransactionBuilder txb;
@@ -476,43 +471,25 @@ main() {
                 } else {
                   txb = construct(f);
                 }
-                expect(txb.build(), isArgumentError);
+                expect(txb.buildIncomplete(), isArgumentError);
               } catch (err) {
                 expect((err as ArgumentError).message, f['exception']);
               }
             });
-            // if throws on incomplete too, enforce that
-            if (f['incomplete'] != null && f['incomplete']) {
-              test('throws ${f['exception']}', () {
-                try {
-                  TransactionBuilder txb;
-                  if (f['txHex'] != null) {
-                    txb = TransactionBuilder.fromTransaction(
-                        Transaction.fromHex(f['txHex']));
-                  } else {
-                    txb = construct(f);
-                  }
-                  expect(txb.buildIncomplete(), isArgumentError);
-                } catch (err) {
-                  expect((err as ArgumentError).message, f['exception']);
-                }
-              });
-            } else {
-              test('does not throw if buildIncomplete', () {
-                TransactionBuilder txb;
-                if (f['txHex'] != null) {
-                  txb = TransactionBuilder.fromTransaction(
-                      Transaction.fromHex(f['txHex']));
-                } else {
-                  txb = construct(f);
-                }
-                txb.buildIncomplete();
-              });
-            }
-          });
+          } else {
+            test('does not throw if buildIncomplete', () {
+              TransactionBuilder txb;
+              if (f['txHex'] != null) {
+                txb = TransactionBuilder.fromTransaction(
+                    Transaction.fromHex(f['txHex']));
+              } else {
+                txb = construct(f);
+              }
+              txb.buildIncomplete();
+            });
+          }
         });
-
+      }
     });
-
   });
 }

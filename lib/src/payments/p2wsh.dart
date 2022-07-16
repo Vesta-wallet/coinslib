@@ -5,11 +5,9 @@ import '../utils/constants/op.dart';
 /// Takes the sha256 hash ([scriptHash]) of a witnessScript and returns the
 /// output script (scriptPubKey)
 Uint8List createP2wshOutputScript(Uint8List scriptHash) {
+  if (scriptHash.length != 32) {
+    throw ArgumentError('Invalid script hash length');
+  }
 
-  if (scriptHash.length != 32)
-    throw new ArgumentError('Invalid script hash length');
-
-  return bscript.compile([OPS['OP_0'], scriptHash]);
-
+  return bscript.compile([ops['OP_0'], scriptHash]);
 }
-
