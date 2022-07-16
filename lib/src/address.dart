@@ -1,3 +1,5 @@
+// ignore_for_file: empty_catches
+
 import 'dart:typed_data';
 import 'package:coinslib/src/payments/p2wsh.dart';
 
@@ -26,9 +28,7 @@ class Address {
 
     try {
       decodeBase58 = bs58check.decode(address);
-    } catch (err) {
-      print(err);
-    }
+    } catch (err) {}
 
     if (decodeBase58 != null) {
       final prefix = decodeBase58[0];
@@ -49,9 +49,7 @@ class Address {
 
     try {
       decodeBech32 = segwit.decode(address);
-    } catch (err) {
-      print(err);
-    }
+    } catch (err) {}
 
     if (decodeBech32 != null) {
       if (network.bech32 != decodeBech32.hrp) {
