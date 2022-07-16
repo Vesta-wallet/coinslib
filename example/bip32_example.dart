@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import '../lib/coinslib.dart' as bip32;
+import 'package:coinslib/coinslib.dart' as bip32;
 import 'package:hex/hex.dart';
 
 main() {

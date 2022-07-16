@@ -12,22 +12,22 @@ import 'utils/constants/op.dart';
 import 'utils/serialisation.dart';
 import 'utils/varuint.dart' as varuint;
 
-const DEFAULT_SEQUENCE = 0xffffffff;
-const SIGHASH_ALL = 0x01;
-const SIGHASH_NONE = 0x02;
-const SIGHASH_SINGLE = 0x03;
-const SIGHASH_ANYONECANPAY = 0x80;
-const ADVANCED_TRANSACTION_MARKER = 0x00;
-const ADVANCED_TRANSACTION_FLAG = 0x01;
-final EMPTY_SCRIPT = Uint8List.fromList([]);
-final List<Uint8List> EMPTY_WITNESS = [];
-final ZERO = HEX
+const defaultSequence = 0xffffffff;
+const sigHashAll = 0x01;
+const sigHashNone = 0x02;
+const sigHashSingle = 0x03;
+const sigHashAnyoneCanPay = 0x80;
+const advancedTransactionMarker = 0x00;
+const advancedTransactionFlag = 0x01;
+final emptyScript = Uint8List.fromList([]);
+final List<Uint8List> emptyWitness = [];
+final zero = HEX
     .decode('0000000000000000000000000000000000000000000000000000000000000000');
-final ONE = HEX
+final one = HEX
     .decode('0000000000000000000000000000000000000000000000000000000000000001');
-final VALUE_UINT64_MAX = HEX.decode('ffffffffffffffff');
-final BLANK_OUTPUT = Output(
-    script: EMPTY_SCRIPT, valueBuffer: VALUE_UINT64_MAX as Uint8List);
+final valueUint64Max = HEX.decode('ffffffffffffffff');
+final blankOutput =
+    Output(script: emptyScript, valueBuffer: valueUint64Max as Uint8List);
 
 class Transaction {
   int version = 1;
@@ -42,9 +42,9 @@ class Transaction {
     ins.add(Input(
         hash: hash,
         index: index,
-        sequence: sequence ?? DEFAULT_SEQUENCE,
-        script: scriptSig ?? EMPTY_SCRIPT,
-        witness: EMPTY_WITNESS));
+        sequence: sequence ?? defaultSequence,
+        script: scriptSig ?? emptyScript,
+        witness: emptyWitness));
     return ins.length - 1;
   }
 
@@ -55,7 +55,7 @@ class Transaction {
 
   bool hasWitnesses() {
     var witness = ins.indexWhere(
-        (input) => input.witness != null && input.witness!.length != 0);
+        (input) => input.witness != null && input.witness!.isNotEmpty);
     return witness != -1;
   }
 
@@ -68,14 +68,12 @@ class Transaction {
   }
 
   hashForWitnessV0(
-    int inIndex, Uint8List prevOutScript, BigInt value, int hashType
-  ) {
+      int inIndex, Uint8List prevOutScript, BigInt value, int hashType) {
+    var hashOutputs = zero;
+    var hashPrevouts = zero;
+    var hashSequence = zero;
 
-    var hashOutputs = ZERO;
-    var hashPrevouts = ZERO;
-    var hashSequence = ZERO;
-
-    if ((hashType & SIGHASH_ANYONECANPAY) == 0) {
+    if ((hashType & sigHashAnyoneCanPay) == 0) {
       final buffer = Uint8List(36 * ins.length);
       final writer = BytesReaderWriter(buffer);
       for (final txIn in ins) {
@@ -85,11 +83,9 @@ class Transaction {
       hashPrevouts = bcrypto.hash256(buffer);
     }
 
-    if (
-      (hashType & SIGHASH_ANYONECANPAY) == 0 &&
-      (hashType & 0x1f) != SIGHASH_SINGLE &&
-      (hashType & 0x1f) != SIGHASH_NONE
-    ) {
+    if ((hashType & sigHashAnyoneCanPay) == 0 &&
+        (hashType & 0x1f) != sigHashSingle &&
+        (hashType & 0x1f) != sigHashNone) {
       final buffer = Uint8List(4 * ins.length);
       final writer = BytesReaderWriter(buffer);
       for (final txIn in ins) {
@@ -98,12 +94,10 @@ class Transaction {
       hashSequence = bcrypto.hash256(buffer);
     }
 
-    if (
-      (hashType & 0x1f) != SIGHASH_SINGLE && (hashType & 0x1f) != SIGHASH_NONE
-    ) {
+    if ((hashType & 0x1f) != sigHashSingle &&
+        (hashType & 0x1f) != sigHashNone) {
       final txOutsSize = outs.fold(
-          0, (int sum, output) => sum + 8 + varSliceSize(output.script!)
-      );
+          0, (int sum, output) => sum + 8 + varSliceSize(output.script!));
       final buffer = Uint8List(txOutsSize);
       final writer = BytesReaderWriter(buffer);
       for (final txOut in outs) {
@@ -111,7 +105,7 @@ class Transaction {
         writer.writeVarSlice(txOut.script!);
       }
       hashOutputs = bcrypto.hash256(buffer);
-    } else if ((hashType & 0x1f) == SIGHASH_SINGLE && inIndex < outs.length) {
+    } else if ((hashType & 0x1f) == sigHashSingle && inIndex < outs.length) {
       // SIGHASH_SINGLE only hash that according output
       final output = outs[inIndex];
       final buffer = Uint8List(8 + varSliceSize(output.script!));
@@ -137,19 +131,18 @@ class Transaction {
     writer.writeUInt32(hashType);
 
     return bcrypto.hash256(buffer);
-
   }
 
   hashForSignature(int inIndex, Uint8List prevOutScript, int hashType) {
-    if (inIndex >= ins.length) return ONE;
+    if (inIndex >= ins.length) return one;
     // ignore OP_CODESEPARATOR
     final ourScript =
         bscript.compile(bscript.decompile(prevOutScript)!.where((x) {
-      return x != OPS['OP_CODESEPARATOR'];
+      return x != ops['OP_CODESEPARATOR'];
     }).toList());
     final txTmp = Transaction.clone(this);
     // SIGHASH_NONE: ignore all outputs? (wildcard payee)
-    if ((hashType & 0x1f) == SIGHASH_NONE) {
+    if ((hashType & 0x1f) == sigHashNone) {
       txTmp.outs = [];
       // ignore sequence numbers (except at inIndex)
       for (var i = 0; i < txTmp.ins.length; i++) {
@@ -159,16 +152,16 @@ class Transaction {
       }
 
       // SIGHASH_SINGLE: ignore all outputs, except at the same index?
-    } else if ((hashType & 0x1f) == SIGHASH_SINGLE) {
+    } else if ((hashType & 0x1f) == sigHashSingle) {
       // https://github.com/bitcoin/bitcoin/blob/master/src/test/sighash_tests.cpp#L60
-      if (inIndex >= outs.length) return ONE;
+      if (inIndex >= outs.length) return one;
 
       // truncate outputs after
       txTmp.outs.length = inIndex + 1;
 
       // 'blank' outputs before
       for (var i = 0; i < inIndex; i++) {
-        txTmp.outs[i] = BLANK_OUTPUT;
+        txTmp.outs[i] = blankOutput;
       }
       // ignore sequence numbers (except at inIndex)
       for (var i = 0; i < txTmp.ins.length; i++) {
@@ -179,15 +172,15 @@ class Transaction {
     }
 
     // SIGHASH_ANYONECANPAY: ignore inputs entirely?
-    if (hashType & SIGHASH_ANYONECANPAY != 0) {
+    if (hashType & sigHashAnyoneCanPay != 0) {
       txTmp.ins = [txTmp.ins[inIndex]];
       txTmp.ins[0].script = ourScript;
       // SIGHASH_ALL: only ignore input scripts
     } else {
       // 'blank' others input scripts
-      txTmp.ins.forEach((input) {
-        input.script = EMPTY_SCRIPT;
-      });
+      for (var input in txTmp.ins) {
+        input.script = emptyScript;
+      }
       txTmp.ins[inIndex].script = ourScript;
     }
     // serialize and hash
@@ -199,8 +192,8 @@ class Transaction {
     return bcrypto.hash256(buffer);
   }
 
-  _byteLength(_ALLOW_WITNESS) {
-    var hasWitness = _ALLOW_WITNESS && hasWitnesses();
+  _byteLength(allowWitness) {
+    var hasWitness = allowWitness && hasWitnesses();
     return (hasWitness ? 10 : 8) +
         varuint.encodingLength(ins.length) +
         varuint.encodingLength(outs.length) +
@@ -236,11 +229,11 @@ class Transaction {
   }
 
   Uint8List toBuffer([Uint8List? buffer, int initialOffset = 0]) {
-    return this._toBuffer(buffer, initialOffset, true);
+    return _toBuffer(buffer, initialOffset, true);
   }
 
   String toHex() {
-    return HEX.encode(this.toBuffer());
+    return HEX.encode(toBuffer());
   }
 
   bool isCoinbaseHash(buffer) {
@@ -264,45 +257,45 @@ class Transaction {
     return HEX.encode(getHash().reversed.toList());
   }
 
-  _toBuffer([Uint8List? buffer, int initialOffset = 0, bool _ALLOW_WITNESS = false]) {
-
+  _toBuffer(
+      [Uint8List? buffer, int initialOffset = 0, bool allowWitness = false]) {
     // _ALLOW_WITNESS is used to separate witness part when calculating tx id
-    if (buffer == null) buffer = Uint8List(_byteLength(_ALLOW_WITNESS));
+    buffer ??= Uint8List(_byteLength(allowWitness));
 
     var writer = BytesReaderWriter(buffer, initialOffset);
 
     // Start writeBuffer
     writer.writeInt32(version);
 
-    if (_ALLOW_WITNESS && hasWitnesses()) {
-      writer.writeUInt8(ADVANCED_TRANSACTION_MARKER);
-      writer.writeUInt8(ADVANCED_TRANSACTION_FLAG);
+    if (allowWitness && hasWitnesses()) {
+      writer.writeUInt8(advancedTransactionMarker);
+      writer.writeUInt8(advancedTransactionFlag);
     }
 
-    writer.writeVarInt(this.ins.length);
+    writer.writeVarInt(ins.length);
 
-    ins.forEach((txIn) {
+    for (var txIn in ins) {
       writer.writeSlice(txIn.hash!);
       writer.writeUInt32(txIn.index!);
       writer.writeVarSlice(txIn.script!);
       writer.writeUInt32(txIn.sequence!);
-    });
+    }
 
-    writer.writeVarInt(this.outs.length);
+    writer.writeVarInt(outs.length);
 
-    outs.forEach((txOut) {
+    for (var txOut in outs) {
       if (txOut.valueBuffer == null) {
         writer.writeUInt64(txOut.value!);
       } else {
         writer.writeSlice(txOut.valueBuffer!);
       }
       writer.writeVarSlice(txOut.script!);
-    });
+    }
 
-    if (_ALLOW_WITNESS && hasWitnesses()) {
-      ins.forEach((txInt) {
+    if (allowWitness && hasWitnesses()) {
+      for (var txInt in ins) {
         writer.writeVector(txInt.witness!);
-      });
+      }
     }
 
     writer.writeUInt32(locktime);
@@ -313,14 +306,14 @@ class Transaction {
     return buffer;
   }
 
-  factory Transaction.clone(Transaction _tx) {
+  factory Transaction.clone(Transaction txFromArg) {
     Transaction tx = Transaction();
-    tx.version = _tx.version;
-    tx.locktime = _tx.locktime;
-    tx.ins = _tx.ins.map((input) {
+    tx.version = txFromArg.version;
+    tx.locktime = txFromArg.locktime;
+    tx.ins = txFromArg.ins.map((input) {
       return Input.clone(input);
     }).toList();
-    tx.outs = _tx.outs.map((output) {
+    tx.outs = txFromArg.outs.map((output) {
       return Output.clone(output);
     }).toList();
     return tx;
@@ -330,7 +323,6 @@ class Transaction {
     Uint8List buffer, {
     bool noStrict = false,
   }) {
-
     final tx = Transaction();
     final reader = BytesReaderWriter(buffer);
 
@@ -339,8 +331,8 @@ class Transaction {
     final marker = reader.readUInt8();
     final flag = reader.readUInt8();
 
-    final hasWitnesses = marker == ADVANCED_TRANSACTION_MARKER &&
-      flag == ADVANCED_TRANSACTION_FLAG;
+    final hasWitnesses =
+        marker == advancedTransactionMarker && flag == advancedTransactionFlag;
 
     if (!hasWitnesses) reader.offset -= 2; // Reset offset if not segwit tx
 
@@ -350,13 +342,13 @@ class Transaction {
           hash: reader.readSlice(32),
           index: reader.readUInt32(),
           script: reader.readVarSlice(),
-          sequence: reader.readUInt32()
-      ));
+          sequence: reader.readUInt32()));
     }
 
     final voutLen = reader.readVarInt();
     for (var i = 0; i < voutLen; ++i) {
-      tx.outs.add(Output(value: reader.readUInt64(), script: reader.readVarSlice()));
+      tx.outs.add(
+          Output(value: reader.readUInt64(), script: reader.readVarSlice()));
     }
 
     if (hasWitnesses) {
@@ -369,8 +361,7 @@ class Transaction {
 
     if (noStrict) return tx;
 
-    if (!reader.atEnd)
-      throw ArgumentError('Transaction has unexpected data');
+    if (!reader.atEnd) throw ArgumentError('Transaction has unexpected data');
 
     return tx;
   }
@@ -388,12 +379,12 @@ class Transaction {
   @override
   String toString() {
     var buf = StringBuffer();
-    this.ins.forEach((txInput) {
+    for (var txInput in ins) {
       buf.write(txInput.toString());
-    });
-    this.outs.forEach((txOutput) {
+    }
+    for (var txOutput in outs) {
       buf.write(txOutput.toString());
-    });
+    }
     return buf.toString();
   }
 }
@@ -423,14 +414,18 @@ class Input {
       this.signatures,
       this.witness,
       this.prevOutType}) {
-    if (this.hash != null && !isHash256bit(this.hash!))
+    if (hash != null && !isHash256bit(hash!)) {
       throw ArgumentError('Invalid input hash');
-    if (this.index != null && !isUint(this.index!, 32))
+    }
+    if (index != null && !isUint(index!, 32)) {
       throw ArgumentError('Invalid input index');
-    if (this.sequence != null && !isUint(this.sequence!, 32))
+    }
+    if (sequence != null && !isUint(sequence!, 32)) {
       throw ArgumentError('Invalid input sequence');
-    if (this.value != null && !isSatoshi(this.value!))
+    }
+    if (value != null && !isSatoshi(value!)) {
       throw ArgumentError('Invalid ouput value');
+    }
   }
 
   factory Input.expandInput(Uint8List scriptSig, List<Uint8List> witness,
@@ -438,28 +433,28 @@ class Input {
     if (type == null || type == '') {
       var ssType = classifyInput(scriptSig);
       var wsType = classifyWitness(witness);
-      if (ssType == SCRIPT_TYPES['NONSTANDARD']) ssType = null;
-      if (wsType == SCRIPT_TYPES['NONSTANDARD']) wsType = null;
+      if (ssType == scriptTypes['NONSTANDARD']) ssType = null;
+      if (wsType == scriptTypes['NONSTANDARD']) wsType = null;
       type = ssType ?? wsType;
     }
-    if (type == SCRIPT_TYPES['P2WPKH']) {
+    if (type == scriptTypes['P2WPKH']) {
       P2WPKH p2wpkh = P2WPKH(data: PaymentData(witness: witness));
       return Input(
           prevOutScript: p2wpkh.data.output,
-          prevOutType: SCRIPT_TYPES['P2WPKH'],
+          prevOutType: scriptTypes['P2WPKH'],
           pubkeys: [p2wpkh.data.pubkey!],
           signatures: [p2wpkh.data.signature!]);
-    } else if (type == SCRIPT_TYPES['P2PKH']) {
+    } else if (type == scriptTypes['P2PKH']) {
       P2PKH p2pkh = P2PKH(data: PaymentData(input: scriptSig));
       return Input(
           prevOutScript: p2pkh.data.output,
-          prevOutType: SCRIPT_TYPES['P2PKH'],
+          prevOutType: scriptTypes['P2PKH'],
           pubkeys: [p2pkh.data.pubkey!],
           signatures: [p2pkh.data.signature!]);
-    } else if (type == SCRIPT_TYPES['P2PK']) {
+    } else if (type == scriptTypes['P2PK']) {
       P2PK p2pk = P2PK(data: PaymentData(input: scriptSig));
       return Input(
-          prevOutType: SCRIPT_TYPES['P2PK'],
+          prevOutType: scriptTypes['P2PK'],
           pubkeys: [],
           signatures: [p2pk.data.signature!]);
     }
@@ -504,26 +499,26 @@ class Output {
   List<Uint8List?>? pubkeys;
   List<Uint8List?>? signatures;
 
-  Output({
-      this.script,
+  Output(
+      {this.script,
       this.value,
       this.pubkeys,
       this.signatures,
-      this.valueBuffer
-  }) {
-    if (value != null && !isSatoshi(value!))
+      this.valueBuffer}) {
+    if (value != null && !isSatoshi(value!)) {
       throw ArgumentError('Invalid ouput value');
+    }
   }
 
   factory Output.expandOutput(Uint8List script, [Uint8List? ourPubKey]) {
     if (ourPubKey == null) return Output();
     var type = classifyOutput(script);
-    if (type == SCRIPT_TYPES['P2WPKH']) {
+    if (type == scriptTypes['P2WPKH']) {
       Uint8List wpkh1 = P2WPKH(data: PaymentData(output: script)).data.hash!;
       Uint8List wpkh2 = bcrypto.hash160(ourPubKey);
       if (wpkh1 != wpkh2) throw ArgumentError('Hash mismatch!');
       return Output(pubkeys: [ourPubKey], signatures: [null]);
-    } else if (type == SCRIPT_TYPES['P2PKH']) {
+    } else if (type == scriptTypes['P2PKH']) {
       Uint8List pkh1 = P2PKH(data: PaymentData(output: script)).data.hash!;
       Uint8List pkh2 = bcrypto.hash160(ourPubKey);
       if (pkh1 != pkh2) throw ArgumentError('Hash mismatch!');
@@ -572,4 +567,3 @@ int varSliceSize(Uint8List someScript) {
   final length = someScript.length;
   return varuint.encodingLength(length) + length;
 }
-

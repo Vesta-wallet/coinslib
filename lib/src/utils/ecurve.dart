@@ -1,31 +1,36 @@
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
 import "package:pointycastle/ecc/curves/secp256k1.dart";
-import "package:pointycastle/api.dart" show PrivateKeyParameter, PublicKeyParameter;
-import 'package:pointycastle/ecc/api.dart' show ECPrivateKey, ECPublicKey, ECSignature, ECPoint;
+import "package:pointycastle/api.dart"
+    show PrivateKeyParameter, PublicKeyParameter;
+import 'package:pointycastle/ecc/api.dart'
+    show ECPrivateKey, ECPublicKey, ECSignature, ECPoint;
 import "package:pointycastle/signers/ecdsa_signer.dart";
 import 'package:pointycastle/macs/hmac.dart';
 import "package:pointycastle/digests/blake2b.dart";
+// ignore: implementation_imports
 import 'package:pointycastle/src/utils.dart';
 import 'package:collection/collection.dart';
 
-final ZERO32 = Uint8List.fromList(List.generate(32, (index) => 0));
-final EC_GROUP_ORDER = HEX.decode("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
-final EC_P = HEX.decode("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
+final zero32 = Uint8List.fromList(List.generate(32, (index) => 0));
+final egGroupOrder = HEX
+    .decode("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
+final ecP = HEX
+    .decode("fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
 final secp256k1 = ECCurve_secp256k1();
 final n = secp256k1.n;
 final G = secp256k1.G;
 BigInt nDiv2 = n >> 1;
-const THROW_BAD_PRIVATE = 'Expected Private';
-const THROW_BAD_POINT = 'Expected Point';
-const THROW_BAD_TWEAK = 'Expected Tweak';
-const THROW_BAD_HASH = 'Expected Hash';
-const THROW_BAD_SIGNATURE = 'Expected Signature';
+const throwBadPrivate = 'Expected Private';
+const throwBadPoint = 'Expected Point';
+const throwBadTweak = 'Expected Tweak';
+const throwBadHash = 'Expected Hash';
+const throwBadSignature = 'Expected Signature';
 
 bool isPrivate(Uint8List x) {
   if (!isScalar(x)) return false;
-  return _compare(x, ZERO32) > 0 && // > 0
-      _compare(x, EC_GROUP_ORDER as Uint8List) < 0; // < G
+  return _compare(x, zero32) > 0 && // > 0
+      _compare(x, egGroupOrder as Uint8List) < 0; // < G
 }
 
 bool isPoint(Uint8List p) {
@@ -35,10 +40,10 @@ bool isPoint(Uint8List p) {
   var t = p[0];
   var x = p.sublist(1, 33);
 
-  if (_compare(x, ZERO32) == 0) {
+  if (_compare(x, zero32) == 0) {
     return false;
   }
-  if (_compare(x, EC_P as Uint8List) == 1) {
+  if (_compare(x, ecP as Uint8List) == 1) {
     return false;
   }
   try {
@@ -50,10 +55,10 @@ bool isPoint(Uint8List p) {
     return true;
   }
   var y = p.sublist(33);
-  if (_compare(y, ZERO32) == 0) {
+  if (_compare(y, zero32) == 0) {
     return false;
   }
-  if (_compare(y, EC_P as Uint8List) == 1) {
+  if (_compare(y, ecP as Uint8List) == 1) {
     return false;
   }
   if (t == 0x04 && p.length == 65) {
@@ -68,14 +73,16 @@ bool isScalar(Uint8List x) {
 
 bool isOrderScalar(x) {
   if (!isScalar(x)) return false;
-  return _compare(x, EC_GROUP_ORDER as Uint8List) < 0; // < G
+  return _compare(x, egGroupOrder as Uint8List) < 0; // < G
 }
 
 bool isSignature(Uint8List value) {
   Uint8List r = value.sublist(0, 32);
   Uint8List s = value.sublist(32, 64);
 
-  return value.length == 64 && _compare(r, EC_GROUP_ORDER as Uint8List) < 0 && _compare(s, EC_GROUP_ORDER as Uint8List) < 0;
+  return value.length == 64 &&
+      _compare(r, egGroupOrder as Uint8List) < 0 &&
+      _compare(s, egGroupOrder as Uint8List) < 0;
 }
 
 bool _isPointCompressed(Uint8List p) {
@@ -88,20 +95,20 @@ bool assumeCompression(bool? value, Uint8List? pubkey) {
   return value;
 }
 
-Uint8List? pointFromScalar(Uint8List d, bool _compressed) {
-  if (!isPrivate(d)) throw ArgumentError(THROW_BAD_PRIVATE);
+Uint8List? pointFromScalar(Uint8List d, bool compressed) {
+  if (!isPrivate(d)) throw ArgumentError(throwBadPrivate);
   BigInt dd = fromBuffer(d);
   ECPoint pp = (G * dd) as ECPoint;
   if (pp.isInfinity) return null;
-  return getEncoded(pp, _compressed);
+  return getEncoded(pp, compressed);
 }
 
-Uint8List? pointAddScalar(Uint8List p, Uint8List tweak, bool _compressed) {
-  if (!isPoint(p)) throw ArgumentError(THROW_BAD_POINT);
-  if (!isOrderScalar(tweak)) throw ArgumentError(THROW_BAD_TWEAK);
-  bool compressed = assumeCompression(_compressed, p);
+Uint8List? pointAddScalar(Uint8List p, Uint8List tweak, bool compressedArg) {
+  if (!isPoint(p)) throw ArgumentError(throwBadPoint);
+  if (!isOrderScalar(tweak)) throw ArgumentError(throwBadTweak);
+  bool compressed = assumeCompression(compressedArg, p);
   ECPoint? pp = decodeFrom(p);
-  if (_compare(tweak, ZERO32) == 0) return getEncoded(pp, compressed);
+  if (_compare(tweak, zero32) == 0) return getEncoded(pp, compressed);
   BigInt tt = fromBuffer(tweak);
   ECPoint qq = (G * tt) as ECPoint;
   ECPoint uu = (pp! + qq) as ECPoint;
@@ -110,8 +117,8 @@ Uint8List? pointAddScalar(Uint8List p, Uint8List tweak, bool _compressed) {
 }
 
 Uint8List? privateAdd(Uint8List d, Uint8List tweak) {
-  if (!isPrivate(d)) throw ArgumentError(THROW_BAD_PRIVATE);
-  if (!isOrderScalar(tweak)) throw ArgumentError(THROW_BAD_TWEAK);
+  if (!isPrivate(d)) throw ArgumentError(throwBadPrivate);
+  if (!isOrderScalar(tweak)) throw ArgumentError(throwBadTweak);
   BigInt dd = fromBuffer(d);
   BigInt tt = fromBuffer(tweak);
   Uint8List dt = toBuffer((dd + tt) % n);
@@ -126,9 +133,8 @@ Uint8List? privateAdd(Uint8List d, Uint8List tweak) {
 }
 
 Uint8List sign(Uint8List hash, Uint8List x) {
-
-  if (!isScalar(hash)) throw ArgumentError(THROW_BAD_HASH);
-  if (!isPrivate(x)) throw ArgumentError(THROW_BAD_PRIVATE);
+  if (!isScalar(hash)) throw ArgumentError(throwBadHash);
+  if (!isPrivate(x)) throw ArgumentError(throwBadPrivate);
 
   ECSignature sig = deterministicSignature(hash, x);
   final bb = BytesBuilder();
@@ -136,11 +142,9 @@ Uint8List sign(Uint8List hash, Uint8List x) {
   final s = sig.s.compareTo(nDiv2) > 0 ? n - sig.s : sig.s;
   bb.add(_encodeBigInt(s));
   return bb.toBytes();
-
 }
 
 Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
-
   Uint8List sig = sign(hash, privKey);
   Uint8List pubKey = pointFromScalar(privKey, true)!;
 
@@ -150,25 +154,20 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
   // 0 and 1 and choose the one that corresponds to the public key
   for (int recid = 0; recid < 2; recid++) {
     final fullSig = Uint8List.fromList([31 + recid] + sig);
-    if (ListEquality().equals(recover(fullSig, hash), pubKey))
-      return fullSig;
+    if (ListEquality().equals(recover(fullSig, hash), pubKey)) return fullSig;
   }
 
   throw ArgumentError(
-    "Could not generate a recoverable signature from private key"
-  );
-
+      "Could not generate a recoverable signature from private key");
 }
 
 /// This function is used to check the recids for recoverable signatures. It
 /// could be used to recover public keys to verify signatures too but it should
 /// probably do more checks first.
 Uint8List recover(Uint8List sig, Uint8List hash) {
-
   if (sig.length != 65) {
     throw ArgumentError(
-      "Can only recover from signatures with 65 bytes including recid"
-    );
+        "Can only recover from signatures with 65 bytes including recid");
   }
 
   final recid = (sig[0] - 27) & 3;
@@ -176,7 +175,7 @@ Uint8List recover(Uint8List sig, Uint8List hash) {
     throw ArgumentError("Can only recover from 0 or 1 recids");
   }
 
-  if (!isSignature(sig.sublist(1))) throw ArgumentError(THROW_BAD_SIGNATURE);
+  if (!isSignature(sig.sublist(1))) throw ArgumentError(throwBadSignature);
 
   final r = fromBuffer(sig.sublist(1, 33));
   final s = fromBuffer(sig.sublist(33, 65));
@@ -189,33 +188,30 @@ Uint8List recover(Uint8List sig, Uint8List hash) {
   final invr = r.modInverse(secp256k1.n);
 
   // Calculate candidate Q
-  final sR = R*s;
-  final eG = G*e;
+  final sR = R * s;
+  final eG = G * e;
 
-  final Q = (sR! - eG!)!*invr;
+  final Q = (sR! - eG!)! * invr;
 
   return Q!.getEncoded();
-
 }
 
 // Adapted from pointycastle
 BigInt _calculateE(Uint8List message) {
-
   final log2n = secp256k1.n.bitLength;
   final messageBitLength = message.length * 8;
   final decoded = decodeBigIntWithSign(1, message);
 
   return log2n >= messageBitLength
-    ? decoded
-    : decoded >> (messageBitLength - log2n);
-
+      ? decoded
+      : decoded >> (messageBitLength - log2n);
 }
 
 bool verify(Uint8List hash, Uint8List q, Uint8List signature) {
-  if (!isScalar(hash)) throw ArgumentError(THROW_BAD_HASH);
-  if (!isPoint(q)) throw ArgumentError(THROW_BAD_POINT);
+  if (!isScalar(hash)) throw ArgumentError(throwBadHash);
+  if (!isPoint(q)) throw ArgumentError(throwBadPoint);
   // 1.4.1 Enforce r and s are both integers in the interval [1, n − 1] (1, isSignature enforces '< n - 1')
-  if (!isSignature(signature)) throw ArgumentError(THROW_BAD_SIGNATURE);
+  if (!isSignature(signature)) throw ArgumentError(throwBadSignature);
 
   ECPoint? Q = decodeFrom(q);
   BigInt r = fromBuffer(signature.sublist(0, 32));
@@ -273,7 +269,8 @@ Uint8List _encodeBigInt(BigInt number) {
 
   if (number > BigInt.zero) {
     rawSize = (number.bitLength + 7) >> 3;
-    needsPaddingByte = ((number >> (rawSize - 1) * 8) & negativeFlag) == negativeFlag ? 1 : 0;
+    needsPaddingByte =
+        ((number >> (rawSize - 1) * 8) & negativeFlag) == negativeFlag ? 1 : 0;
 
     if (rawSize < 32) {
       needsPaddingByte = 1;
@@ -309,28 +306,24 @@ Uint8List getEncoded(ECPoint? P, compressed) {
 }
 
 ECSignature deterministicSignature(Uint8List hash, Uint8List x) {
-
   final pkp = PrivateKeyParameter(ECPrivateKey(_decodeBigInt(x), secp256k1));
   final salt = Uint8List(16);
 
   // Loop through salts until a low r-value is found
   while (true) {
-
     final kMacDigest = Blake2bDigest(digestSize: 32, salt: salt);
     final signer = ECDSASigner(null, HMac(kMacDigest, 64));
     signer.init(true, pkp);
     final sig = signer.generateSignature(hash) as ECSignature;
 
     // Shift off all bits but the most significant and check that it is not set
-    if ((sig.r >> 255).toInt() == 0)
-      // r value was low, so return with this signature
+    if ((sig.r >> 255).toInt() == 0) {
       return sig;
+    }
 
     // If the r value was high, try again after incrementing the salt
-    for (int i = 0; salt[i]++ == 255; i++);
-
+    for (int i = 0; salt[i]++ == 255; i++) {}
   }
-
 }
 
 int _compare(Uint8List a, Uint8List b) {

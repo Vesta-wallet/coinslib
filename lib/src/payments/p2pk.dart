@@ -15,10 +15,12 @@ class P2PK {
   _init() {
     final output = data.output;
     if (output != null) {
-      if (output[output.length - 1] != OPS['OP_CHECKSIG'])
-        throw new ArgumentError('Output is invalid');
-      if (!isPoint(output.sublist(1, -1)))
-        throw new ArgumentError('Output pubkey is invalid');
+      if (output[output.length - 1] != ops['OP_CHECKSIG']) {
+        throw ArgumentError('Output is invalid');
+      }
+      if (!isPoint(output.sublist(1, -1))) {
+        throw ArgumentError('Output pubkey is invalid');
+      }
     }
     if (data.input != null) {
       // TODO

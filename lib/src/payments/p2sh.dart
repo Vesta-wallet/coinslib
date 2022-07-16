@@ -5,11 +5,9 @@ import '../utils/constants/op.dart';
 /// Takes the hash160 ([scriptHash]) of a P2SH redeemScript and returns the
 /// output script (scriptPubKey)
 Uint8List createP2shOutputScript(Uint8List scriptHash) {
+  if (scriptHash.length != 20) {
+    throw ArgumentError('Invalid script hash length');
+  }
 
-  if (scriptHash.length != 20)
-    throw new ArgumentError('Invalid script hash length');
-
-  return bscript.compile([OPS['OP_HASH160'], scriptHash, OPS['OP_EQUAL']]);
-
+  return bscript.compile([ops['OP_HASH160'], scriptHash, ops['OP_EQUAL']]);
 }
-
