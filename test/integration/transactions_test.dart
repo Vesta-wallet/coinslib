@@ -27,7 +27,7 @@ main() {
   test('can create a 1-to-1 Transaction', () {
     final txb = getTxBuilderWithIn();
 
-    txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', 12000);
+    txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', BigInt.from(12000));
     // (in)15000 - (out)12000 = (fee)3000, this is the miner fee
 
     txb.sign(vin: 0, keyPair: aliceKey);
@@ -50,8 +50,8 @@ main() {
     txb.addInput(
         '7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730', 0
     ); // Bob's previous transaction output, has 300000 satoshis
-    txb.addOutput('1CUNEBjYrCn2y1SdiUMohaKUi4wpP326Lb', 180000);
-    txb.addOutput('1JtK9CQw1syfWj1WtFMWomrYdV3W2tWBF9', 170000);
+    txb.addOutput('1CUNEBjYrCn2y1SdiUMohaKUi4wpP326Lb', BigInt.from(180000));
+    txb.addOutput('1JtK9CQw1syfWj1WtFMWomrYdV3W2tWBF9', BigInt.from(170000));
     // (in)(200000 + 300000) - (out)(180000 + 170000) = (fee)150000, this is the miner fee
 
     // Bob signs his input, which was the second input (1th)
@@ -104,10 +104,16 @@ main() {
         null,
         p2wpkh.output
     ); // Alice's previous transaction output, has 200000 satoshis
-    txb.addOutput('tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt', 1000000);
-    txb.addOutput('tb1qn40fftdp6z2lvzmsz4s0gyks3gq86y2e8svgap', 8995000);
+    txb.addOutput(
+      'tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt',
+      BigInt.from(1000000)
+    );
+    txb.addOutput(
+      'tb1qn40fftdp6z2lvzmsz4s0gyks3gq86y2e8svgap',
+      BigInt.from(8995000)
+    );
 
-    txb.sign(vin: 0, keyPair: alice, witnessValue: 10000000);
+    txb.sign(vin: 0, keyPair: alice, witnessValue: BigInt.from(10000000));
     // // prepare for broadcast to the Bitcoin network, see 'can broadcast a Transaction' below
     expect(
         txb.build().toHex(),
@@ -120,7 +126,7 @@ main() {
 
     final txb = getTxBuilderWithIn();
 
-    txb.addOutput('31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj', 1000);
+    txb.addOutput('31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj', BigInt.from(1000));
     // Reusing key from above
     txb.sign(vin: 0, keyPair: aliceKey);
 
@@ -134,7 +140,10 @@ main() {
   test('can create a P2WSH output', () {
 
     final txb = getTxBuilderWithIn();
-    txb.addOutput('bc1qqqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0szrtjt7', 1000);
+    txb.addOutput(
+      'bc1qqqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0szrtjt7',
+      BigInt.from(1000)
+    );
     txb.sign(vin: 0, keyPair: aliceKey);
 
     expect(
@@ -150,7 +159,7 @@ main() {
     // builds work
 
     var txb = getTxBuilderWithIn();
-    txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', 12000);
+    txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', BigInt.from(12000));
 
     Uint8List witnessScript = MultisigScript(
         pubkeys: [aliceKey.publicKey!, bobKey.publicKey!], threshold: 2
@@ -159,7 +168,7 @@ main() {
     txb.sign(
         vin: 0,
         keyPair: aliceKey,
-        witnessValue: 10000,
+        witnessValue: BigInt.from(10000),
         witnessScript: witnessScript
     );
 
@@ -172,7 +181,7 @@ main() {
     txb.sign(
       vin: 0,
       keyPair: bobKey,
-      witnessValue:  10000,
+      witnessValue:  BigInt.from(10000),
       witnessScript: witnessScript
     );
 
@@ -201,7 +210,10 @@ main() {
     // PPC using v3 txs
     txb.setVersion(3);
     // Output of 180PPC
-    txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', 180000000);
+    txb.addOutput(
+      '1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP',
+      BigInt.from(180000000)
+    );
 
     Uint8List witnessScript = MultisigScript(
         pubkeys: [aliceKey, bobKey, carolKey, davidKey]
@@ -228,7 +240,7 @@ main() {
       txb.sign(
           vin: 1,
           keyPair: key,
-          witnessValue: 100000000,
+          witnessValue: BigInt.from(100000000),
           witnessScript: witnessScript
       );
       txb = TransactionBuilder.fromTransaction(

@@ -76,14 +76,14 @@ class TransactionBuilder {
     _tx.locktime = locktime;
   }
 
-  int _addOutputFromScript(Uint8List script, int value) {
+  int _addOutputFromScript(Uint8List script, BigInt value) {
     if (!_canModifyOutputs()) {
       throw ArgumentError('No, this would invalidate signatures');
     }
     return _tx.addOutput(script, value);
   }
 
-  int addOutput(dynamic data, int value) {
+  int addOutput(dynamic data, BigInt value) {
     late Uint8List scriptPubKey;
     if (data is String) {
       scriptPubKey = Address.addressToOutputScript(data, network);
@@ -117,7 +117,7 @@ class TransactionBuilder {
 
     // Encode output script with OP_RETURN followed by the push data
     final script = bscript.compile([OPS['OP_RETURN'], pushData]);
-    return _addOutputFromScript(script, 0);
+    return _addOutputFromScript(script, BigInt.zero);
 
   }
 
@@ -130,7 +130,7 @@ class TransactionBuilder {
     }
 
     Uint8List hash;
-    int? value;
+    BigInt? value;
 
     if (txHash is String) {
       hash = Uint8List.fromList(HEX.decode(txHash).reversed.toList());
@@ -158,7 +158,7 @@ class TransactionBuilder {
   sign({
       required int vin,
       required ECPair keyPair,
-      int? witnessValue,
+      BigInt? witnessValue,
       Uint8List? witnessScript,
       int? hashType
   }) {
@@ -369,11 +369,14 @@ class TransactionBuilder {
   }
 
   bool _overMaximumFees(int bytes) {
-    int incoming = _inputs.fold(0, (cur, acc) => cur + (acc.value ?? 0));
-    int outgoing = _tx.outs.fold(0, (cur, acc) => cur + (acc.value ?? 0));
-    int fee = incoming - outgoing;
-    int feeRate = fee ~/ bytes;
-    return feeRate > maximumFeeRate;
+    BigInt sumValues(list) => list.fold(
+        BigInt.zero, (cur, acc) => cur + (acc.value ?? BigInt.zero)
+    );
+    BigInt incoming = sumValues(_inputs);
+    BigInt outgoing = sumValues(_tx.outs);
+    BigInt fee = incoming - outgoing;
+    BigInt feeRate = fee ~/ BigInt.from(bytes);
+    return feeRate > BigInt.from(maximumFeeRate);
   }
 
   bool _canModifyInputs() {

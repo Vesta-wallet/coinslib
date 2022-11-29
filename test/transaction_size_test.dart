@@ -58,7 +58,7 @@ main() {
       txb.setVersion(3);
       txb.addInput(mockHash, 0);
 
-      txb.addOutput(mockAddress, 12000);
+      txb.addOutput(mockAddress, BigInt.from(12000));
       // Do null outputs break it?
       txb.addNullOutput('Hey this is a random string without coins');
 
@@ -85,7 +85,7 @@ main() {
         for (int j = 0; j < 3; j++)
           txb.addInput(mockHash, j);
 
-        txb.addOutput(mockAddress, 1000*(i+1));
+        txb.addOutput(mockAddress, BigInt.from(1000*(i+1)));
 
         for (int j = 0; j < 3; j++)
           txb.sign(vin: j, keyPair: aliceKey);

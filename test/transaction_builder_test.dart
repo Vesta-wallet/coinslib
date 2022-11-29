@@ -24,10 +24,11 @@ constructSign(f, TransactionBuilder txb) {
     if (inputs[i]['signs'] == null) continue;
     for (final sign in inputs[i]['signs']) {
       ECPair keyPair = ECPair.fromWIF(sign['keyPair'], network: network);
+      int? value = sign['value'];
       txb.sign(
           vin: i,
           keyPair: keyPair,
-          witnessValue: sign['value'],
+          witnessValue: value != null ? BigInt.from(value) : null,
           witnessScript: compileWitnessScriptFromInput(inputs[i]),
           hashType: sign['hashType']
       );
@@ -74,7 +75,7 @@ TransactionBuilder construct(f, [bool dontSign = false]) {
   for (final dynamic output in f['outputs']) {
     txb.addOutput(
       output['address'] ?? bscript.fromASM(output['script']),
-      output['value']
+      BigInt.from(output['value'])
     );
   }
 
@@ -195,8 +196,8 @@ main() {
 
     test('accepts a prevTx, index [and sequence number]', () {
       final prevTx = Transaction();
-      prevTx.addOutput(scripts.elementAt(0), 0);
-      prevTx.addOutput(scripts.elementAt(1), 1);
+      prevTx.addOutput(scripts.elementAt(0), BigInt.zero);
+      prevTx.addOutput(scripts.elementAt(1), BigInt.one);
 
       final vin = txb.addInput(prevTx, 1, 54);
       expect(vin, 0);
@@ -207,7 +208,6 @@ main() {
       expect(txIn.sequence, 54);
       expect(txb.inputs[0].prevOutScript, scripts.elementAt(1));
     });
-
     test('returns the input index', () {
       expect(txb.addInput(txHash, 0), 0);
       expect(txb.addInput(txHash, 1), 1);
@@ -217,7 +217,7 @@ main() {
         'throws if SIGHASH_ALL has been used to sign any existing scriptSigs',
         () {
       txb.addInput(txHash, 0);
-      txb.addOutput(scripts.elementAt(0), 1000);
+      txb.addOutput(scripts.elementAt(0), BigInt.from(1000));
       txb.sign(vin: 0, keyPair: keyPair);
       try {
         expect(txb.addInput(txHash, 0), isArgumentError);
@@ -241,7 +241,7 @@ main() {
           P2PKH(data: PaymentData(pubkey: keyPair.publicKey))
               .data
               .address;
-      final vout = txb.addOutput(address, 1000);
+      final vout = txb.addOutput(address, BigInt.from(1000));
       expect(vout, 0);
       final txout = txb.tx.outs[0];
       expect(txout.script, scripts.elementAt(0));
@@ -249,7 +249,7 @@ main() {
     });
 
     test('accepts a ScriptPubKey and value', () {
-      final vout = txb.addOutput(scripts.elementAt(0), 1000);
+      final vout = txb.addOutput(scripts.elementAt(0), BigInt.from(1000));
       expect(vout, 0);
       final txout = txb.tx.outs[0];
       expect(txout.script, scripts.elementAt(0));
@@ -258,8 +258,10 @@ main() {
 
     test('throws if address is of the wrong network', () {
       try {
-        expect(txb.addOutput('2NGHjvjw83pcVFgMcA7QvSMh2c246rxLVz9', 1000),
-            isArgumentError);
+        expect(
+          txb.addOutput('2NGHjvjw83pcVFgMcA7QvSMh2c246rxLVz9', BigInt.from(1000)),
+          isArgumentError
+        );
       } catch (err) {
         expect((err as ArgumentError).message,
             'Invalid version or Network mismatch');
@@ -268,33 +270,38 @@ main() {
 
     test('add second output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
-      txb.addOutput(scripts.elementAt(0), 2000);
+      txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
-      expect(txb.addOutput(scripts.elementAt(1), 9000), 1);
+      expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)), 1);
     });
 
     test('add first output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
-      expect(txb.addOutput(scripts.elementAt(0), 2000), 0);
+      expect(txb.addOutput(scripts.elementAt(0), BigInt.from(2000)), 0);
     });
 
     test('add second output after signed first input with SIGHASH_SINGLE',
         () {
       txb.addInput(txHash, 0);
-      txb.addOutput(scripts.elementAt(0), 2000);
+      txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
-      expect(txb.addOutput(scripts.elementAt(1), 9000), 1);
+      expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)), 1);
     });
 
     test('add first output after signed first input with SIGHASH_SINGLE', () {
       txb.addInput(txHash, 0);
       txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
       try {
-        expect(txb.addOutput(scripts.elementAt(0), 2000), isArgumentError);
+        expect(
+          txb.addOutput(scripts.elementAt(0), BigInt.from(2000)),
+          isArgumentError
+        );
       } catch (err) {
-        expect((err as ArgumentError).message,
-            'No, this would invalidate signatures');
+        expect(
+          (err as ArgumentError).message,
+          'No, this would invalidate signatures'
+        );
       }
     });
 
@@ -302,10 +309,10 @@ main() {
         'throws if SIGHASH_ALL has been used to sign any existing scriptSigs',
         () {
       txb.addInput(txHash, 0);
-      txb.addOutput(scripts.elementAt(0), 2000);
+      txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
       txb.sign(vin: 0, keyPair: keyPair);
       try {
-        expect(txb.addOutput(scripts.elementAt(1), 9000), isArgumentError);
+        expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)), isArgumentError);
       } catch (err) {
         expect((err as ArgumentError).message,
             'No, this would invalidate signatures');
@@ -410,7 +417,7 @@ main() {
     test('throws if if there exist any scriptSigs', () {
       final txb = TransactionBuilder();
       txb.addInput(txHash, 0);
-      txb.addOutput(scripts.elementAt(0), 100);
+      txb.addOutput(scripts.elementAt(0), BigInt.from(100));
       txb.sign(vin: 0, keyPair: keyPair);
       try {
         expect(txb.setLockTime(65535), isArgumentError);
