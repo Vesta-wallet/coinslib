@@ -212,16 +212,20 @@ class Transaction {
 
   _byteLength(bool allowWitness) {
     var hasWitness = allowWitness && hasWitnesses();
-    return (hasWitness ? 10 : 8) +
-        varuint.encodingLength(ins.length) +
-        varuint.encodingLength(outs.length) +
-        ins.fold(0, (sum, input) => sum + 40 + varSliceSize(input.script!)) +
-        outs.fold(0, (sum, output) => sum + 8 + varSliceSize(output.script!)) +
-        ins.fold(
-            0,
-            (sum, input) => sum +
-              (input.hasWitness ? vectorSize(input.witness!) : 0)
-        );
+    return (hasWitness ? 10 : 8)
+      + varuint.encodingLength(ins.length)
+      + varuint.encodingLength(outs.length)
+      + ins.fold(0, (sum, input) => sum + 40 + varSliceSize(input.script!))
+      + outs.fold(0, (sum, output) => sum + 8 + varSliceSize(output.script!))
+      + (
+        // If has witness data and we are allowing it, add input witness data to
+        // the size if particular input has witness data.
+        hasWitness ? ins.fold(
+          0,
+          (sum, input)
+          => sum + (input.hasWitness ? vectorSize(input.witness!) : 0)
+        ) : 0
+      );
   }
 
   int vectorSize(List<Uint8List> someVector) {
@@ -553,7 +557,7 @@ class Input {
     return 'Input{hash: $hash, index: $index, sequence: $sequence, value: $value, script: $script, signScript: $signScript, prevOutScript: $prevOutScript, pubkeys: $pubkeys, signatures: $signatures, witness: $witness, prevOutType: $prevOutType}';
   }
 
-  bool get hasWitness => witness != null;
+  bool get hasWitness => witness != null && witness!.isNotEmpty;
 
 }
 

@@ -49,12 +49,11 @@ main() {
 
     group('weight/virtualSize', () {
       test('computes virtual size', () {
-        valids.forEach((f) {
-          final txHex =
-              (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
+        for (final f in valids) {
+          final txHex = (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
           final transaction = Transaction.fromHex(txHex);
           expect(transaction.virtualSize(), f['virtualSize']);
-        });
+        }
       });
     });
 
