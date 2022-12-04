@@ -143,7 +143,7 @@ main() {
         final script = bscript.fromASM(f['script']);
         final inIndex = f['inIndex'];
         final type = f['type'];
-        final value = f['value'];
+        final value = BigInt.from(f['value']);
         final tx = Transaction.fromHex(f['txHex']);
 
         test('should return $hash for $description', () {

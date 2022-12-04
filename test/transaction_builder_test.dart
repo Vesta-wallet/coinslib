@@ -245,7 +245,7 @@ main() {
       expect(vout, 0);
       final txout = txb.tx.outs[0];
       expect(txout.script, scripts.elementAt(0));
-      expect(txout.value, 1000);
+      expect(txout.value, BigInt.from(1000));
     });
 
     test('accepts a ScriptPubKey and value', () {
@@ -253,7 +253,7 @@ main() {
       expect(vout, 0);
       final txout = txb.tx.outs[0];
       expect(txout.script, scripts.elementAt(0));
-      expect(txout.value, 1000);
+      expect(txout.value, BigInt.from(1000));
     });
 
     test('throws if address is of the wrong network', () {
@@ -340,7 +340,7 @@ main() {
       expect(vout, 0);
       final txout = txb.tx.outs[0];
       expect(txout.script, expectScript);
-      expect(txout.value, 0);
+      expect(txout.value, BigInt.zero);
     }
 
     test('accepts a string', () {
@@ -460,12 +460,15 @@ main() {
                 )
               );
 
+            final valueNum = sign['value'];
+            final valueBI = valueNum == null ? null : BigInt.from(valueNum);
+
             expect(
               () => txb.sign(
                   vin: i,
                   keyPair: keyPair2,
                   hashType: sign['hashType'],
-                  witnessValue: sign['value'],
+                  witnessValue: valueBI,
                   witnessScript: witnessScript
               ), match
             );

@@ -318,7 +318,9 @@ class Transaction {
 
     if (_ALLOW_WITNESS && hasWitnesses()) {
       for (final txIn in ins) {
-        writer.writeVector(txIn.witness!);
+        if (txIn.hasWitness) {
+          writer.writeVector(txIn.witness!);
+        }
       }
     }
 
