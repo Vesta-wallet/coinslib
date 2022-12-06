@@ -20,11 +20,13 @@ class P2WPKH {
   }
 
   _init() {
-    if (data.address == null &&
-        data.hash == null &&
-        data.output == null &&
-        data.pubkey == null &&
-        data.witness == null) throw ArgumentError('Not enough data');
+    if (
+      data.address == null &&
+      data.hash == null &&
+      data.output == null &&
+      data.pubkey == null &&
+      data.witness.isEmpty
+    ) throw ArgumentError('Not enough data');
 
     if (data.address != null) {
       _getDataFromAddress(data.address!);
@@ -52,7 +54,7 @@ class P2WPKH {
     }
 
     final witness = data.witness;
-    if (witness != null) {
+    if (witness.isNotEmpty) {
       if (witness.length != 2) throw ArgumentError('Witness is invalid');
       if (!bscript.isCanonicalScriptSignature(witness[0])) {
         throw ArgumentError('Witness has invalid signature');
@@ -65,6 +67,7 @@ class P2WPKH {
       data.witness = [data.signature!, data.pubkey!];
       if (data.input == null) data.input = EMPTY_SCRIPT;
     }
+
   }
 
   void _getDataFromWitness(List<Uint8List> witness) {

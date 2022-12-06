@@ -7,16 +7,17 @@ class PaymentData {
   Uint8List? signature;
   Uint8List? pubkey;
   Uint8List? input;
-  List<Uint8List>? witness;
+  List<Uint8List> witness;
 
-  PaymentData(
-      {this.address,
-      this.hash,
-      this.output,
-      this.pubkey,
-      this.input,
-      this.signature,
-      this.witness});
+  PaymentData({
+    this.address,
+    this.hash,
+    this.output,
+    this.pubkey,
+    this.input,
+    this.signature,
+    List<Uint8List>? witness
+  }) : witness = witness ?? [];
 
   @override
   String toString() {

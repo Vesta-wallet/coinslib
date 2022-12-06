@@ -60,18 +60,18 @@ class Transaction {
     return outs.length - 1;
   }
 
-  bool hasWitnesses() => ins.any((input) => input.hasWitness);
+  bool hasWitnesses() => ins.any((input) => input.isWitness);
 
   setInputScript(int index, Uint8List scriptSig) {
     ins[index].script = scriptSig;
   }
 
-  setWitness(int index, List<Uint8List>? witness) {
+  setWitness(int index, List<Uint8List> witness) {
     ins[index].witness = witness;
   }
 
   Uint8List signatureHash(int inIndex, Input input, int hashType) {
-    return input.hasWitness
+    return input.isWitness
       ? hashForWitnessV0(inIndex, input.signScript!, input.value!, hashType)
       : hashForSignature(inIndex, input.signScript!, hashType);
   }
@@ -221,9 +221,7 @@ class Transaction {
         // If has witness data and we are allowing it, add input witness data to
         // the size if particular input has witness data.
         hasWitness ? ins.fold(
-          0,
-          (sum, input)
-          => sum + (input.hasWitness ? vectorSize(input.witness!) : 0)
+          0, (sum, input) => sum + vectorSize(input.witness)
         ) : 0
       );
   }
@@ -318,9 +316,7 @@ class Transaction {
 
     if (_ALLOW_WITNESS && hasWitnesses()) {
       for (final txIn in ins) {
-        if (txIn.hasWitness) {
-          writer.writeVector(txIn.witness!);
-        }
+        writer.writeVector(txIn.witness);
       }
     }
 
@@ -435,7 +431,7 @@ class Input {
   List<Uint8List>? pubkeys;
   List<InputSignature> signatures;
   int? threshold;
-  List<Uint8List>? witness;
+  List<Uint8List> witness;
   bool hasNewSignatures = false;
 
   Input({
@@ -447,10 +443,11 @@ class Input {
       this.prevOutScript,
       this.pubkeys,
       List<InputSignature>? signatures,
-      this.witness,
+      List<Uint8List>? witness,
       this.prevOutType,
       this.threshold
-  }) : signatures = signatures ?? [] {
+  }) : signatures = signatures ?? [], witness = witness ?? [] {
+
     if (hash != null && !isHash256bit(hash!)) {
       throw ArgumentError('Invalid input hash');
     }
@@ -463,9 +460,11 @@ class Input {
     if (value != null && !isSatoshi(value!)) {
       throw ArgumentError('Invalid ouput value');
     }
-    if (witness != null && witness!.isNotEmpty) {
-      signScript = witness!.last;
+
+    if (witness != null && witness.isNotEmpty) {
+      signScript = witness.last;
     }
+
   }
 
   factory Input.expandInput(
@@ -559,7 +558,12 @@ class Input {
     return 'Input{hash: $hash, index: $index, sequence: $sequence, value: $value, script: $script, signScript: $signScript, prevOutScript: $prevOutScript, pubkeys: $pubkeys, signatures: $signatures, witness: $witness, prevOutType: $prevOutType}';
   }
 
-  bool get hasWitness => witness != null && witness!.isNotEmpty;
+  /// If this input deemed to be a witness input, inferred by if there is
+  /// non-empty witness data or the previous output type is specified as a
+  /// witness type
+  bool get isWitness => witness.isNotEmpty
+    || prevOutType == SCRIPT_TYPES['P2WPKH']
+    || prevOutType == SCRIPT_TYPES['P2WSH'];
 
 }
 

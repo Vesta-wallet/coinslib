@@ -227,7 +227,7 @@ class TransactionBuilder {
       throw ArgumentError('Key pair cannot sign for this input');
     }
 
-    if (input.hasWitness) {
+    if (input.isWitness) {
       if (witnessValue == null) {
         throw ArgumentError('Require previous output value for witness inputs');
       }
@@ -310,6 +310,9 @@ class TransactionBuilder {
       if (!input.isComplete() && !allowIncomplete) {
         throw ArgumentError('Transaction is not complete');
       }
+
+      // Set input type
+      tx.ins[i].prevOutType = input.prevOutType;
 
       if (input.prevOutType == SCRIPT_TYPES['P2WSH']) {
         // Build multisig P2WSH even when incomplete
@@ -445,10 +448,7 @@ class TransactionBuilder {
     }
 
     input = options.script != null
-      ? Input.expandInput(
-          options.script!, options.witness ?? EMPTY_WITNESS
-      )
-      : Input();
+      ? Input.expandInput(options.script!, options.witness) : Input();
 
     if (options.value != null) input.value = options.value;
 
