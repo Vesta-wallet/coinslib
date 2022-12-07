@@ -42,13 +42,13 @@ main() {
     expectSuccess(witnessHex) => expectWitness(witnessHex, true);
 
     // Single signature
-    expectSuccess(["00", validSig, validOneOfOneScript]);
+    expectSuccess(["", validSig, validOneOfOneScript]);
     // Allow no signatures
-    expectSuccess(["00", validOneOfOneScript]);
+    expectSuccess(["", validOneOfOneScript]);
     // Double signature
-    expectSuccess(["00", validSig, validSig, validTwoOfTwoScript]);
+    expectSuccess(["", validSig, validSig, validTwoOfTwoScript]);
     // Allow partial signature
-    expectSuccess(["00", validSig, validTwoOfTwoScript]);
+    expectSuccess(["", validSig, validTwoOfTwoScript]);
 
   });
 

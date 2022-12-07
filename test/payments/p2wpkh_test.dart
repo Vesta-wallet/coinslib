@@ -42,7 +42,7 @@ main() {
   });
 
   group('(invalid case)', () {
-    (fixtures["invalid"] as List<dynamic>).forEach((f) {
+    for (final f in (fixtures["invalid"] as List<dynamic>)) {
       test(
           'throws ' +
               f['exception'] +
@@ -50,12 +50,12 @@ main() {
           () {
         final arguments = _preformPaymentData(f['arguments']);
         try {
-          expect(new P2WPKH(data: arguments), isArgumentError);
+          expect(P2WPKH(data: arguments), isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message, f['exception']);
         }
       });
-    });
+    }
   });
 }
 

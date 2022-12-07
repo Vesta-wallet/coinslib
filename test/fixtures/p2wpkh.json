@@ -128,7 +128,7 @@
     {
       "exception": "Witness is invalid",
       "arguments": {
-        "witness": []
+        "witness": ["300602010002010001"]
       }
     },
     {

@@ -16,10 +16,7 @@ class P2WPKH {
 
   P2WPKH({required this.data, NetworkType? network})
       : network = network ?? bitcoin {
-    _init();
-  }
 
-  _init() {
     if (
       data.address == null &&
       data.hash == null &&
