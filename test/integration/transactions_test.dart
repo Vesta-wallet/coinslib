@@ -260,4 +260,69 @@ main() {
 
   });
 
+  test('construct fully comprehensive transcation', () {
+
+    // Constructs a transaction with all supported input and output types that
+    // works on Peercoin testnet.
+    // Inlcudes P2PKH, P2WPKH and P2WSH inputs and outputs.
+    // Also includes a P2SH output
+    // Sucessfully broadcast as 1b67064ab827e00d163796ec6ee0e12f6006223f7610b29d1a8684543e7ec10e
+
+    var txb = TransactionBuilder();
+    txb.setVersion(3);
+
+    // Outputs
+    final outAmt = BigInt.from(10000);
+    txb.addOutput("1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP", outAmt);
+    txb.addOutput("bc1qg7rzlct9ucfp47qdth0paj683mghq4jmg8l7ga", outAmt);
+    txb.addOutput("bc1qqk7z8s30kzdn9zwuxxrdmga3txymeljpsc42cdm7khww9xqa8w2qkp0v4s", outAmt);
+    txb.addOutput("31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj", outAmt);
+
+    // P2PKH input (alice)
+    txb.addInput(
+        "12ddf17179751b378b5983ce6c1a83444ba770510c603d869e7d5553b2bbbf73", 1
+    );
+
+    // P2WPKH input (carol)
+
+    final p2wpkh = P2WPKH(
+      data: PaymentData(pubkey: carolKey.publicKey),
+      network: NETWORKS.peercoinTestnet
+    ).data;
+
+    txb.addInput(
+        "03975de4457cecd2e5681eb2126844427003680e1c30d7c2422fef3aa85b4461", 1,
+        null, p2wpkh.output
+    );
+
+    // P2WSH input (alice and bob)
+
+    Uint8List witnessScript = MultisigScript(
+        pubkeys: [aliceKey.publicKey!, bobKey.publicKey!], threshold: 1
+    ).scriptBytes;
+
+    txb.addInput(
+        "35f1fb897f5bb24254771132bbedd7732406154afc64418ce3ba9c1326808c73", 1
+    );
+
+    // Sign P2PKH
+    txb.sign(vin: 0, keyPair: aliceKey);
+    // Sign P2WPKH with 0.02ppc
+    txb.sign(vin: 1, keyPair: carolKey, witnessValue: BigInt.from(20000));
+    // Sign P2WSH with 0.031234ppc
+    txb.sign(
+      vin: 2,
+      keyPair: bobKey,
+      witnessValue: BigInt.from(31234),
+      witnessScript: witnessScript
+    );
+
+    // Check hex, including after decode and encode again
+    final expectHex = "0300000000010373bfbbb253557d9e863d600c5170a74b44831a6cce83598b371b757971f1dd12010000006a473044022062e6eb08c2b3e2bf1affc7be56c26ade94758eb70b508eab00899b583a67f35b022048dcad4ea0d39c0dc139c7bc15d155129925e7223f2a83392d950c2a23d20e780121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffff61445ba83aef2f42c2d7301c0e68037042446812b21e68e5d2ec7c45e45d97030100000000ffffffff738c8026139cbae38c4164fc4a15062473d7edbb3211775442b25b7f89fbf1350100000000ffffffff0410270000000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac102700000000000016001447862fe165e6121af80d5dde1ecb478ed170565b102700000000000022002005bc23c22fb09b3289dc3186dda3b15989bcfe41862aac377eb5dce2981d3b94102700000000000017a9140102030405060708090a0b0c0d0e0f1011121314870002473044022022b28be22b288c2738ea011378a54d9ef0d0c4453878f6d555985283ab1e884702200dc48c78d82775f501543178b5bcad64c8dc6b463d2823b9b2f9328bb1b7c335012103e05ce435e462ec503143305feb6c00e06a3ad52fbf939e85c65f3a765bb7baac0300473044022028d35b6f95dc9fb1ff2eacc3071fbcf36cf56c3d0233a58f4e83931d5c16cc5202202ba4bb8c07560ab3b42146c2475438828db9283c4f5650fb03aceb88945a6f9001475121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a28952ae00000000";
+
+    expect(txb.build().toHex(), expectHex);
+    expect(Transaction.fromHex(expectHex).toHex(), expectHex);
+
+  });
+
 }
