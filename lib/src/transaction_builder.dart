@@ -109,8 +109,7 @@ class TransactionBuilder {
     // Enforce the limit of the allowed data size
     if (data.length > network.opreturnSize) {
       throw ArgumentError(
-        'Too much data, max OP_RETURN size is ' +
-        network.opreturnSize.toString()
+        "Too much data, max OP_RETURN size is ${network.opreturnSize.toString()}"
       );
     }
 
@@ -436,7 +435,7 @@ class TransactionBuilder {
     final prevTxOut = '$txHash:$vout';
 
     if (_prevTxSet[prevTxOut] != null) {
-      throw ArgumentError('Duplicate TxOut: ' + prevTxOut);
+      throw ArgumentError("Duplicate TxOut: $prevTxOut");
     }
 
     input = options.script != null
