@@ -2,24 +2,20 @@ import 'package:coinslib/src/ecpair.dart';
 import 'package:coinslib/src/transaction_builder.dart';
 import 'package:test/test.dart';
 import 'package:coinslib/src/transaction.dart';
-import 'package:coinslib/src/models/networks.dart' as NETWORKS;
+import 'package:coinslib/src/models/networks.dart' as networks;
 
 main() {
-
   group('Transaction.txSize', () {
-
     // Peercoin WIF format
     final aliceKey = ECPair.fromWIF(
-      'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
-      network: NETWORKS.peercoin
-    );
+        'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
+        network: networks.peercoin);
 
     final mockHash =
-      '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d';
+        '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d';
     final mockAddress = 'P8gWEwpDSPPohHMHcNA5cg7di7pgRrXGGk';
 
     test('transaction size is not 1 byte under', () {
-
       // Taken from
       // 471b4cfb93d94c74d7f8a3f6b4e877502d6deeba6902086be342b80386342a46 which
       // supposedly has the incorrect size
@@ -33,7 +29,6 @@ main() {
     });
 
     test('transaction is not 1 byte over', () {
-
       // Taken from 8de5e69a1f306ab64242b576d7de2ae03645df93f6b07acf5ce392eb9ed3ce28
       // Supposedly overpays 20 satoshis
 
@@ -50,10 +45,10 @@ main() {
       // Peercoin WIF format
       final aliceKey = ECPair.fromWIF(
         'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
-        network: NETWORKS.peercoin
+        network: networks.peercoin
       );
 
-      final txb = TransactionBuilder(network: NETWORKS.peercoin);
+      final txb = TransactionBuilder(network: networks.peercoin);
 
       txb.setVersion(3);
       txb.addInput(mockHash, 0);
@@ -70,34 +65,29 @@ main() {
       expect(tx.txSize, tx.toBuffer().length);
       // Deterministically 243 bytes each time
       expect(tx.txSize, 243);
-
     });
 
     test('should sign with small signatures', () {
-
       // Loop through 10 different possible transactions with 3 inputs each,
       // ensuring that all meet the minimum signature size
       for (int i = 0; i < 10; i++) {
-
-        final txb = TransactionBuilder(network: NETWORKS.peercoin);
+        final txb = TransactionBuilder(network: networks.peercoin);
         txb.setVersion(3);
 
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < 3; j++) {
           txb.addInput(mockHash, j);
+        }
 
-        txb.addOutput(mockAddress, BigInt.from(1000*(i+1)));
+        txb.addOutput(mockAddress, BigInt.from(1000 * (i + 1)));
 
-        for (int j = 0; j < 3; j++)
+        for (int j = 0; j < 3; j++) {
           txb.sign(vin: j, keyPair: aliceKey);
+        }
 
         // A tx with 3 single-sig inputs, plus one P2PKH output should have the
         // length of 485 if all r-values are low
         expect(txb.build().txSize, 485);
-
       }
-
     });
-
   });
-
 }

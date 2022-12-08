@@ -4,14 +4,14 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:hex/hex.dart';
-import '../lib/src/models/networks.dart';
-import '../lib/src/ecpair.dart';
-import '../lib/src/transaction.dart';
-import '../lib/src/address.dart';
-import '../lib/src/transaction_builder.dart';
-import '../lib/src/utils/script.dart' as bscript;
-import '../lib/src/payments/index.dart' show PaymentData;
-import '../lib/src/payments/p2pkh.dart';
+import 'package:coinslib/src/models/networks.dart';
+import 'package:coinslib/src/ecpair.dart';
+import 'package:coinslib/src/transaction.dart';
+import 'package:coinslib/src/address.dart';
+import 'package:coinslib/src/transaction_builder.dart';
+import 'package:coinslib/src/utils/script.dart' as bscript;
+import 'package:coinslib/src/payments/index.dart' show PaymentData;
+import 'package:coinslib/src/payments/p2pkh.dart';
 
 final networks = {'bitcoin': bitcoin, 'testnet': testnet};
 
@@ -124,20 +124,22 @@ main() {
       });
     }
 
-    (fixtures['valid']['fromTransaction'] as List<dynamic>).forEach((f) {
+    for (final f in (fixtures['valid']['fromTransaction'] as List<dynamic>)) {
       test('returns TransactionBuilder, with ${f['description']}', () {
         final tx = Transaction();
-        f['inputs'] as List<dynamic>
-          ..forEach((input) {
-            final txHash2 = Uint8List.fromList(
-                HEX.decode(input['txId']).reversed.toList());
-            tx.addInput(txHash2, input['vout'], null,
-                bscript.fromASM(input['scriptSig']));
-          });
-        f['outputs'] as List<dynamic>
-          ..forEach((output) {
-            tx.addOutput(bscript.fromASM(output['script']), output['value']);
-          });
+        final fInputList = f['inputs'] as List<dynamic>;
+        final fOutputList = f['inputs'] as List<dynamic>;
+
+        for (final input in fInputList) {
+          final txHash2 = Uint8List.fromList(
+            HEX.decode(input['txId']).reversed.toList());
+          tx.addInput(txHash2, input['vout'], null,
+            bscript.fromASM(input['scriptSig']));
+        }
+
+        for (var output in fOutputList) {
+          tx.addOutput(bscript.fromASM(output['script']), output['value']);
+        }
 
         final txb = TransactionBuilder.fromTransaction(tx);
         final txAfter = f['incomplete'] ? txb.buildIncomplete() : txb.build();
@@ -151,19 +153,18 @@ main() {
               f['outputs'][i]['script']);
         }
       });
-    });
+    }
 
-    fixtures['invalid']['fromTransaction'] as List
-      ..forEach((f) {
-        test('throws ${f['exception']}', () {
-          final tx = Transaction.fromHex(f['txHex']);
-          try {
-            expect(TransactionBuilder.fromTransaction(tx), isArgumentError);
-          } catch (err) {
-            expect((err as ArgumentError).message, f['exception']);
-          }
-        });
+    for (final f in (fixtures['invalid']['fromTransaction'] as List)) {
+      test('throws ${f['exception']}', () {
+        final tx = Transaction.fromHex(f['txHex']);
+        try {
+          expect(TransactionBuilder.fromTransaction(tx), isArgumentError);
+        } catch (err) {
+          expect((err as ArgumentError).message, f['exception']);
+        }
       });
+    }
 
   });
 
@@ -208,6 +209,7 @@ main() {
       expect(txIn.sequence, 54);
       expect(txb.inputs[0].prevOutScript, scripts.elementAt(1));
     });
+
     test('returns the input index', () {
       expect(txb.addInput(txHash, 0), 0);
       expect(txb.addInput(txHash, 1), 1);
@@ -271,13 +273,13 @@ main() {
     test('add second output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
       txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
       expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)), 1);
     });
 
     test('add first output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
       expect(txb.addOutput(scripts.elementAt(0), BigInt.from(2000)), 0);
     });
 
@@ -285,13 +287,13 @@ main() {
         () {
       txb.addInput(txHash, 0);
       txb.addOutput(scripts.elementAt(0), BigInt.from(2000));
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
       expect(txb.addOutput(scripts.elementAt(1), BigInt.from(9000)), 1);
     });
 
     test('add first output after signed first input with SIGHASH_SINGLE', () {
       txb.addInput(txHash, 0);
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
       try {
         expect(
           txb.addOutput(scripts.elementAt(0), BigInt.from(2000)),
@@ -334,7 +336,7 @@ main() {
     });
 
     expectOutputScript(input, Uint8List expectPushData) {
-      final opReturn = OPS['OP_RETURN']!;
+      final opReturn = ops['OP_RETURN']!;
       final expectScript = bscript.compile([opReturn, expectPushData]);
       final vout = txb.addNullOutput(input);
       expect(vout, 0);
@@ -356,25 +358,29 @@ main() {
     test('throws if too much data is provided', () {
       try {
         expect(
-            txb.addNullOutput(
-                'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sagittis placerat.'),
-            isArgumentError);
+          txb.addNullOutput(
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi sagittis placerat.'
+          ),
+          isArgumentError
+        );
       } catch (err) {
-        expect((err as ArgumentError).message,
-            'Too much data, max OP_RETURN size is 80');
+        expect(
+          (err as ArgumentError).message,
+          'Too much data, max OP_RETURN size is 80'
+        );
       }
     });
 
     test('add second output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
       txb.addNullOutput(data);
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
       expect(txb.addNullOutput(data2), 1);
     });
 
     test('add first output after signed first input with SIGHASH_NONE', () {
       txb.addInput(txHash, 0);
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_NONE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashNone);
       expect(txb.addNullOutput(data), 0);
     });
 
@@ -382,18 +388,20 @@ main() {
         () {
       txb.addInput(txHash, 0);
       txb.addNullOutput(data);
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
       expect(txb.addNullOutput(data2), 1);
     });
 
     test('add first output after signed first input with SIGHASH_SINGLE', () {
       txb.addInput(txHash, 0);
-      txb.sign(vin: 0, keyPair: keyPair, hashType: SIGHASH_SINGLE);
+      txb.sign(vin: 0, keyPair: keyPair, hashType: sigHashSingle);
       try {
         expect(txb.addNullOutput(data), isArgumentError);
       } catch (err) {
-        expect((err as ArgumentError).message,
-            'No, this would invalidate signatures');
+        expect(
+          (err as ArgumentError).message,
+          'No, this would invalidate signatures'
+        );
       }
     });
 
@@ -406,8 +414,10 @@ main() {
       try {
         expect(txb.addNullOutput(data2), isArgumentError);
       } catch (err) {
-        expect((err as ArgumentError).message,
-            'No, this would invalidate signatures');
+        expect(
+          (err as ArgumentError).message,
+          'No, this would invalidate signatures'
+        );
       }
     });
 
@@ -518,7 +528,8 @@ main() {
               TransactionBuilder txb;
               if (f['txHex'] != null) {
                 txb = TransactionBuilder.fromTransaction(
-                  Transaction.fromHex(f['txHex']));
+                  Transaction.fromHex(f['txHex'])
+                );
               } else {
                 txb = construct(f);
               }

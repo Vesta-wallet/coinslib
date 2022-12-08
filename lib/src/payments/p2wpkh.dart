@@ -9,7 +9,7 @@ import '../utils/script.dart' as bscript;
 import '../utils/constants/op.dart';
 
 class P2WPKH {
-  final EMPTY_SCRIPT = Uint8List.fromList([]);
+  final emptyScript = Uint8List.fromList([]);
 
   PaymentData data;
   NetworkType network;
@@ -35,13 +35,10 @@ class P2WPKH {
 
     final output = data.output;
     if (output != null) {
-      if (output.length != 22 ||
-          output[0] != OPS['OP_0'] ||
-          output[1] != 20) // 0x14
+      if (output.length != 22 || output[0] != ops['OP_0'] || output[1] != 20) {
         throw ArgumentError('Output is invalid');
-      if (data.hash == null) {
-        data.hash = output.sublist(2);
       }
+      data.hash ??= output.sublist(2);
       _getDataFromHash();
     }
 
@@ -62,38 +59,37 @@ class P2WPKH {
       _getDataFromWitness(witness);
     } else if (data.pubkey != null && data.signature != null) {
       data.witness = [data.signature!, data.pubkey!];
-      if (data.input == null) data.input = EMPTY_SCRIPT;
+      data.input ??= emptyScript;
     }
 
   }
 
   void _getDataFromWitness(List<Uint8List> witness) {
-    data.input ??= EMPTY_SCRIPT;
+    data.input ??= emptyScript;
     if (data.pubkey == null) {
       data.pubkey = witness[1];
       data.hash ??= hash160(data.pubkey!);
       _getDataFromHash();
     }
-    if (data.signature == null) data.signature = witness[0];
+    data.signature ??= witness[0];
   }
 
   void _getDataFromHash() {
-    if (data.address == null) {
-      data.address = segwit.encode(Segwit(network.bech32!, 0, data.hash!));
-    }
-    if (data.output == null) {
-      data.output = bscript.compile([OPS['OP_0'], data.hash]);
-    }
+    data.address ??= segwit.encode(Segwit(network.bech32!, 0, data.hash!));
+    data.output ??= bscript.compile([ops['OP_0'], data.hash]);
   }
 
   void _getDataFromAddress(String address) {
     try {
-      Segwit _address = segwit.decode(address);
-      if (network.bech32 != _address.hrp)
+      Segwit segwitAddress = segwit.decode(address);
+      if (network.bech32 != segwitAddress.hrp) {
         throw ArgumentError('Invalid prefix or Network mismatch');
-      if (_address.version != 0) // Only support version 0 now;
+      }
+      // Only support version 0 now;
+      if (segwitAddress.version != 0) {
         throw ArgumentError('Invalid address version');
-      data.hash = Uint8List.fromList(_address.program);
+      }
+      data.hash = Uint8List.fromList(segwitAddress.program);
     } on InvalidHrp {
       throw ArgumentError('Invalid prefix or Network mismatch');
     } on InvalidProgramLength {

@@ -50,21 +50,21 @@ class HDWallet {
   String? get address => _p2pkh != null ? _p2pkh!.data.address : null;
 
   HDWallet({required bip32, required p2pkh, required this.network, this.seed}) {
-    this._bip32 = bip32;
-    this._p2pkh = p2pkh;
+    _bip32 = bip32;
+    _p2pkh = p2pkh;
   }
 
   HDWallet derivePath(String path) {
     final bip32 = _bip32!.derivePath(path);
-    final p2pkh = new P2PKH(
-        data: new PaymentData(pubkey: bip32.publicKey), network: network);
+    final p2pkh =
+        P2PKH(data: PaymentData(pubkey: bip32.publicKey), network: network);
     return HDWallet(bip32: bip32, p2pkh: p2pkh, network: network);
   }
 
   HDWallet derive(int index) {
     final bip32 = _bip32!.derive(index);
-    final p2pkh = new P2PKH(
-        data: new PaymentData(pubkey: bip32.publicKey), network: network);
+    final p2pkh =
+        P2PKH(data: PaymentData(pubkey: bip32.publicKey), network: network);
     return HDWallet(bip32: bip32, p2pkh: p2pkh, network: network);
   }
 
@@ -72,8 +72,8 @@ class HDWallet {
     network = network ?? bitcoin;
     final seedHex = HEX.encode(seed);
     final wallet = bip32.BIP32.fromSeed(seed, network);
-    final p2pkh = new P2PKH(
-        data: new PaymentData(pubkey: wallet.publicKey), network: network);
+    final p2pkh =
+        P2PKH(data: PaymentData(pubkey: wallet.publicKey), network: network);
     return HDWallet(
         bip32: wallet, p2pkh: p2pkh, network: network, seed: seedHex);
   }
@@ -81,8 +81,8 @@ class HDWallet {
   factory HDWallet.fromBase58(String xpub, {NetworkType? network}) {
     network = network ?? bitcoin;
     final wallet = bip32.BIP32.fromBase58(xpub, network);
-    final p2pkh = new P2PKH(
-        data: new PaymentData(pubkey: wallet.publicKey), network: network);
+    final p2pkh =
+        P2PKH(data: PaymentData(pubkey: wallet.publicKey), network: network);
     return HDWallet(bip32: wallet, p2pkh: p2pkh, network: network, seed: null);
   }
 
@@ -116,18 +116,18 @@ class Wallet {
   Wallet(this._keyPair, this._p2pkh, this.network);
 
   factory Wallet.random([NetworkType? network]) {
-    final _keyPair = ECPair.makeRandom(network: network);
-    final _p2pkh = new P2PKH(
-        data: new PaymentData(pubkey: _keyPair.publicKey), network: network);
-    return Wallet(_keyPair, _p2pkh, network);
+    final keyPair = ECPair.makeRandom(network: network);
+    final p2pkh =
+        P2PKH(data: PaymentData(pubkey: keyPair.publicKey), network: network);
+    return Wallet(keyPair, p2pkh, network);
   }
 
   factory Wallet.fromWIF(String wif, [NetworkType? network]) {
     network = network ?? bitcoin;
-    final _keyPair = ECPair.fromWIF(wif, network: network);
-    final _p2pkh = new P2PKH(
-        data: new PaymentData(pubkey: _keyPair.publicKey), network: network);
-    return Wallet(_keyPair, _p2pkh, network);
+    final keyPair = ECPair.fromWIF(wif, network: network);
+    final p2pkh =
+        P2PKH(data: PaymentData(pubkey: keyPair.publicKey), network: network);
+    return Wallet(keyPair, p2pkh, network);
   }
 
   Uint8List sign(String message) {

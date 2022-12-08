@@ -6,18 +6,18 @@ import 'package:pointycastle/digests/ripemd160.dart';
 import 'package:pointycastle/digests/sha256.dart';
 
 Uint8List hash160(Uint8List buffer) {
-  Uint8List _tmp = SHA256Digest().process(buffer);
-  return RIPEMD160Digest().process(_tmp);
+  Uint8List tmp = SHA256Digest().process(buffer);
+  return RIPEMD160Digest().process(tmp);
 }
 
 Uint8List hmacSHA512(Uint8List key, Uint8List data) {
-  final _tmp = HMac(SHA512Digest(), 128)..init(KeyParameter(key));
-  return _tmp.process(data);
+  final tmp = HMac(SHA512Digest(), 128)..init(KeyParameter(key));
+  return tmp.process(data);
 }
 
 Uint8List hash256(Uint8List buffer) {
-  Uint8List _tmp = SHA256Digest().process(buffer);
-  return SHA256Digest().process(_tmp);
+  Uint8List tmp = SHA256Digest().process(buffer);
+  return SHA256Digest().process(tmp);
 }
 
 Uint8List hashSha256(Uint8List buffer) => SHA256Digest().process(buffer);

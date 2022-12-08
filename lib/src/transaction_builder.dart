@@ -96,7 +96,6 @@ class TransactionBuilder {
   }
 
   int addNullOutput(dynamic data) {
-
     // Encode string to Uint8List or take Uint8List
     late Uint8List pushData;
     if (data is String) {
@@ -116,15 +115,12 @@ class TransactionBuilder {
     }
 
     // Encode output script with OP_RETURN followed by the push data
-    final script = bscript.compile([OPS['OP_RETURN'], pushData]);
+    final script = bscript.compile([ops['OP_RETURN'], pushData]);
     return _addOutputFromScript(script, BigInt.zero);
-
   }
 
-  int addInput(
-      dynamic txHash, int vout, [int? sequence, Uint8List? prevOutScript]
-  ) {
-
+  int addInput(dynamic txHash, int vout,
+      [int? sequence, Uint8List? prevOutScript]) {
     if (!_canModifyInputs()) {
       throw ArgumentError('No, this would invalidate signatures');
     }
@@ -145,11 +141,8 @@ class TransactionBuilder {
       throw ArgumentError('txHash invalid');
     }
 
-    return _addInputUnsafe(
-        hash, vout,
-        Input(sequence: sequence, prevOutScript: prevOutScript, value: value)
-    );
-
+    return _addInputUnsafe(hash, vout,
+        Input(sequence: sequence, prevOutScript: prevOutScript, value: value));
   }
 
   /// Sign the transaction input at [vin] with [keyPair]. The [witnessScript]
@@ -163,7 +156,7 @@ class TransactionBuilder {
       int? hashType
   }) {
 
-    hashType ??= SIGHASH_ALL;
+    hashType ??= sigHashAll;
 
     if (keyPair.network != network) {
       throw ArgumentError('Inconsistent network');
@@ -189,7 +182,7 @@ class TransactionBuilder {
     if (witnessScript != null) {
       // Assume multisig P2WSH when witnessScript provided
 
-      input.prevOutType = SCRIPT_TYPES['P2WSH'];
+      input.prevOutType = scriptTypes['P2WSH'];
       input.witness = [];
       input.signScript = witnessScript;
 
@@ -202,10 +195,10 @@ class TransactionBuilder {
 
     } else if (
         input.prevOutScript != null &&
-        classifyOutput(input.prevOutScript!) == SCRIPT_TYPES['P2WPKH']
+        classifyOutput(input.prevOutScript!) == scriptTypes['P2WPKH']
     ) {
 
-      input.prevOutType = SCRIPT_TYPES['P2WPKH'];
+      input.prevOutType = scriptTypes['P2WPKH'];
       input.witness = [];
       input.pubkeys = [ourPubKey];
       input.signScript = P2PKH(
@@ -216,7 +209,7 @@ class TransactionBuilder {
     } else {
 
       Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
-      input.prevOutType = SCRIPT_TYPES['P2PKH'];
+      input.prevOutType = scriptTypes['P2PKH'];
       input.pubkeys = [ourPubKey];
       input.signScript = prevOutScript;
 
@@ -314,7 +307,7 @@ class TransactionBuilder {
       // Set input type
       tx.ins[i].prevOutType = input.prevOutType;
 
-      if (input.prevOutType == SCRIPT_TYPES['P2WSH']) {
+      if (input.prevOutType == scriptTypes['P2WSH']) {
         // Build multisig P2WSH even when incomplete
 
         tx.setInputScript(i, Uint8List(0));
@@ -345,9 +338,9 @@ class TransactionBuilder {
             signature: input.signatures.first.encode()
         );
 
-        if (input.prevOutType == SCRIPT_TYPES['P2PKH']) {
+        if (input.prevOutType == scriptTypes['P2PKH']) {
           P2PKH(data: paymentData, network: network);
-        } else if (input.prevOutType == SCRIPT_TYPES['P2WPKH']) {
+        } else if (input.prevOutType == scriptTypes['P2WPKH']) {
           P2WPKH(data: paymentData, network: network);
         } else {
           continue;
@@ -372,9 +365,8 @@ class TransactionBuilder {
   }
 
   bool _overMaximumFees(int bytes) {
-    BigInt sumValues(list) => list.fold(
-        BigInt.zero, (cur, acc) => cur + (acc.value ?? BigInt.zero)
-    );
+    BigInt sumValues(list) =>
+        list.fold(BigInt.zero, (cur, acc) => cur + (acc.value ?? BigInt.zero));
     BigInt incoming = sumValues(_inputs);
     BigInt outgoing = sumValues(_tx.outs);
     BigInt fee = incoming - outgoing;
@@ -386,7 +378,7 @@ class TransactionBuilder {
     return _inputs.every((input) {
       if (input.signatures.isEmpty) return true;
       return input.signatures.every(
-        (signature) => signature.hashType & SIGHASH_ANYONECANPAY != 0
+        (signature) => signature.hashType & sigHashAnyoneCanPay != 0
       );
     });
   }
@@ -398,8 +390,8 @@ class TransactionBuilder {
       if (input.signatures.isEmpty) return true;
       return input.signatures.every((signature) {
         final hashTypeMod = signature.hashType & 0x1f;
-        if (hashTypeMod == SIGHASH_NONE) return true;
-        if (hashTypeMod == SIGHASH_SINGLE) {
+        if (hashTypeMod == sigHashNone) return true;
+        if (hashTypeMod == sigHashSingle) {
           // if SIGHASH_SINGLE is set, and nInputs > nOutputs
           // some signatures would be invalidated by the addition
           // of more outputs
@@ -412,7 +404,7 @@ class TransactionBuilder {
 
   bool _needsOutputs(int signingHashType) {
 
-    if (signingHashType == SIGHASH_ALL) {
+    if (signingHashType == sigHashAll) {
       return _tx.outs.isEmpty;
     }
 
@@ -424,7 +416,7 @@ class TransactionBuilder {
         if (input.signatures.isEmpty) return false;
 
         return input.signatures.any(
-          (signature) => signature.hashType & SIGHASH_NONE == 0
+          (signature) => signature.hashType & sigHashNone == 0
         );
 
       }
@@ -478,7 +470,7 @@ class TransactionBuilder {
 
 Uint8List pubkeyToOutputScript(Uint8List pubkey, [NetworkType? nw]) {
   NetworkType network = nw ?? bitcoin;
-  P2PKH p2pkh =
-      P2PKH(data: PaymentData(pubkey: pubkey), network: network);
+  P2PKH p2pkh = P2PKH(data: PaymentData(pubkey: pubkey), network: network);
   return p2pkh.data.output!;
 }
+

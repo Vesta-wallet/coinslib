@@ -1,16 +1,13 @@
 import 'dart:typed_data';
 
-import 'package:coinslib/src/payments/multisig.dart';
-import 'package:coinslib/src/payments/p2wsh.dart';
 import 'package:coinslib/src/transaction.dart';
-import 'package:hex/hex.dart';
 import 'package:test/test.dart';
 import 'package:coinslib/src/ecpair.dart';
 import 'package:coinslib/src/transaction_builder.dart';
-import 'package:coinslib/src/models/networks.dart' as NETWORKS;
+import 'package:coinslib/src/models/networks.dart' as networks;
 import 'package:coinslib/src/payments/p2wpkh.dart' show P2WPKH;
-import 'package:coinslib/src/payments/p2pkh.dart' show P2PKH;
 import 'package:coinslib/src/payments/index.dart' show PaymentData;
+import 'package:coinslib/src/payments/multisig.dart' show MultisigScript;
 import '../keys.dart';
 
 main() {
@@ -85,14 +82,14 @@ main() {
 
     final alice = ECPair.fromWIF(
         'cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am',
-        network: NETWORKS.testnet
+        network: networks.testnet
     );
     final p2wpkh = P2WPKH(
         data: PaymentData(pubkey: alice.publicKey),
-        network: NETWORKS.testnet
+        network: networks.testnet
     ).data;
 
-    final txb = TransactionBuilder(network: NETWORKS.testnet);
+    final txb = TransactionBuilder(network: networks.testnet);
     txb.setVersion(1);
     txb.addInput(
         '53676626f5042d42e15313492ab7e708b87559dc0a8c74b7140057af51a2ed5b',
@@ -287,7 +284,7 @@ main() {
 
     final p2wpkh = P2WPKH(
       data: PaymentData(pubkey: carolKey.publicKey),
-      network: NETWORKS.peercoinTestnet
+      network: networks.peercoinTestnet
     ).data;
 
     txb.addInput(

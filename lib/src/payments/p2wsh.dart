@@ -20,12 +20,11 @@ class P2WSH {
   P2WSH.fromMultisig(MultisigScript script) : this.fromScriptBytes(script.scriptBytes);
 
   /// Returns the outputScript (scriptPubKey)
-  Uint8List get outputScript => bscript.compile([OPS['OP_0'], scriptHash]);
+  Uint8List get outputScript => bscript.compile([ops['OP_0'], scriptHash]);
 
   /// Returns the bech32 address for a given network
   String address(NetworkType network)
     => segwit.encode(Segwit(network.bech32!, 0, scriptHash));
 
 }
-
 

@@ -50,7 +50,7 @@ class MultisigScript {
     if (chunks.length < 4) throw ArgumentError('Too few script chunks');
 
     // Must end with CHECKMULTISIG
-    if (chunks.last != OPS['OP_CHECKMULTISIG']) {
+    if (chunks.last != ops['OP_CHECKMULTISIG']) {
       throw ArgumentError('Script must end in a CHECKMULTISIG');
     }
 
@@ -90,7 +90,7 @@ class MultisigScript {
       bscript.pushUint8(threshold),
       ...pubkeys,
       bscript.pushUint8(pubkeys.length),
-      OPS['OP_CHECKMULTISIG']
+      ops['OP_CHECKMULTISIG']
   ]);
 
 }

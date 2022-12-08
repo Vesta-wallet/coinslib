@@ -2,9 +2,9 @@ import 'dart:typed_data';
 import 'package:coinslib/coinslib.dart';
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
-import '../lib/src/utils/ecurve.dart' as ecc;
+import 'package:coinslib/src/utils/ecurve.dart' as ecc;
 
-final defichain_testnet = NetworkType(
+final defichainTestnet = NetworkType(
     messagePrefix: "DefiChain Signed Message:\n",
     bip32: Bip32Type(private: 0x04358394, public: 0x043587cf),
     pubKeyHash: 48,
@@ -22,9 +22,9 @@ void main() {
           HEX.decode(
                   "6607599b768ce88470b3b20919f9c63bff663e2f1ec3e3072d22fd9da3847784c361d5accc3b411019f5c81dd3e4ccf9fd1fddb232bfc9bfe23864e2e6ee793f")
               as Uint8List,
-          defichain_testnet);
+          defichainTestnet);
 
-      final xMasterPriv = BIP32.fromSeed(hdSeed.privateKey!, defichain_testnet);
+      final xMasterPriv = BIP32.fromSeed(hdSeed.privateKey!, defichainTestnet);
       final privateKey = xMasterPriv.derivePath("m/0'/0'/0'");
 
       final privateKeyHex = HEX.encode(privateKey.privateKey!);
@@ -46,7 +46,7 @@ void main() {
 
   group('Failing ecc test', () {
     test('Should fail with the third set of key-msg', () {
-      var key, msg;
+      String key, msg;
 
       key = 'f92ca9fe5f77afa489214a7ba2bd6b36d30dd4acdb55c70d1378b5c45c831820';
       msg = '045a7448dffff67c08023d16279c57c0bd16af6467580c183cc4672e768b8a77';

@@ -1,5 +1,5 @@
 /// Script opcodes.
-const OPS = {
+const ops = {
   // Push value ops.
   'OP_0': 0x00,
   'OP_FALSE': 0x00,
