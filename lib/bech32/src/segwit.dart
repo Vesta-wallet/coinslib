@@ -16,13 +16,13 @@ class SegwitCodec extends Codec<Segwit, String> {
   SegwitEncoder get encoder => SegwitEncoder();
 
   @override
-  String encode(Segwit data) {
-    return SegwitEncoder().convert(data);
+  String encode(Segwit input) {
+    return SegwitEncoder().convert(input);
   }
 
   @override
-  Segwit decode(String data) {
-    return SegwitDecoder().convert(data);
+  Segwit decode(String encoded) {
+    return SegwitDecoder().convert(encoded);
   }
 }
 
@@ -145,7 +145,7 @@ List<int> _convertBits(List<int> data, int from, int to, bool pad) {
   var result = <int>[];
   var maxv = (1 << to) - 1;
 
-  data.forEach((v) {
+  for (final v in data) {
     if (v < 0 || (v >> from) != 0) {
       throw Exception();
     }
@@ -155,7 +155,7 @@ List<int> _convertBits(List<int> data, int from, int to, bool pad) {
       bits -= to;
       result.add((acc >> bits) & maxv);
     }
-  });
+  }
 
   if (pad) {
     if (bits > 0) {

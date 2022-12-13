@@ -9,13 +9,13 @@ import 'dart:typed_data';
 
 main() {
   final fixtures = json.decode(
-      new File("./test/fixtures/p2wpkh.json").readAsStringSync(encoding: utf8));
+      File("./test/fixtures/p2wpkh.json").readAsStringSync(encoding: utf8));
 
   group('(valid case)', () {
-    (fixtures["valid"] as List<dynamic>).forEach((f) {
+    for (var f in (fixtures["valid"] as List<dynamic>)) {
       test(f['description'] + ' as expected', () {
         final arguments = _preformPaymentData(f['arguments']);
-        final p2wpkh = new P2WPKH(data: arguments);
+        final p2wpkh = P2WPKH(data: arguments);
         if (arguments.address == null) {
           expect(p2wpkh.data.address, f['expected']['address']);
         }
@@ -34,32 +34,31 @@ main() {
         if (arguments.signature == null) {
           expect(_toString(p2wpkh.data.signature), f['expected']['signature']);
         }
-        if (arguments.witness == null) {
+        if (arguments.witness.isEmpty) {
           expect(_toString(p2wpkh.data.witness), f['expected']['witness']);
         }
       });
-    });
+    }
   });
 
   group('(invalid case)', () {
-    (fixtures["invalid"] as List<dynamic>).forEach((f) {
+    for (final f in (fixtures["invalid"] as List<dynamic>)) {
       test(
-          'throws ' +
-              f['exception'] +
-              (f['description'] != null ? ('for ' + f['description']) : ''),
+          'throws ${f['exception']}${f["description"] != null ? ('for  ${f['description']}') : ''}',
           () {
         final arguments = _preformPaymentData(f['arguments']);
         try {
-          expect(new P2WPKH(data: arguments), isArgumentError);
+          expect(P2WPKH(data: arguments), isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message, f['exception']);
         }
       });
-    });
+    }
   });
 }
 
 PaymentData _preformPaymentData(dynamic x) {
+
   final address = x['address'];
   final hash = x['hash'] != null ? HEX.decode(x['hash']) : null;
   final input = x['input'] != null ? bscript.fromASM(x['input']) : null;
@@ -75,14 +74,17 @@ PaymentData _preformPaymentData(dynamic x) {
           : null;
   final pubkey = x['pubkey'] != null ? HEX.decode(x['pubkey']) : null;
   final signature = x['signature'] != null ? HEX.decode(x['signature']) : null;
-  return new PaymentData(
-      address: address,
-      hash: hash as Uint8List?,
-      input: input,
-      output: output as Uint8List?,
-      pubkey: pubkey as Uint8List?,
-      signature: signature as Uint8List?,
-      witness: witness);
+
+  return PaymentData(
+    address: address,
+    hash: hash as Uint8List?,
+    input: input,
+    output: output as Uint8List?,
+    pubkey: pubkey as Uint8List?,
+    signature: signature as Uint8List?,
+    witness: witness
+  );
+
 }
 
 String? _toString(dynamic x) {

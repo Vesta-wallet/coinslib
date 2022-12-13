@@ -1,3 +1,5 @@
+// ignore_for_file: empty_catches
+
 import 'dart:typed_data';
 import 'package:coinslib/src/payments/p2wsh.dart';
 
@@ -20,24 +22,21 @@ class Address {
   }
 
   static Uint8List addressToOutputScript(String address, [NetworkType? nw]) {
-
     NetworkType network = nw ?? bitcoin;
-    var decodeBase58;
-    var decodeBech32;
+    dynamic decodeBase58;
+    dynamic decodeBech32;
 
     try {
       decodeBase58 = bs58check.decode(address);
     } catch (err) {}
 
     if (decodeBase58 != null) {
-
       final prefix = decodeBase58[0];
       final data = decodeBase58.sublist(1);
 
       if (prefix == network.pubKeyHash) {
-        P2PKH p2pkh = P2PKH(
-            data: PaymentData(address: address), network: network
-        );
+        P2PKH p2pkh =
+            P2PKH(data: PaymentData(address: address), network: network);
         return p2pkh.data.output!;
       }
 
@@ -46,7 +45,6 @@ class Address {
       }
 
       throw ArgumentError('Invalid version or Network mismatch');
-
     }
 
     try {
@@ -54,32 +52,30 @@ class Address {
     } catch (err) {}
 
     if (decodeBech32 != null) {
+      if (network.bech32 != decodeBech32.hrp) {
+        throw ArgumentError('Invalid prefix or Network mismatch');
+      }
 
-      if (network.bech32 != decodeBech32.hrp)
-        throw new ArgumentError('Invalid prefix or Network mismatch');
-
-      if (decodeBech32.version != 0)
-        throw new ArgumentError('Invalid address version');
+      if (decodeBech32.version != 0) {
+        throw ArgumentError('Invalid address version');
+      }
 
       final program = Uint8List.fromList(decodeBech32.program);
       final progLen = program.length;
 
       if (progLen == 20) {
-        P2WPKH p2wpkh = new P2WPKH(
-            data: new PaymentData(address: address), network: network
-        );
+        P2WPKH p2wpkh =
+            P2WPKH(data: PaymentData(address: address), network: network);
         return p2wpkh.data.output!;
       }
 
       if (progLen == 32) {
-        return createP2wshOutputScript(program);
+        return P2WSH.fromScriptHash(program).outputScript;
       }
 
       throw ArgumentError('The bech32 witness program is not the correct size');
-
     }
 
-    throw new ArgumentError(address + ' has no matching Script');
-
+    throw ArgumentError('$address has no matching Script');
   }
 }

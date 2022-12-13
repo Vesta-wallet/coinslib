@@ -12,7 +12,7 @@
         "output": "OP_0 ea6d525c0c955d90d3dbd29a81ef8bfb79003727",
         "signature": null,
         "input": null,
-        "witness": null
+        "witness": ""
       }
     },
     {
@@ -26,7 +26,7 @@
         "output": "OP_0 ea6d525c0c955d90d3dbd29a81ef8bfb79003727",
         "signature": null,
         "input": null,
-        "witness": null
+        "witness": ""
       }
     },
     {
@@ -40,7 +40,7 @@
         "hash": "ea6d525c0c955d90d3dbd29a81ef8bfb79003727",
         "signature": null,
         "input": null,
-        "witness": null
+        "witness": ""
       }
     },
     {
@@ -55,7 +55,7 @@
         "output": "OP_0 168b992bcfc44050310b3a94bd0771136d0b28d1",
         "signature": null,
         "input": null,
-        "witness": null
+        "witness": ""
       }
     },
     {
@@ -128,7 +128,7 @@
     {
       "exception": "Witness is invalid",
       "arguments": {
-        "witness": []
+        "witness": ["300602010002010001"]
       }
     },
     {

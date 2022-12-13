@@ -487,7 +487,39 @@
           }
         ],
         "locktime": 0
+      },
+
+      {
+        "description": "P2WSH multisig input",
+        "txHex": "0100000000010176d7b05b96e69d9760bacf14e496ea01085eff32be8f4e08b299eb92057826e50000000000ffffffff0160ea0000000000001976a914851a33a5ef0d4279bd5854949174e2c65b1d450088ac040047304402201220b8cb8e4e4d2fd375242a3ed8c42e6d9d4583e44cf9de27d4b606f159325c02205c6b111c85e3ee8251f674c6e4cc03262cdda70a4792c559bcb64ef4025530c90147304402206f62dfa1f8e43c7d16f47b9fdb5ae3893e77e9a357b564f1f33cca9cf9c73a9302201bb871019d3bea661dd451e380dac105f23406044f58960950b3ec0e043b8fce0169522102f1c7eac9200f8dee7e34e59318ff2076c8b3e3ac7f43121e57569a1aec1803d4210279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f8179821023e4287a9f1ed9a321ad5a0bcea4da36ba360a36b3ed65a8f45e22050e04d2f4a53ae00000000",
+        "version": 1,
+        "inputs": [
+          {
+            "txId": "e526780592eb99b2084e8fbe32ff5e0801ea96e414cfba60979de6965bb0d776",
+            "vout": 0,
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "value": 10000
+              },
+              {
+                "keyPair": "KzRGFiqhXB7SyX6idHQkt77B8mX7adnujdg3VG47jdVK2x4wbUYg",
+                "value": 10000
+              }
+            ],
+            "sequence": 4294967295,
+            "witnessScript": "OP_2 02f1c7eac9200f8dee7e34e59318ff2076c8b3e3ac7f43121e57569a1aec1803d4 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 023e4287a9f1ed9a321ad5a0bcea4da36ba360a36b3ed65a8f45e22050e04d2f4a OP_3 OP_CHECKMULTISIG"
+          }
+        ],
+        "outputs": [
+          {
+            "value": 60000,
+            "script": "OP_DUP OP_HASH160 851a33a5ef0d4279bd5854949174e2c65b1d4500 OP_EQUALVERIFY OP_CHECKSIG"
+          }
+        ],
+        "locktime": 0
       }
+
     ],
     "fromTransaction": []
   },
@@ -542,6 +574,7 @@
           }
         ]
       },
+
       {
         "description": "Incomplete transaction, nothing assumed",
         "exception": "Transaction is not complete",
@@ -558,6 +591,7 @@
           }
         ]
       },
+
       {
         "description": "Incomplete transaction, known prevTxScript, thereby throws for missing signatures",
         "exception": "Transaction is not complete",
@@ -584,6 +618,31 @@
           }
         ]
       },
+
+      {
+        "description": "Incomplete transaction, partial multisig signatures",
+        "exception": "Transaction is not complete",
+        "inputs": [
+          {
+            "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "vout": 1,
+            "witnessScript": "OP_2 02f1c7eac9200f8dee7e34e59318ff2076c8b3e3ac7f43121e57569a1aec1803d4 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 023e4287a9f1ed9a321ad5a0bcea4da36ba360a36b3ed65a8f45e22050e04d2f4a OP_3 OP_CHECKMULTISIG",
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "value": 10000
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "script": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "value": 1000
+          }
+        ]
+      },
+
       {
         "description": "Duplicate transaction outs",
         "exception": "Duplicate TxOut: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff:0",
@@ -609,7 +668,7 @@
     "sign": [
       {
         "description": "Too many signatures - P2PKH",
-        "exception": "Signature already exists",
+        "exception": "Can't sign a complete transaction input",
         "inputs": [
           {
             "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
@@ -699,7 +758,142 @@
           }
         ],
         "outputs": []
+      },
+      {
+        "description": "Double sign a multisig input",
+        "exception": "Can't sign a complete transaction input",
+        "inputs": [
+          {
+            "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "vout": 1,
+            "witnessScript": "OP_1 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 OP_1 OP_CHECKMULTISIG",
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "value": 10000
+              },
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "value": 10000,
+                "throws": true
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "script": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "value": 1000
+          }
+        ]
+      },
+      {
+        "description": "Incorrect public key for multisig input",
+        "exception": "Key pair cannot sign for this input",
+        "inputs": [
+          {
+            "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "vout": 1,
+            "witnessScript": "OP_1 023e4287a9f1ed9a321ad5a0bcea4da36ba360a36b3ed65a8f45e22050e04d2f4a OP_1 OP_CHECKMULTISIG",
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "value": 10000,
+                "throws": true
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "script": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "value": 1000
+          }
+        ]
+      },
+
+      {
+        "description": "Not a multisig input",
+        "exception": "Script must end in a CHECKMULTISIG",
+        "inputs": [
+          {
+            "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "vout": 1,
+            "witnessScript": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "value": 10000,
+                "throws": true
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "script": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "value": 1000
+          }
+        ]
+      },
+
+      {
+        "description": "Cannot sign past threshold",
+        "exception": "Can't sign a complete transaction input",
+        "inputs": [
+          {
+            "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "vout": 1,
+            "witnessScript": "OP_2 02f1c7eac9200f8dee7e34e59318ff2076c8b3e3ac7f43121e57569a1aec1803d4 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 023e4287a9f1ed9a321ad5a0bcea4da36ba360a36b3ed65a8f45e22050e04d2f4a OP_3 OP_CHECKMULTISIG",
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "value": 10000
+              },
+              {
+                "keyPair": "KzRGFiqhXB7SyX6idHQkt77B8mX7adnujdg3VG47jdVK2x4wbUYg",
+                "value": 10000
+              },
+              {
+                "keyPair": "KzBQVXYUGDAvqG7VeU3C7ZMRYiwtsxSVVFcYGzKU9E4aUVDUquZU",
+                "value": 10000,
+                "throws": true
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "script": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "value": 1000
+          }
+        ]
+      },
+
+      {
+        "description": "Need witness value for P2WSH",
+        "exception": "Require previous output value for witness inputs",
+        "inputs": [
+          {
+            "txId": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "vout": 1,
+            "witnessScript": "OP_1 0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798 OP_1 OP_CHECKMULTISIG",
+            "signs": [
+              {
+                "keyPair": "KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn",
+                "throws": true
+              }
+            ]
+          }
+        ],
+        "outputs": [
+          {
+            "script": "OP_DUP OP_HASH160 aa4d7985c57e011a8b3dd8e0e5a73aaef41629c5 OP_EQUALVERIFY OP_CHECKSIG",
+            "value": 1000
+          }
+        ]
       }
+
     ],
     "fromTransaction": [
       {
