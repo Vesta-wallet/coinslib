@@ -7,12 +7,12 @@ import 'package:coinslib/src/ecpair.dart' show ECPair;
 import 'package:coinslib/src/models/networks.dart' as networks;
 
 final one = HEX.decode(
-  '0000000000000000000000000000000000000000000000000000000000000001'
+  '0000000000000000000000000000000000000000000000000000000000000001',
 ) as Uint8List;
 
 main() {
   final fixtures = json.decode(
-    File('test/fixtures/ecpair.json').readAsStringSync(encoding: utf8)
+      File('test/fixtures/ecpair.json').readAsStringSync(encoding: utf8),
   );
 
   group('ECPair', () {
@@ -26,8 +26,9 @@ main() {
         expect(keyPair.compressed, false);
       });
       test('supports the network option', () {
-        final keyPair = ECPair.fromPrivateKey(one,
-            network: networks.testnet, compressed: false);
+        final keyPair = ECPair.fromPrivateKey(
+          one, network: networks.testnet, compressed: false,
+        );
         expect(keyPair.network, networks.testnet);
       });
       for (var f in (fixtures['valid'] as List)) {
@@ -97,9 +98,9 @@ main() {
       final d = Uint8List.fromList(List.generate(32, (i) => 4));
       final exWIF = 'KwMWvwRJeFqxYyhZgNwYuYjbQENDAPAudQx5VEmKJrUZcq6aL2pv';
       test('allows a custom RNG to be used', () {
-        final keyPair = ECPair.makeRandom(rng: (size) {
-          return d.sublist(0, size);
-        });
+        final keyPair = ECPair.makeRandom(
+          rng: (size) => d.sublist(0, size),
+        );
         expect(keyPair.toWIF(), exWIF);
       });
       test('retains the same defaults as ECPair constructor', () {
@@ -137,10 +138,9 @@ main() {
     });
 
     group('sign', () {
-
       final aliceKey = ECPair.fromWIF(
-        'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
-        network: networks.peercoin
+          'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
+          network: networks.peercoin,
       );
 
       test('gives low r and s values and unique r values', () {
@@ -177,9 +177,7 @@ main() {
           }
         }
       });
-
     });
-
   });
 }
 

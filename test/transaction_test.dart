@@ -8,7 +8,8 @@ import 'package:coinslib/src/transaction.dart';
 
 main() {
   final fixtures = json.decode(
-      File('test/fixtures/transaction.json').readAsStringSync(encoding: utf8));
+      File('test/fixtures/transaction.json').readAsStringSync(encoding: utf8),
+  );
   final valids = (fixtures['valid'] as List<dynamic>);
 
   group('Transaction', () {
@@ -50,7 +51,8 @@ main() {
     group('weight/virtualSize', () {
       test('computes virtual size', () {
         for (final f in valids) {
-          final txHex = (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
+          final txHex =
+              (f['whex'] != null && f['whex'] != '') ? f['whex'] : f['hex'];
           final transaction = Transaction.fromHex(txHex);
           expect(transaction.virtualSize(), f['virtualSize']);
         }
@@ -61,7 +63,8 @@ main() {
       dynamic prevTxHash;
       setUp(() {
         prevTxHash = HEX.decode(
-            'ffffffff00ffff000000000000000000000000000000000000000000101010ff');
+            'ffffffff00ffff000000000000000000000000000000000000000000101010ff',
+        );
       });
       test('returns an index', () {
         final tx = Transaction();
@@ -129,15 +132,14 @@ main() {
           final script = bscript.fromASM(f['script']);
           expect(
               HEX.encode(tx.hashForSignature(f['inIndex'], script, f['type'])),
-              f['hash']);
+              f['hash'],
+          );
         });
       }
     });
 
     group('hashForWitnessV0', () {
-
       for (final f in fixtures['hashForWitnessV0']) {
-
         final hash = f['hash'];
         final description = f['description'];
         final script = bscript.fromASM(f['script']);
@@ -148,15 +150,12 @@ main() {
 
         test('should return $hash for $description', () {
           expect(
-              HEX.encode(tx.hashForWitnessV0(inIndex, script, value, type)),
-              hash
+            HEX.encode(tx.hashForWitnessV0(inIndex, script, value, type)),
+            hash,
           );
         });
-
       }
-
     });
-
   });
 }
 

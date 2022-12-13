@@ -98,9 +98,8 @@ Uint8List pushUint8(int i) => Uint8List.fromList([i]);
 
 // Unfortunately using dynamic due to the existing code
 int? uint8FromChunk(dynamic chunk) {
-
   if (chunk is Uint8List) {
-    return  chunk.length == 1 ? chunk[0] : null;
+    return chunk.length == 1 ? chunk[0] : null;
   }
 
   if (chunk == ops['OP_0']) return 0;
@@ -108,15 +107,15 @@ int? uint8FromChunk(dynamic chunk) {
   int i = chunk - opIntBase;
   if (i < 0 || i > 16) return null;
   return i;
-
 }
 
 Uint8List fromASM(String asm) {
   if (asm == '') return Uint8List.fromList([]);
-  return compile(asm.split(' ').map((chunkStr) {
-    if (ops[chunkStr] != null) return ops[chunkStr];
-    return HEX.decode(chunkStr);
-  }).toList());
+  return compile(
+    asm.split(' ').map(
+      (chunkStr) => ops[chunkStr] ?? HEX.decode(chunkStr),
+    ).toList(),
+  );
 }
 
 String toASM(List<dynamic> c) {
@@ -182,10 +181,9 @@ bool bip66check(buffer) {
 
   if (buffer[lenR + 6] & 0x80 != 0) return false;
 
-  return !(
-    lenS > 1 && (buffer[lenR + 6] == 0x00) && buffer[lenR + 7] & 0x80 == 0
-  );
-
+  return !(lenS > 1 &&
+      (buffer[lenR + 6] == 0x00) &&
+      buffer[lenR + 7] & 0x80 == 0);
 }
 
 Uint8List bip66encode(r, s) {
@@ -250,12 +248,10 @@ Uint8List toDER(Uint8List x) {
 
 /// Convert [bytes] representing an integer into a list of [length] padded with
 /// zeros on the front
-Uint8List padZeroBigEndian(Uint8List bytes, int length) => Uint8List.fromList(
-  List.filled(max(length - bytes.length, 0), 0) + bytes
-);
+Uint8List padZeroBigEndian(Uint8List bytes, int length) =>
+    Uint8List.fromList(List.filled(max(length - bytes.length, 0), 0) + bytes);
 
 /// Converts a DER encoded integer ([der]) to a big endian Uint8List with a
 /// given [length].
-Uint8List toBigEndianFromDER(Uint8List der, int length)
-  => padZeroBigEndian(der.sublist(der[0] == 0 ? 1 : 0), length);
-
+Uint8List toBigEndianFromDER(Uint8List der, int length) =>
+    padZeroBigEndian(der.sublist(der[0] == 0 ? 1 : 0), length);

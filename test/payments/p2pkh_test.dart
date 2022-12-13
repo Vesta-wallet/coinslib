@@ -8,9 +8,8 @@ import 'package:hex/hex.dart';
 import 'dart:typed_data';
 
 main() {
-
   final fixtures = json.decode(
-    File("./test/fixtures/p2pkh.json").readAsStringSync(encoding: utf8)
+      File("./test/fixtures/p2pkh.json").readAsStringSync(encoding: utf8),
   );
 
   group('(valid case)', () {
@@ -72,7 +71,8 @@ PaymentData _preformPaymentData(dynamic x) {
       input: input,
       output: output as Uint8List?,
       pubkey: pubkey as Uint8List?,
-      signature: signature as Uint8List?);
+      signature: signature as Uint8List?,
+  );
 }
 
 String? _toString(dynamic x) {

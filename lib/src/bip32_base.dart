@@ -80,8 +80,9 @@ class BIP32 {
     if (privateKey == null) {
       throw ArgumentError("Missing private key");
     }
-    return wif.encode(wif.WIF(
-        version: network.wif, privateKey: privateKey!, compressed: true));
+    return wif.encode(
+      wif.WIF(version: network.wif, privateKey: privateKey!, compressed: true),
+    );
   }
 
   BIP32 derive(int index) {
@@ -208,8 +209,10 @@ class BIP32 {
     return hd;
   }
 
-  factory BIP32.fromPublicKey(Uint8List publicKey, Uint8List chainCode,
-      [NetworkType? nw]) {
+  factory BIP32.fromPublicKey(
+    Uint8List publicKey, Uint8List chainCode,
+    [NetworkType? nw,]
+  ) {
     NetworkType network = nw ?? networks.bitcoin;
     if (!ecc.isPoint(publicKey)) {
       throw ArgumentError("Point is not on the curve");
@@ -217,12 +220,15 @@ class BIP32 {
     return BIP32(null, publicKey, chainCode, network);
   }
 
-  factory BIP32.fromPrivateKey(Uint8List privateKey, Uint8List chainCode,
-      [NetworkType? nw]) {
+  factory BIP32.fromPrivateKey(
+    Uint8List privateKey, Uint8List chainCode,
+    [NetworkType? nw,]
+  ) {
     NetworkType network = nw ?? networks.bitcoin;
     if (privateKey.length != 32) {
       throw ArgumentError(
-          "Expected property privateKey of type Buffer(Length: 32)");
+        "Expected property privateKey of type Buffer(Length: 32)",
+      );
     }
     if (!ecc.isPrivate(privateKey)) {
       throw ArgumentError("Private key not in range [1, n]");

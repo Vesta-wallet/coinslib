@@ -5,7 +5,6 @@ import 'varuint.dart' as varint;
 import '../../src/models/networks.dart';
 
 Uint8List magicHash(String message, [NetworkType? network]) {
-
   network = network ?? bitcoin;
 
   final bb = BytesBuilder();
@@ -19,5 +18,4 @@ Uint8List magicHash(String message, [NetworkType? network]) {
   encodeStr(message);
 
   return hash256(bb.toBytes());
-
 }

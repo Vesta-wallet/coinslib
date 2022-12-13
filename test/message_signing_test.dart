@@ -7,14 +7,13 @@ import 'package:coinslib/src/models/networks.dart' as networks;
 
 main() {
   test('sign message', () {
-
     final testWallet = Wallet.fromWIF(
-      "cTk3w9wHkw54aH2MHCWzQjT1AT25VkeGGCyVMFQfXaSNMvi847T1",
-      networks.peercoinRegtest
+        "cTk3w9wHkw54aH2MHCWzQjT1AT25VkeGGCyVMFQfXaSNMvi847T1",
+        networks.peercoinRegtest,
     );
 
     final fixtures = json.decode(
-      File('test/fixtures/message_sigs.json').readAsStringSync(encoding: utf8)
+      File('test/fixtures/message_sigs.json').readAsStringSync(encoding: utf8),
     );
 
     for (final testCase in fixtures) {
@@ -23,6 +22,5 @@ main() {
 
       expect(base64Encoded, testCase["sig"]);
     }
-
   });
 }

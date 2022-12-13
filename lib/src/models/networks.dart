@@ -9,14 +9,15 @@ class NetworkType {
   int wif;
   int opreturnSize;
 
-  NetworkType(
-      {required this.messagePrefix,
-      this.bech32,
-      required this.bip32,
-      required this.pubKeyHash,
-      required this.scriptHash,
-      required this.wif,
-      required this.opreturnSize});
+  NetworkType({
+    required this.messagePrefix,
+    this.bech32,
+    required this.bip32,
+    required this.pubKeyHash,
+    required this.scriptHash,
+    required this.wif,
+    required this.opreturnSize,
+  });
 
   @override
   String toString() {
@@ -31,7 +32,8 @@ final bitcoin = NetworkType(
     pubKeyHash: 0x00,
     scriptHash: 0x05,
     wif: 0x80,
-    opreturnSize: 80);
+    opreturnSize: 80,
+);
 
 final testnet = NetworkType(
     messagePrefix: 'Bitcoin Signed Message:\n',
@@ -40,7 +42,8 @@ final testnet = NetworkType(
     pubKeyHash: 0x6f,
     scriptHash: 0xc4,
     wif: 0xef,
-    opreturnSize: 80);
+    opreturnSize: 80,
+);
 
 final peercoin = NetworkType(
   messagePrefix: 'Peercoin Signed Message:\n',

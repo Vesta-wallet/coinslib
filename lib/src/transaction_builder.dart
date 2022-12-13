@@ -49,7 +49,9 @@ class TransactionBuilder {
           Input(
               sequence: txIn.sequence,
               script: txIn.script,
-              witness: txIn.witness));
+              witness: txIn.witness,
+          ),
+      );
     }
 
     return txb;
@@ -69,7 +71,8 @@ class TransactionBuilder {
     // if any signatures exist, throw
     if (_inputs.any((input) => input.signatures.isNotEmpty)) {
       throw ArgumentError(
-          'Can\'t set lock time; this would invalidate signatures');
+          'Can\'t set lock time; this would invalidate signatures',
+      );
     }
     _tx.locktime = locktime;
   }
@@ -107,7 +110,8 @@ class TransactionBuilder {
     // Enforce the limit of the allowed data size
     if (data.length > network.opreturnSize) {
       throw ArgumentError(
-          "Too much data, max OP_RETURN size is ${network.opreturnSize.toString()}");
+        "Too much data, max OP_RETURN size is ${network.opreturnSize.toString()}",
+      );
     }
 
     // Encode output script with OP_RETURN followed by the push data
@@ -115,8 +119,10 @@ class TransactionBuilder {
     return _addOutputFromScript(script, BigInt.zero);
   }
 
-  int addInput(dynamic txHash, int vout,
-      [int? sequence, Uint8List? prevOutScript]) {
+  int addInput(
+    dynamic txHash, int vout,
+    [int? sequence, Uint8List? prevOutScript,]
+  ) {
     if (!_canModifyInputs()) {
       throw ArgumentError('No, this would invalidate signatures');
     }
@@ -137,19 +143,22 @@ class TransactionBuilder {
       throw ArgumentError('txHash invalid');
     }
 
-    return _addInputUnsafe(hash, vout,
-        Input(sequence: sequence, prevOutScript: prevOutScript, value: value));
+    return _addInputUnsafe(
+      hash, vout,
+      Input(sequence: sequence, prevOutScript: prevOutScript, value: value),
+    );
   }
 
   /// Sign the transaction input at [vin] with [keyPair]. The [witnessScript]
   /// can be provided for a P2WSH input and must be a simple CHECKMULTISIG
   /// script.
-  sign(
-      {required int vin,
-      required ECPair keyPair,
-      BigInt? witnessValue,
-      Uint8List? witnessScript,
-      int? hashType}) {
+  sign({
+    required int vin,
+    required ECPair keyPair,
+    BigInt? witnessValue,
+    Uint8List? witnessScript,
+    int? hashType,
+  }) {
     hashType ??= sigHashAll;
 
     if (keyPair.network != network) {
@@ -231,11 +240,12 @@ class TransactionBuilder {
     return _build(true);
   }
 
-  Iterable<InputSignature> _orderSigsForPubkeys(
-      {required int inIndex,
-      required Input input,
-      required Iterable<InputSignature> signatures,
-      required List<Uint8List> pubkeys}) {
+  Iterable<InputSignature> _orderSigsForPubkeys({
+    required int inIndex,
+    required Input input,
+    required Iterable<InputSignature> signatures,
+    required List<Uint8List> pubkeys,
+  }) {
     // Ensure signatures are matched to public keys in the correct order
 
     List<InputSignature?> positionedSigs = List.filled(pubkeys.length, null);
@@ -245,7 +255,8 @@ class TransactionBuilder {
       for (var i = 0; i < pubkeys.length; i++) {
         // Check if the signature matches the public key
         if (sig.verify(
-            pubkeys[i], _tx.signatureHash(inIndex, input, sig.hashType))) {
+            pubkeys[i], _tx.signatureHash(inIndex, input, sig.hashType),
+        )) {
           // Add signature in this position
           positionedSigs[i] = sig;
           matched = true;
@@ -255,7 +266,8 @@ class TransactionBuilder {
 
       if (!matched) {
         throw ArgumentError(
-            'A signature in an input has no corresponding public key');
+            'A signature in an input has no corresponding public key',
+        );
       }
     }
 
@@ -297,11 +309,11 @@ class TransactionBuilder {
             Uint8List.fromList([]),
             // Ensure signatures are in the correct order for multisig
             ..._orderSigsForPubkeys(
-                    inIndex: i,
-                    input: input,
-                    signatures: input.signatures,
-                    pubkeys: input.pubkeys!)
-                .map((sig) => sig.encode()),
+              inIndex: i,
+              input: input,
+              signatures: input.signatures,
+              pubkeys: input.pubkeys!,
+            ).map((sig) => sig.encode()),
             input.signScript!
           ];
         }
@@ -312,7 +324,8 @@ class TransactionBuilder {
 
         final paymentData = PaymentData(
             pubkey: input.pubkeys![0],
-            signature: input.signatures.first.encode());
+            signature: input.signatures.first.encode(),
+        );
 
         if (input.prevOutType == scriptTypes['P2PKH']) {
           P2PKH(data: paymentData, network: network);

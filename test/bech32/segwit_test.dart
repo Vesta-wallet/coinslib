@@ -37,7 +37,8 @@ void main() {
         ..forEach((tuple) {
           test('decode then encode static vector: $tuple', () {
             expect(
-                segwit.encode(segwit.decode(tuple[0])), tuple[0].toLowerCase());
+              segwit.encode(segwit.decode(tuple[0])), tuple[0].toLowerCase(),
+            );
           });
         });
 
@@ -50,10 +51,14 @@ void main() {
         // $ echo 0f715baf5d4c2ed329785cef29e562f73488c8a2bb9dbc5700b361d54b9b0554 | xxd -r -p | openssl ripemd160
         // (stdin)= 751e76e8199196d454941c45d1b3a323f1433bd
         var hash160 = '751e76e8199196d454941c45d1b3a323f1433bd6';
-        expect(segwit.encode(Segwit('bc', 0, HEX.decode(hash160))),
-            'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4');
-        expect(segwit.encode(Segwit('tb', 0, HEX.decode(hash160))),
-            'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx');
+        expect(
+          segwit.encode(Segwit('bc', 0, HEX.decode(hash160))),
+          'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
+        );
+        expect(
+          segwit.encode(Segwit('tb', 0, HEX.decode(hash160))),
+          'tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx',
+        );
       });
 
       test(
@@ -64,8 +69,10 @@ void main() {
         // (stdin)= 1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262
         var hash =
             '1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262';
-        expect(segwit.encode(Segwit('bc', 0, HEX.decode(hash))),
-            'bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3');
+        expect(
+          segwit.encode(Segwit('bc', 0, HEX.decode(hash))),
+          'bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3',
+        );
       });
     });
 
@@ -73,60 +80,77 @@ void main() {
       test('invalid hrp', () {
         expect(
             () => segwit.decode('tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty'),
-            throwsA(TypeMatcher<InvalidHrp>()));
+            throwsA(TypeMatcher<InvalidHrp>()),
+        );
       });
 
       test('invalid checksum', () {
         expect(
             () => segwit.decode('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5'),
-            throwsA(TypeMatcher<InvalidChecksum>()));
+            throwsA(TypeMatcher<InvalidChecksum>()),
+        );
       });
 
       test('invalid witness version', () {
         expect(
             () => segwit.decode('BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2'),
-            throwsA(TypeMatcher<InvalidWitnessVersion>()));
+            throwsA(TypeMatcher<InvalidWitnessVersion>()),
+        );
       });
 
       test('invalid program length (too short)', () {
-        expect(() => segwit.decode('bc1rw5uspcuh'),
-            throwsA(TypeMatcher<InvalidProgramLength>()));
+        expect(
+          () => segwit.decode('bc1rw5uspcuh'),
+          throwsA(TypeMatcher<InvalidProgramLength>()),
+        );
       });
 
       test('invalid program length (too long)', () {
         expect(
-            () => segwit.decode(
-                'bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90'),
-            throwsA(TypeMatcher<InvalidProgramLength>()));
+          () => segwit.decode(
+            'bc10w508d6qejxtdg4y5r3zarvary0c5xw7kw508d6qejxtdg4y5r3zarvary0c5xw7kw5rljs90',
+          ),
+          throwsA(TypeMatcher<InvalidProgramLength>()),
+        );
       });
 
       test('invalid program length (for witness version 0)', () {
-        expect(() => segwit.decode('BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P'),
-            throwsA(TypeMatcher<InvalidProgramLength>()));
+        expect(
+          () => segwit.decode('BC1QR508D6QEJXTDG4Y5R3ZARVARYV98GJ9P'),
+          throwsA(TypeMatcher<InvalidProgramLength>()),
+        );
       });
 
       test('mixed case', () {
         expect(
             () => segwit.decode(
-                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7'),
-            throwsA(TypeMatcher<MixedCase>()));
+                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7',
+            ),
+            throwsA(TypeMatcher<MixedCase>()),
+        );
       });
 
       test('zero padding of more than 4 bytes', () {
-        expect(() => segwit.decode('bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du'),
-            throwsA(TypeMatcher<InvalidPadding>()));
+        expect(
+          () => segwit.decode('bc1zw508d6qejxtdg4y5r3zarvaryvqyzf3du'),
+          throwsA(TypeMatcher<InvalidPadding>()),
+        );
       });
 
       test('non zero padding in 8-to-5 conversion', () {
         expect(
             () => segwit.decode(
-                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv'),
-            throwsA(TypeMatcher<InvalidPadding>()));
+                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv',
+            ),
+            throwsA(TypeMatcher<InvalidPadding>()),
+        );
       });
 
       test('empty data', () {
-        expect(() => segwit.decode('bc1gmk9yu'),
-            throwsA(TypeMatcher<InvalidProgramLength>()));
+        expect(
+          () => segwit.decode('bc1gmk9yu'),
+          throwsA(TypeMatcher<InvalidProgramLength>()),
+        );
       });
     });
   });
