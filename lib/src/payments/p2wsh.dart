@@ -12,7 +12,7 @@ class P2WSH {
 
   P2WSH.fromScriptHash(Uint8List hash) : scriptHash = hash {
     if (scriptHash.length != 32) {
-      throw ArgumentError('Invalid script hash length');
+      throw ArgumentError('Invalid P2WSH script hash length');
     }
   }
   P2WSH.fromScriptBytes(Uint8List bytes)

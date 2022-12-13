@@ -1,9 +1,9 @@
 import 'dart:typed_data';
-
 import 'package:coinslib/src/models/networks.dart' as networks;
 import 'package:coinslib/src/ecpair.dart' show ECPair;
 import 'package:coinslib/src/payments/index.dart' show PaymentData;
 import 'package:coinslib/src/payments/p2pkh.dart' show P2PKH;
+import 'package:coinslib/src/payments/p2sh.dart';
 import 'package:coinslib/src/payments/p2wpkh.dart' show P2WPKH;
 import 'package:coinslib/src/payments/p2wsh.dart' show P2WSH;
 import 'package:coinslib/src/bip32_base.dart' show Bip32Type;
@@ -101,19 +101,30 @@ main() {
     expect(address, 'tb1qgmp0h7lvexdxx9y05pmdukx09xcteu9sx2h4ya');
   });
 
+  final multisig = MultisigScript(
+    pubkeys: [aliceKey, bobKey, carolKey, davidKey]
+    .map((key) => key.publicKey!).toList(),
+    threshold: 3
+  );
+
   test('can generate multisig P2WSH address', () {
 
-    final p2wsh = P2WSH.fromMultisig(
-        MultisigScript(
-            pubkeys: [aliceKey, bobKey, carolKey, davidKey]
-              .map((key) => key.publicKey!).toList(),
-            threshold: 3
-        )
-    );
+    final p2wsh = P2WSH.fromMultisig(multisig);
 
     expect(
       p2wsh.address(networks.peercoin),
       "pc1qk7z8s30kzdn9zwuxxrdmga3txymeljpsc42cdm7khww9xqa8w2gq4js5tx"
+    );
+
+  });
+
+  test('can generate a P2SH address', () {
+
+    final p2sh = P2SH.fromMultisig(multisig);
+
+    expect(
+      p2sh.address(networks.bitcoin),
+      "32QQmWZAbqBr837PE5dir6EgXcxFByojx1"
     );
 
   });

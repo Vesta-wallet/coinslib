@@ -41,7 +41,7 @@ class Address {
       }
 
       if (prefix == network.scriptHash) {
-        return createP2shOutputScript(data);
+        return P2SH.fromScriptHash(data).outputScript;
       }
 
       throw ArgumentError('Invalid version or Network mismatch');
