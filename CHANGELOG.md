@@ -1,5 +1,7 @@
-# 3.1.4
+# 3.1.5
 - P2WSH multisig inputs
+
+# 3.1.4
 - Fix message signing
 
 ## 3.1.3
