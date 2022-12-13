@@ -28,8 +28,10 @@ class TransactionBuilder {
 
   List<Input> get inputs => _inputs;
 
-  factory TransactionBuilder.fromTransaction(Transaction transaction,
-      [NetworkType? network]) {
+  factory TransactionBuilder.fromTransaction(
+    Transaction transaction, [
+    NetworkType? network,
+  ]) {
     final txb = TransactionBuilder(network: network);
     // Copy transaction fields
     txb.setVersion(transaction.version);
