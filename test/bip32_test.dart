@@ -6,12 +6,12 @@ import 'dart:io';
 import 'dart:convert';
 
 final litecoin = NetworkType(
-    messagePrefix: "Litecoin Signed Message:\n",
-    bip32: Bip32Type(private: 0x019d9cfe, public: 0x019da462),
-    pubKeyHash: 48,
-    scriptHash: 50,
-    wif: 0xb0,
-    opreturnSize: 80,
+  messagePrefix: "Litecoin Signed Message:\n",
+  bip32: Bip32Type(private: 0x019d9cfe, public: 0x019da462),
+  pubKeyHash: 48,
+  scriptHash: 50,
+  wif: 0xb0,
+  opreturnSize: 80,
 );
 List<dynamic> validAll = [];
 
@@ -169,7 +169,8 @@ void main() {
   });
 
   test("works when private key has leading zeros", () {
-    const key = "xprv9s21ZrQH143K3ckY9DgU79uMTJkQRLdbCCVDh81SnxTgPzLLGax6uHeBULTtaEtcAvKjXfT7ZWtHzKjTpujMkUd9dDb8msDeAfnJxrgAYhr";
+    const key =
+        "xprv9s21ZrQH143K3ckY9DgU79uMTJkQRLdbCCVDh81SnxTgPzLLGax6uHeBULTtaEtcAvKjXfT7ZWtHzKjTpujMkUd9dDb8msDeAfnJxrgAYhr";
     BIP32 hdkey = BIP32.fromBase58(key);
     expect(
       HEX.encode(hdkey.privateKey!),
@@ -209,7 +210,8 @@ void main() {
   test("ecdsa", () {
     Uint8List seed = Uint8List.fromList(List.generate(32, (index) => 1));
     Uint8List hash = Uint8List.fromList(List.generate(32, (index) => 2));
-    String sigStr = "7c3cdc1c72516338c3ef505452a429473397ac924ee190dfb4cc945c284fff7f239aaa21d3162701753454519a62d47045d4dd0c46be2c74d50c358a3953c874";
+    String sigStr =
+        "7c3cdc1c72516338c3ef505452a429473397ac924ee190dfb4cc945c284fff7f239aaa21d3162701753454519a62d47045d4dd0c46be2c74d50c358a3953c874";
     Uint8List signature = HEX.decode(sigStr) as Uint8List;
     BIP32 node = BIP32.fromSeed(seed);
     expect(HEX.encode(node.sign(hash)), sigStr);

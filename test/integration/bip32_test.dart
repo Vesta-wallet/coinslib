@@ -9,13 +9,13 @@ import 'package:coinslib/src/bip32_base.dart' as bip32;
 
 void main() {
   group('bitcoin-dart (BIP32)', () {
-
     test('can import a BIP32 testnet xpriv and export to WIF', () {
       const xpriv =
           'tprv8ZgxMBicQKsPd7Uf69XL1XwhmjHopUGep8GuEiJDZmbQz6o58LninorQAfcKZWARbtRtfnLcJ5MQ2AtHcQJCCRUcMRvmDUjyEmNUWwx8UbK';
       final node = bip32.BIP32.fromBase58(xpriv, testnet);
       expect(
-          node.toWIF(), 'cQfoY67cetFNunmBUX5wJiw3VNoYx3gG9U9CAofKE6BfiV1fSRw7',
+        node.toWIF(),
+        'cQfoY67cetFNunmBUX5wJiw3VNoYx3gG9U9CAofKE6BfiV1fSRw7',
       );
     });
 
@@ -36,8 +36,9 @@ void main() {
       final seed = bip39.mnemonicToSeed(mnemonic);
       final node = bip32.BIP32.fromSeed(seed);
       final string = node.neutered().toBase58();
-      expect(string,
-          'xpub661MyMwAqRbcGhVeaVfEBA25e3cP9DsJQZoE8iep5fZSxy3TnPBNBgWnMZx56oreNc48ZoTkQfatNJ9VWnQ7ZcLZcVStpaXLTeG8bGrzX3n',
+      expect(
+        string,
+        'xpub661MyMwAqRbcGhVeaVfEBA25e3cP9DsJQZoE8iep5fZSxy3TnPBNBgWnMZx56oreNc48ZoTkQfatNJ9VWnQ7ZcLZcVStpaXLTeG8bGrzX3n',
       );
     });
 

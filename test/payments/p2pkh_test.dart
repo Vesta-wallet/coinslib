@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 main() {
   final fixtures = json.decode(
-      File("./test/fixtures/p2pkh.json").readAsStringSync(encoding: utf8),
+    File("./test/fixtures/p2pkh.json").readAsStringSync(encoding: utf8),
   );
 
   group('(valid case)', () {
@@ -66,12 +66,12 @@ PaymentData _preformPaymentData(dynamic x) {
   final pubkey = x['pubkey'] != null ? HEX.decode(x['pubkey']) : null;
   final signature = x['signature'] != null ? HEX.decode(x['signature']) : null;
   return PaymentData(
-      address: address,
-      hash: hash as Uint8List?,
-      input: input,
-      output: output as Uint8List?,
-      pubkey: pubkey as Uint8List?,
-      signature: signature as Uint8List?,
+    address: address,
+    hash: hash as Uint8List?,
+    input: input,
+    output: output as Uint8List?,
+    pubkey: pubkey as Uint8List?,
+    signature: signature as Uint8List?,
   );
 }
 

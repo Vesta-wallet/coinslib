@@ -27,7 +27,9 @@ class ECPair {
     }
     return wif.encode(
       wif.WIF(
-        version: network.wif, privateKey: privateKey!, compressed: compressed,
+        version: network.wif,
+        privateKey: privateKey!,
+        compressed: compressed,
       ),
     );
   }
@@ -69,8 +71,10 @@ class ECPair {
   }
 
   factory ECPair.fromPublicKey(
-    Uint8List publicKey, {NetworkType? network, bool? compressed,}
-  ) {
+    Uint8List publicKey, {
+    NetworkType? network,
+    bool? compressed,
+  }) {
     if (!ecc.isPoint(publicKey)) {
       throw ArgumentError('Point is not on the curve');
     }
@@ -78,11 +82,13 @@ class ECPair {
   }
 
   factory ECPair.fromPrivateKey(
-    Uint8List privateKey, {NetworkType? network, bool? compressed,}
-  ) {
+    Uint8List privateKey, {
+    NetworkType? network,
+    bool? compressed,
+  }) {
     if (privateKey.length != 32) {
       throw ArgumentError(
-          'Expected property privateKey of type Buffer(Length: 32)',
+        'Expected property privateKey of type Buffer(Length: 32)',
       );
     }
     if (!ecc.isPrivate(privateKey)) {
@@ -91,9 +97,11 @@ class ECPair {
     return ECPair(privateKey, null, network: network, compressed: compressed);
   }
 
-  factory ECPair.makeRandom(
-      {NetworkType? network, bool? compressed, Function? rng,}
-  ) {
+  factory ECPair.makeRandom({
+    NetworkType? network,
+    bool? compressed,
+    Function? rng,
+  }) {
     final rfunc = rng ?? _randomBytes;
     Uint8List d;
     do {

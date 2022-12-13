@@ -40,9 +40,11 @@ class Transaction {
   Transaction();
 
   int addInput(
-    Uint8List hash, int index,
-    [int? sequence, Uint8List? scriptSig,]
-  ) {
+    Uint8List hash,
+    int index, [
+    int? sequence,
+    Uint8List? scriptSig,
+  ]) {
     ins.add(
       Input(
         hash: hash,
@@ -78,7 +80,10 @@ class Transaction {
 
   /// Note that the scriptCode is without the varint prefix
   hashForWitnessV0(
-      int inIndex, Uint8List scriptCode, BigInt value, int hashType,
+    int inIndex,
+    Uint8List scriptCode,
+    BigInt value,
+    int hashType,
   ) {
     var hashOutputs = zero;
     var hashPrevouts = zero;
@@ -108,7 +113,8 @@ class Transaction {
     if ((hashType & 0x1f) != sigHashSingle &&
         (hashType & 0x1f) != sigHashNone) {
       final txOutsSize = outs.fold(
-          0, (int sum, output) => sum + 8 + varSliceSize(output.script!),
+        0,
+        (int sum, output) => sum + 8 + varSliceSize(output.script!),
       );
       final buffer = Uint8List(txOutsSize);
       final writer = BytesReaderWriter(buffer);
@@ -146,14 +152,16 @@ class Transaction {
   }
 
   hashForSignature(int inIndex, Uint8List prevOutScript, int hashType) {
-
     if (inIndex >= ins.length) return one;
 
     // ignore OP_CODESEPARATOR
     final ourScript = bscript.compile(
-      bscript.decompile(prevOutScript)!.where(
-        (x) => x != ops['OP_CODESEPARATOR'],
-      ).toList(),
+      bscript
+          .decompile(prevOutScript)!
+          .where(
+            (x) => x != ops['OP_CODESEPARATOR'],
+          )
+          .toList(),
     );
 
     final txTmp = Transaction.clone(this);
@@ -276,9 +284,11 @@ class Transaction {
     return HEX.encode(getHash().reversed.toList());
   }
 
-  _toBuffer(
-      [Uint8List? buffer, int initialOffset = 0, bool allowWitness = false,]
-  ) {
+  _toBuffer([
+    Uint8List? buffer,
+    int initialOffset = 0,
+    bool allowWitness = false,
+  ]) {
     // _ALLOW_WITNESS is used to separate witness part when calculating tx id
     buffer ??= Uint8List(_byteLength(allowWitness));
 
@@ -371,7 +381,7 @@ class Transaction {
     final voutLen = reader.readVarInt();
     for (var i = 0; i < voutLen; ++i) {
       tx.outs.add(
-          Output(value: reader.readUInt64(), script: reader.readVarSlice()),
+        Output(value: reader.readUInt64(), script: reader.readVarSlice()),
       );
     }
 
@@ -443,8 +453,8 @@ class Input {
     List<Uint8List>? witness,
     this.prevOutType,
     this.threshold,
-  }) : signatures = signatures ?? [], witness = witness ?? [] {
-
+  })  : signatures = signatures ?? [],
+        witness = witness ?? [] {
     if (hash != null && !isHash256bit(hash!)) {
       throw ArgumentError('Invalid input hash');
     }
@@ -464,9 +474,11 @@ class Input {
   }
 
   factory Input.expandInput(
-    Uint8List scriptSig, List<Uint8List> witness,
-    [String? type, Uint8List? scriptPubKey,]
-  ) {
+    Uint8List scriptSig,
+    List<Uint8List> witness, [
+    String? type,
+    Uint8List? scriptPubKey,
+  ]) {
     if (type == null || type == '') {
       var ssType = classifyInput(scriptSig);
       var wsType = classifyWitness(witness);
@@ -478,10 +490,10 @@ class Input {
     if (type == scriptTypes['P2WPKH']) {
       P2WPKH p2wpkh = P2WPKH(data: PaymentData(witness: witness));
       return Input(
-          prevOutScript: p2wpkh.data.output,
-          prevOutType: type,
-          pubkeys: [p2wpkh.data.pubkey!],
-          signatures: [InputSignature.decode(p2wpkh.data.signature!)],
+        prevOutScript: p2wpkh.data.output,
+        prevOutType: type,
+        pubkeys: [p2wpkh.data.pubkey!],
+        signatures: [InputSignature.decode(p2wpkh.data.signature!)],
       );
     } else if (type == scriptTypes['P2WSH']) {
       // Having witness data handled in a class would be nicer, but I'm
@@ -503,17 +515,17 @@ class Input {
     } else if (type == scriptTypes['P2PKH']) {
       P2PKH p2pkh = P2PKH(data: PaymentData(input: scriptSig));
       return Input(
-          prevOutScript: p2pkh.data.output,
-          prevOutType: type,
-          pubkeys: [p2pkh.data.pubkey!],
-          signatures: [InputSignature.decode(p2pkh.data.signature!)],
+        prevOutScript: p2pkh.data.output,
+        prevOutType: type,
+        pubkeys: [p2pkh.data.pubkey!],
+        signatures: [InputSignature.decode(p2pkh.data.signature!)],
       );
     } else if (type == scriptTypes['P2PK']) {
       P2PK p2pk = P2PK(data: PaymentData(input: scriptSig));
       return Input(
-          prevOutType: type,
-          pubkeys: [],
-          signatures: [InputSignature.decode(p2pk.data.signature!)],
+        prevOutType: type,
+        pubkeys: [],
+        signatures: [InputSignature.decode(p2pk.data.signature!)],
       );
     }
 
@@ -522,16 +534,16 @@ class Input {
 
   factory Input.clone(Input input) {
     return Input(
-        hash: input.hash != null ? Uint8List.fromList(input.hash!) : null,
-        index: input.index,
-        script: input.script != null ? Uint8List.fromList(input.script!) : null,
-        sequence: input.sequence,
-        value: input.value,
-        prevOutScript: input.prevOutScript != null
-            ? Uint8List.fromList(input.prevOutScript!)
-            : null,
-        pubkeys: input.pubkeys != null ? List.of(input.pubkeys!) : null,
-        signatures: List.of(input.signatures),
+      hash: input.hash != null ? Uint8List.fromList(input.hash!) : null,
+      index: input.index,
+      script: input.script != null ? Uint8List.fromList(input.script!) : null,
+      sequence: input.sequence,
+      value: input.value,
+      prevOutScript: input.prevOutScript != null
+          ? Uint8List.fromList(input.prevOutScript!)
+          : null,
+      pubkeys: input.pubkeys != null ? List.of(input.pubkeys!) : null,
+      signatures: List.of(input.signatures),
     );
   }
 
@@ -608,10 +620,10 @@ class Output {
       signatures: output.signatures != null
           ? output.signatures!
               .map(
-                (signature) => signature != null
-                  ? Uint8List.fromList(signature)
-                  : null,
-              ).toList()
+                (signature) =>
+                    signature != null ? Uint8List.fromList(signature) : null,
+              )
+              .toList()
           : null,
     );
   }

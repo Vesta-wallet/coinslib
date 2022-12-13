@@ -15,7 +15,8 @@ main() {
     final txb = TransactionBuilder();
     txb.setVersion(1);
     txb.addInput(
-        '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d', 0,
+      '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d',
+      0,
     );
     return txb;
   }
@@ -38,12 +39,12 @@ main() {
     final txb = TransactionBuilder();
     txb.setVersion(1);
     txb.addInput(
-        'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c',
-        6,
+      'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c',
+      6,
     ); // Alice's previous transaction output, has 200000 satoshis
     txb.addInput(
-        '7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730',
-        0,
+      '7d865e959b2466918c9863afca942d0fb89d7c9ac0c99bafc3749504ded97730',
+      0,
     ); // Bob's previous transaction output, has 300000 satoshis
     txb.addOutput('1CUNEBjYrCn2y1SdiUMohaKUi4wpP326Lb', BigInt.from(180000));
     txb.addOutput('1JtK9CQw1syfWj1WtFMWomrYdV3W2tWBF9', BigInt.from(170000));
@@ -76,8 +77,8 @@ main() {
 
   test('can create  a Transaction, w/ a P2WPKH input', () {
     final alice = ECPair.fromWIF(
-        'cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am',
-        network: networks.testnet,
+      'cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am',
+      network: networks.testnet,
     );
     final p2wpkh = P2WPKH(
       data: PaymentData(pubkey: alice.publicKey),
@@ -87,17 +88,19 @@ main() {
     final txb = TransactionBuilder(network: networks.testnet);
     txb.setVersion(1);
     txb.addInput(
-        '53676626f5042d42e15313492ab7e708b87559dc0a8c74b7140057af51a2ed5b',
-        0,
-        null,
-        p2wpkh.output,
+      '53676626f5042d42e15313492ab7e708b87559dc0a8c74b7140057af51a2ed5b',
+      0,
+      null,
+      p2wpkh.output,
     ); // Alice's previous transaction output, has 200000 satoshis
 
     txb.addOutput(
-        'tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt', BigInt.from(1000000),
+      'tb1qchsmnkk5c8wsjg8vxecmsntynpmkxme0yvh2yt',
+      BigInt.from(1000000),
     );
     txb.addOutput(
-        'tb1qn40fftdp6z2lvzmsz4s0gyks3gq86y2e8svgap', BigInt.from(8995000),
+      'tb1qn40fftdp6z2lvzmsz4s0gyks3gq86y2e8svgap',
+      BigInt.from(8995000),
     );
 
     txb.sign(vin: 0, keyPair: alice, witnessValue: BigInt.from(10000000));
@@ -123,8 +126,8 @@ main() {
   test('can create a P2WSH output', () {
     final txb = getTxBuilderWithIn();
     txb.addOutput(
-        'bc1qqqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0szrtjt7',
-        BigInt.from(1000),
+      'bc1qqqqsyqcyq5rqwzqfpg9scrgwpugpzysnzs23v9ccrydpk8qarc0szrtjt7',
+      BigInt.from(1000),
     );
     txb.sign(vin: 0, keyPair: aliceKey);
 
@@ -142,14 +145,15 @@ main() {
     txb.addOutput('1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP', BigInt.from(12000));
 
     Uint8List witnessScript = MultisigScript(
-      pubkeys: [aliceKey.publicKey!, bobKey.publicKey!], threshold: 2,
+      pubkeys: [aliceKey.publicKey!, bobKey.publicKey!],
+      threshold: 2,
     ).scriptBytes;
 
     txb.sign(
-        vin: 0,
-        keyPair: aliceKey,
-        witnessValue: BigInt.from(10000),
-        witnessScript: witnessScript,
+      vin: 0,
+      keyPair: aliceKey,
+      witnessValue: BigInt.from(10000),
+      witnessScript: witnessScript,
     );
 
     // Test building partial
@@ -159,13 +163,14 @@ main() {
     txb = TransactionBuilder.fromTransaction(Transaction.fromHex(partialHex));
 
     txb.sign(
-        vin: 0,
-        keyPair: bobKey,
-        witnessValue: BigInt.from(10000),
-        witnessScript: witnessScript,
+      vin: 0,
+      keyPair: bobKey,
+      witnessValue: BigInt.from(10000),
+      witnessScript: witnessScript,
     );
 
-    final hexStr = '010000000001019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d5610000000000ffffffff01e02e0000000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac0400473044022013f4f7b304d0d934cfefe3429188eff9484c681bb772ceff60d6a48e31bc39e302203b6ab05a7a90e7e525f7d8263bfec40f5d0ed7c10e3141d65b9bfb8e5c3bfb220147304402200afb1a6c72b437179a83b4557e6f1ce6101187b2884bd5f6dd68b294d4a9353502202896dd07c2cc3b5b303944b9a1c32ab724070d77f0ac34d247d2cfad1a589c8901475221029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a28952ae00000000';
+    final hexStr =
+        '010000000001019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d5610000000000ffffffff01e02e0000000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac0400473044022013f4f7b304d0d934cfefe3429188eff9484c681bb772ceff60d6a48e31bc39e302203b6ab05a7a90e7e525f7d8263bfec40f5d0ed7c10e3141d65b9bfb8e5c3bfb220147304402200afb1a6c72b437179a83b4557e6f1ce6101187b2884bd5f6dd68b294d4a9353502202896dd07c2cc3b5b303944b9a1c32ab724070d77f0ac34d247d2cfad1a589c8901475221029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a28952ae00000000';
 
     final tx = txb.build();
 
@@ -194,19 +199,21 @@ main() {
 
     Uint8List witnessScript = MultisigScript(
       pubkeys: [aliceKey, bobKey, carolKey, davidKey]
-      .map((key) => key.publicKey!)
-      .toList(),
+          .map((key) => key.publicKey!)
+          .toList(),
       threshold: 3,
     ).scriptBytes;
 
     // Add first P2PKH input of 90 PPC
     txb.addInput(
-        "fbffd416274f6afb8256a34224aa1600db28944bafd4c5cecb3c3b12cadbceb9", 0,
+      "fbffd416274f6afb8256a34224aa1600db28944bafd4c5cecb3c3b12cadbceb9",
+      0,
     );
 
     // Add input for multisig address of 100 PPC
     txb.addInput(
-        "67f29de2c480a6b18e53b5a2823ad196509bf60dc9a52813d22bfa519db22053", 1,
+      "67f29de2c480a6b18e53b5a2823ad196509bf60dc9a52813d22bfa519db22053",
+      1,
     );
 
     // Sign first input
@@ -216,10 +223,10 @@ main() {
 
     void partialSign(ECPair key) {
       txb.sign(
-          vin: 1,
-          keyPair: key,
-          witnessValue: BigInt.from(100000000),
-          witnessScript: witnessScript,
+        vin: 1,
+        keyPair: key,
+        witnessValue: BigInt.from(100000000),
+        witnessScript: witnessScript,
       );
 
       final encoded = txb.buildIncomplete().toBuffer();
@@ -252,14 +259,15 @@ main() {
     txb.addOutput("1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP", outAmt);
     txb.addOutput("bc1qg7rzlct9ucfp47qdth0paj683mghq4jmg8l7ga", outAmt);
     txb.addOutput(
-        "bc1qqk7z8s30kzdn9zwuxxrdmga3txymeljpsc42cdm7khww9xqa8w2qkp0v4s",
-        outAmt,
+      "bc1qqk7z8s30kzdn9zwuxxrdmga3txymeljpsc42cdm7khww9xqa8w2qkp0v4s",
+      outAmt,
     );
     txb.addOutput("31nM1WuowNDzocNxPPW9NQWJEtwWpjfcLj", outAmt);
 
     // P2PKH input (alice)
     txb.addInput(
-        "12ddf17179751b378b5983ce6c1a83444ba770510c603d869e7d5553b2bbbf73", 1,
+      "12ddf17179751b378b5983ce6c1a83444ba770510c603d869e7d5553b2bbbf73",
+      1,
     );
 
     // P2WPKH input (carol)
@@ -270,20 +278,22 @@ main() {
     ).data;
 
     txb.addInput(
-        "03975de4457cecd2e5681eb2126844427003680e1c30d7c2422fef3aa85b4461",
-        1,
-        null,
-        p2wpkh.output,
+      "03975de4457cecd2e5681eb2126844427003680e1c30d7c2422fef3aa85b4461",
+      1,
+      null,
+      p2wpkh.output,
     );
 
     // P2WSH input (alice and bob)
 
     Uint8List witnessScript = MultisigScript(
-      pubkeys: [aliceKey.publicKey!, bobKey.publicKey!], threshold: 1,
+      pubkeys: [aliceKey.publicKey!, bobKey.publicKey!],
+      threshold: 1,
     ).scriptBytes;
 
     txb.addInput(
-        "35f1fb897f5bb24254771132bbedd7732406154afc64418ce3ba9c1326808c73", 1,
+      "35f1fb897f5bb24254771132bbedd7732406154afc64418ce3ba9c1326808c73",
+      1,
     );
 
     // Sign P2PKH
@@ -292,14 +302,15 @@ main() {
     txb.sign(vin: 1, keyPair: carolKey, witnessValue: BigInt.from(20000));
     // Sign P2WSH with 0.031234ppc
     txb.sign(
-        vin: 2,
-        keyPair: bobKey,
-        witnessValue: BigInt.from(31234),
-        witnessScript: witnessScript,
+      vin: 2,
+      keyPair: bobKey,
+      witnessValue: BigInt.from(31234),
+      witnessScript: witnessScript,
     );
 
     // Check hex, including after decode and encode again
-    final expectHex = "0300000000010373bfbbb253557d9e863d600c5170a74b44831a6cce83598b371b757971f1dd12010000006a473044022062e6eb08c2b3e2bf1affc7be56c26ade94758eb70b508eab00899b583a67f35b022048dcad4ea0d39c0dc139c7bc15d155129925e7223f2a83392d950c2a23d20e780121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffff61445ba83aef2f42c2d7301c0e68037042446812b21e68e5d2ec7c45e45d97030100000000ffffffff738c8026139cbae38c4164fc4a15062473d7edbb3211775442b25b7f89fbf1350100000000ffffffff0410270000000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac102700000000000016001447862fe165e6121af80d5dde1ecb478ed170565b102700000000000022002005bc23c22fb09b3289dc3186dda3b15989bcfe41862aac377eb5dce2981d3b94102700000000000017a9140102030405060708090a0b0c0d0e0f1011121314870002473044022022b28be22b288c2738ea011378a54d9ef0d0c4453878f6d555985283ab1e884702200dc48c78d82775f501543178b5bcad64c8dc6b463d2823b9b2f9328bb1b7c335012103e05ce435e462ec503143305feb6c00e06a3ad52fbf939e85c65f3a765bb7baac0300473044022028d35b6f95dc9fb1ff2eacc3071fbcf36cf56c3d0233a58f4e83931d5c16cc5202202ba4bb8c07560ab3b42146c2475438828db9283c4f5650fb03aceb88945a6f9001475121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a28952ae00000000";
+    final expectHex =
+        "0300000000010373bfbbb253557d9e863d600c5170a74b44831a6cce83598b371b757971f1dd12010000006a473044022062e6eb08c2b3e2bf1affc7be56c26ade94758eb70b508eab00899b583a67f35b022048dcad4ea0d39c0dc139c7bc15d155129925e7223f2a83392d950c2a23d20e780121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffff61445ba83aef2f42c2d7301c0e68037042446812b21e68e5d2ec7c45e45d97030100000000ffffffff738c8026139cbae38c4164fc4a15062473d7edbb3211775442b25b7f89fbf1350100000000ffffffff0410270000000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac102700000000000016001447862fe165e6121af80d5dde1ecb478ed170565b102700000000000022002005bc23c22fb09b3289dc3186dda3b15989bcfe41862aac377eb5dce2981d3b94102700000000000017a9140102030405060708090a0b0c0d0e0f1011121314870002473044022022b28be22b288c2738ea011378a54d9ef0d0c4453878f6d555985283ab1e884702200dc48c78d82775f501543178b5bcad64c8dc6b463d2823b9b2f9328bb1b7c335012103e05ce435e462ec503143305feb6c00e06a3ad52fbf939e85c65f3a765bb7baac0300473044022028d35b6f95dc9fb1ff2eacc3071fbcf36cf56c3d0233a58f4e83931d5c16cc5202202ba4bb8c07560ab3b42146c2475438828db9283c4f5650fb03aceb88945a6f9001475121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a28952ae00000000";
 
     expect(txb.build().toHex(), expectHex);
     expect(Transaction.fromHex(expectHex).toHex(), expectHex);

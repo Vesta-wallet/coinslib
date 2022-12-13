@@ -107,12 +107,12 @@ isValidOutput(Uint8List data) {
 class P2PKHData extends PaymentData {
   P2PKHData({address, hash, output, pubkey, input, signature, witness})
       : super(
-            address: address,
-            hash: hash,
-            output: output,
-            pubkey: pubkey,
-            input: input,
-            signature: signature,
-            witness: witness,
+          address: address,
+          hash: hash,
+          output: output,
+          pubkey: pubkey,
+          input: input,
+          signature: signature,
+          witness: witness,
         );
 }

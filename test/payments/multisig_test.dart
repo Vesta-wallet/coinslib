@@ -20,10 +20,10 @@ main() {
   final Uint8List successScript = Uint8List.fromList(
     // 17 threshold with 1 byte push data
     [0x01, 0x11] +
-    // Keys starting with 0x21 push
-    pksWithPush +
-    // 20, CHECKMULTISIG
-    [0x01, 0x14, 0xae],
+        // Keys starting with 0x21 push
+        pksWithPush +
+        // 20, CHECKMULTISIG
+        [0x01, 0x14, 0xae],
   );
   final beforePKNum = successScript.take(successScript.length - 3);
 
@@ -50,29 +50,29 @@ main() {
   test('MultisigScript() success', () {
     // Single key, default threshold
     expect(
-        MultisigScript(pubkeys: [pubkey]).scriptBytes,
-        HEX.decode(
-          // 1, push 0x21 (33) bytes
-          "5121"
-          // PK data
-          "03d8b90a8dd908c261e46088d31d9fbef0e6bef20b0283511d1bba62ad660d70ac"
-          // 1, CHECKMULTISIG (0xae)
-          "51ae",
-        ),
+      MultisigScript(pubkeys: [pubkey]).scriptBytes,
+      HEX.decode(
+        // 1, push 0x21 (33) bytes
+        "5121"
+        // PK data
+        "03d8b90a8dd908c261e46088d31d9fbef0e6bef20b0283511d1bba62ad660d70ac"
+        // 1, CHECKMULTISIG (0xae)
+        "51ae",
+      ),
     );
 
     // 20 keys
     expect(
-        MultisigScript(pubkeys: pubkeys, threshold: successThreshold)
-            .scriptBytes,
-        successScript,
+      MultisigScript(pubkeys: pubkeys, threshold: successThreshold).scriptBytes,
+      successScript,
     );
   });
 
   test('MultisigScript.fromScriptBytes() failures', () {
     expectFailure(Uint8List script) => expect(
-        () => MultisigScript.fromScriptBytes(script), throwsArgumentError,
-    );
+          () => MultisigScript.fromScriptBytes(script),
+          throwsArgumentError,
+        );
 
     // Script that can't be decompiled
     expectFailure(uint8ListFromHex("4c"));
@@ -96,12 +96,13 @@ main() {
     expectFailure(uint8ListFromHex("000000ae"));
 
     // Public key number = 21
-    final extraKey = Uint8List.fromList(beforePKNum.toList() +
-      // Add PK
-      [0x21] +
-      wallet.derive(20).pubKeyBytes! +
-      // Add PK num and CHECKMULTISIG
-      [0x01, 0x15, 0xae],
+    final extraKey = Uint8List.fromList(
+      beforePKNum.toList() +
+          // Add PK
+          [0x21] +
+          wallet.derive(20).pubKeyBytes! +
+          // Add PK num and CHECKMULTISIG
+          [0x01, 0x15, 0xae],
     );
     expectFailure(extraKey);
 
@@ -115,11 +116,9 @@ main() {
 
     // Threshold outside 1-publickeyN. In this case 2 when only one PK
     expectFailure(
-      uint8ListFromHex(
-        "52"
-        "2103d8b90a8dd908c261e46088d31d9fbef0e6bef20b0283511d1bba62ad660d70ac"
-        "51ae"
-      ),
+      uint8ListFromHex("52"
+          "2103d8b90a8dd908c261e46088d31d9fbef0e6bef20b0283511d1bba62ad660d70ac"
+          "51ae"),
     );
   });
 

@@ -8,7 +8,7 @@ import 'package:coinslib/src/transaction.dart';
 
 main() {
   final fixtures = json.decode(
-      File('test/fixtures/transaction.json').readAsStringSync(encoding: utf8),
+    File('test/fixtures/transaction.json').readAsStringSync(encoding: utf8),
   );
   final valids = (fixtures['valid'] as List<dynamic>);
 
@@ -63,7 +63,7 @@ main() {
       dynamic prevTxHash;
       setUp(() {
         prevTxHash = HEX.decode(
-            'ffffffff00ffff000000000000000000000000000000000000000000101010ff',
+          'ffffffff00ffff000000000000000000000000000000000000000000101010ff',
         );
       });
       test('returns an index', () {
@@ -131,8 +131,8 @@ main() {
           final tx = Transaction.fromHex(f['txHex']);
           final script = bscript.fromASM(f['script']);
           expect(
-              HEX.encode(tx.hashForSignature(f['inIndex'], script, f['type'])),
-              f['hash'],
+            HEX.encode(tx.hashForSignature(f['inIndex'], script, f['type'])),
+            f['hash'],
           );
         });
       }

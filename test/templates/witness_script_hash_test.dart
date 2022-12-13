@@ -9,11 +9,11 @@ main() {
   // The only P2WSH inputs allowed right now are standard multisig ones
 
   expectWitness(List<String> witnessHex, bool success) => expect(
-      inputCheck(
+        inputCheck(
           witnessHex.map((hex) => HEX.decode(hex) as Uint8List).toList(),
-      ),
-      success,
-  );
+        ),
+        success,
+      );
 
   const String validSig =
       "3045022100a7cf5c28088647557b1b9eea8366d72a9a89ef380ec1c9f00e75a8458a33d6ca0220265a0174092fdcf5f00749463876d34302c64f590e43af7b59cdec7dea9ba2a201";

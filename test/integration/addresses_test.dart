@@ -14,12 +14,12 @@ import 'dart:convert';
 import 'package:test/test.dart';
 
 networks.NetworkType litecoin = networks.NetworkType(
-    messagePrefix: 'Litecoin Signed Message:\n',
-    bip32: Bip32Type(public: 0x019da462, private: 0x019d9cfe),
-    pubKeyHash: 0x30,
-    scriptHash: 0x32,
-    wif: 0xb0,
-    opreturnSize: 80,
+  messagePrefix: 'Litecoin Signed Message:\n',
+  bip32: Bip32Type(public: 0x019da462, private: 0x019d9cfe),
+  pubKeyHash: 0x30,
+  scriptHash: 0x32,
+  wif: 0xb0,
+  opreturnSize: 80,
 );
 
 // deterministic RNG for testing only
@@ -95,12 +95,11 @@ main() {
   });
 
   test('can generate multisig P2WSH address', () {
-
     final p2wsh = P2WSH.fromMultisig(
       MultisigScript(
         pubkeys: [aliceKey, bobKey, carolKey, davidKey]
-        .map((key) => key.publicKey!)
-        .toList(),
+            .map((key) => key.publicKey!)
+            .toList(),
         threshold: 3,
       ),
     );
@@ -109,6 +108,5 @@ main() {
       p2wsh.address(networks.peercoin),
       "pc1qk7z8s30kzdn9zwuxxrdmga3txymeljpsc42cdm7khww9xqa8w2gq4js5tx",
     );
-
   });
 }

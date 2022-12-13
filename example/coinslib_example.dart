@@ -29,7 +29,8 @@ main() {
   // => U59hdLpi45SME3yjGoXXuYy8FVvW2yUoLdE3TJ3gfRYJZ33iWbfD
 
   var wallet = Wallet.fromWIF(
-      'U59hdLpi45SME3yjGoXXuYy8FVvW2yUoLdE3TJ3gfRYJZ33iWbfD', peercoin,
+    'U59hdLpi45SME3yjGoXXuYy8FVvW2yUoLdE3TJ3gfRYJZ33iWbfD',
+    peercoin,
   );
   print(wallet.address);
   // => PAEeTmyME9rb2j3Ka9M65UG7To5wzZ36nf

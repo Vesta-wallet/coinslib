@@ -47,7 +47,7 @@ class SegwitEncoder extends Converter<Segwit, String> with SegwitValidations {
 
     if (isWrongVersion0Program(version, program)) {
       throw InvalidProgramLength(
-          'version $version invalid with length ${program.length}',
+        'version $version invalid with length ${program.length}',
       );
     }
 
@@ -89,7 +89,7 @@ class SegwitDecoder extends Converter<String, Segwit> with SegwitValidations {
 
     if (isWrongVersion0Program(version, program)) {
       throw InvalidProgramLength(
-          'version $version invalid with length ${program.length}',
+        'version $version invalid with length ${program.length}',
       );
     }
 

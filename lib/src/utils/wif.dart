@@ -18,9 +18,9 @@ WIF decodeRaw(Uint8List buffer, [int? version]) {
   }
   if (buffer.length == 33) {
     return WIF(
-        version: buffer[0],
-        privateKey: buffer.sublist(1, 33),
-        compressed: false,
+      version: buffer[0],
+      privateKey: buffer.sublist(1, 33),
+      compressed: false,
     );
   }
   if (buffer.length != 34) {
@@ -30,7 +30,9 @@ WIF decodeRaw(Uint8List buffer, [int? version]) {
     throw ArgumentError("Invalid compression flag");
   }
   return WIF(
-      version: buffer[0], privateKey: buffer.sublist(1, 33), compressed: true,
+    version: buffer[0],
+    privateKey: buffer.sublist(1, 33),
+    compressed: true,
   );
 }
 

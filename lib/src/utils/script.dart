@@ -112,9 +112,12 @@ int? uint8FromChunk(dynamic chunk) {
 Uint8List fromASM(String asm) {
   if (asm == '') return Uint8List.fromList([]);
   return compile(
-    asm.split(' ').map(
-      (chunkStr) => ops[chunkStr] ?? HEX.decode(chunkStr),
-    ).toList(),
+    asm
+        .split(' ')
+        .map(
+          (chunkStr) => ops[chunkStr] ?? HEX.decode(chunkStr),
+        )
+        .toList(),
   );
 }
 

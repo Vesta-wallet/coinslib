@@ -9,10 +9,10 @@ class MultisigScript {
   static const int _maxMultisigPubkeys = 20;
 
   static final _thresholdError = ArgumentError(
-      'The threshold must be from 1 up-to the number of public keys',
+    'The threshold must be from 1 up-to the number of public keys',
   );
   static final _pubkeyNError = ArgumentError(
-      'Must have 1-$_maxMultisigPubkeys public keys in a multisig script',
+    'Must have 1-$_maxMultisigPubkeys public keys in a multisig script',
   );
 
   late List<Uint8List> pubkeys;
@@ -58,7 +58,7 @@ class MultisigScript {
     // Must have the correct number of public keys
     if (chunks.length != pubkeyN + 3) {
       throw ArgumentError(
-          'The script size is inccorect for the number of public keys',
+        'The script size is inccorect for the number of public keys',
       );
     }
 

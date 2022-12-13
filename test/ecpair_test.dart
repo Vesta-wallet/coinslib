@@ -12,7 +12,7 @@ final one = HEX.decode(
 
 main() {
   final fixtures = json.decode(
-      File('test/fixtures/ecpair.json').readAsStringSync(encoding: utf8),
+    File('test/fixtures/ecpair.json').readAsStringSync(encoding: utf8),
   );
 
   group('ECPair', () {
@@ -27,7 +27,9 @@ main() {
       });
       test('supports the network option', () {
         final keyPair = ECPair.fromPrivateKey(
-          one, network: networks.testnet, compressed: false,
+          one,
+          network: networks.testnet,
+          compressed: false,
         );
         expect(keyPair.network, networks.testnet);
       });
@@ -139,8 +141,8 @@ main() {
 
     group('sign', () {
       final aliceKey = ECPair.fromWIF(
-          'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
-          network: networks.peercoin,
+        'U9ofQxewXjF48KW7J5zd5FhnC3oCYsj15ESMtUvJnsfbjEDN43aW',
+        network: networks.peercoin,
       );
 
       test('gives low r and s values and unique r values', () {

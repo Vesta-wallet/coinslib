@@ -44,13 +44,13 @@ class TransactionBuilder {
 
     for (final txIn in transaction.ins) {
       txb._addInputUnsafe(
-          txIn.hash!,
-          txIn.index!,
-          Input(
-              sequence: txIn.sequence,
-              script: txIn.script,
-              witness: txIn.witness,
-          ),
+        txIn.hash!,
+        txIn.index!,
+        Input(
+          sequence: txIn.sequence,
+          script: txIn.script,
+          witness: txIn.witness,
+        ),
       );
     }
 
@@ -71,7 +71,7 @@ class TransactionBuilder {
     // if any signatures exist, throw
     if (_inputs.any((input) => input.signatures.isNotEmpty)) {
       throw ArgumentError(
-          'Can\'t set lock time; this would invalidate signatures',
+        'Can\'t set lock time; this would invalidate signatures',
       );
     }
     _tx.locktime = locktime;
@@ -120,9 +120,11 @@ class TransactionBuilder {
   }
 
   int addInput(
-    dynamic txHash, int vout,
-    [int? sequence, Uint8List? prevOutScript,]
-  ) {
+    dynamic txHash,
+    int vout, [
+    int? sequence,
+    Uint8List? prevOutScript,
+  ]) {
     if (!_canModifyInputs()) {
       throw ArgumentError('No, this would invalidate signatures');
     }
@@ -144,7 +146,8 @@ class TransactionBuilder {
     }
 
     return _addInputUnsafe(
-      hash, vout,
+      hash,
+      vout,
       Input(sequence: sequence, prevOutScript: prevOutScript, value: value),
     );
   }
@@ -255,7 +258,8 @@ class TransactionBuilder {
       for (var i = 0; i < pubkeys.length; i++) {
         // Check if the signature matches the public key
         if (sig.verify(
-            pubkeys[i], _tx.signatureHash(inIndex, input, sig.hashType),
+          pubkeys[i],
+          _tx.signatureHash(inIndex, input, sig.hashType),
         )) {
           // Add signature in this position
           positionedSigs[i] = sig;
@@ -266,7 +270,7 @@ class TransactionBuilder {
 
       if (!matched) {
         throw ArgumentError(
-            'A signature in an input has no corresponding public key',
+          'A signature in an input has no corresponding public key',
         );
       }
     }
@@ -323,8 +327,8 @@ class TransactionBuilder {
         // Build the following types of input only when complete
 
         final paymentData = PaymentData(
-            pubkey: input.pubkeys![0],
-            signature: input.signatures.first.encode(),
+          pubkey: input.pubkeys![0],
+          signature: input.signatures.first.encode(),
         );
 
         if (input.prevOutType == scriptTypes['P2PKH']) {

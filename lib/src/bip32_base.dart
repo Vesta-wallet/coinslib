@@ -210,9 +210,10 @@ class BIP32 {
   }
 
   factory BIP32.fromPublicKey(
-    Uint8List publicKey, Uint8List chainCode,
-    [NetworkType? nw,]
-  ) {
+    Uint8List publicKey,
+    Uint8List chainCode, [
+    NetworkType? nw,
+  ]) {
     NetworkType network = nw ?? networks.bitcoin;
     if (!ecc.isPoint(publicKey)) {
       throw ArgumentError("Point is not on the curve");
@@ -221,9 +222,10 @@ class BIP32 {
   }
 
   factory BIP32.fromPrivateKey(
-    Uint8List privateKey, Uint8List chainCode,
-    [NetworkType? nw,]
-  ) {
+    Uint8List privateKey,
+    Uint8List chainCode, [
+    NetworkType? nw,
+  ]) {
     NetworkType network = nw ?? networks.bitcoin;
     if (privateKey.length != 32) {
       throw ArgumentError(

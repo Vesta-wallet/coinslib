@@ -8,8 +8,8 @@ import 'package:coinslib/src/models/networks.dart' as networks;
 main() {
   test('sign message', () {
     final testWallet = Wallet.fromWIF(
-        "cTk3w9wHkw54aH2MHCWzQjT1AT25VkeGGCyVMFQfXaSNMvi847T1",
-        networks.peercoinRegtest,
+      "cTk3w9wHkw54aH2MHCWzQjT1AT25VkeGGCyVMFQfXaSNMvi847T1",
+      networks.peercoinRegtest,
     );
 
     final fixtures = json.decode(

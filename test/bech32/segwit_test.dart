@@ -37,7 +37,8 @@ void main() {
         ..forEach((tuple) {
           test('decode then encode static vector: $tuple', () {
             expect(
-              segwit.encode(segwit.decode(tuple[0])), tuple[0].toLowerCase(),
+              segwit.encode(segwit.decode(tuple[0])),
+              tuple[0].toLowerCase(),
             );
           });
         });
@@ -79,22 +80,22 @@ void main() {
     group('invalid test vectors from specification having', () {
       test('invalid hrp', () {
         expect(
-            () => segwit.decode('tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty'),
-            throwsA(TypeMatcher<InvalidHrp>()),
+          () => segwit.decode('tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty'),
+          throwsA(TypeMatcher<InvalidHrp>()),
         );
       });
 
       test('invalid checksum', () {
         expect(
-            () => segwit.decode('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5'),
-            throwsA(TypeMatcher<InvalidChecksum>()),
+          () => segwit.decode('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5'),
+          throwsA(TypeMatcher<InvalidChecksum>()),
         );
       });
 
       test('invalid witness version', () {
         expect(
-            () => segwit.decode('BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2'),
-            throwsA(TypeMatcher<InvalidWitnessVersion>()),
+          () => segwit.decode('BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2'),
+          throwsA(TypeMatcher<InvalidWitnessVersion>()),
         );
       });
 
@@ -123,10 +124,10 @@ void main() {
 
       test('mixed case', () {
         expect(
-            () => segwit.decode(
-                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7',
-            ),
-            throwsA(TypeMatcher<MixedCase>()),
+          () => segwit.decode(
+            'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7',
+          ),
+          throwsA(TypeMatcher<MixedCase>()),
         );
       });
 
@@ -139,10 +140,10 @@ void main() {
 
       test('non zero padding in 8-to-5 conversion', () {
         expect(
-            () => segwit.decode(
-                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv',
-            ),
-            throwsA(TypeMatcher<InvalidPadding>()),
+          () => segwit.decode(
+            'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv',
+          ),
+          throwsA(TypeMatcher<InvalidPadding>()),
         );
       });
 
