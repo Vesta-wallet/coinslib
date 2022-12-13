@@ -89,7 +89,6 @@ The below examples are implemented as integration tests:
 ### TODO
 - Generate a SegWit P2SH address
 - Generate a SegWit multisig address
-- Create a Transaction with a P2SH(multisig) input
 - Build a Transaction w/ psbt format
 - Add Tapscript / Taproot feature
 
