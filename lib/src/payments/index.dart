@@ -16,7 +16,7 @@ class PaymentData {
     this.pubkey,
     this.input,
     this.signature,
-    List<Uint8List>? witness
+    List<Uint8List>? witness,
   }) : witness = witness ?? [];
 
   @override

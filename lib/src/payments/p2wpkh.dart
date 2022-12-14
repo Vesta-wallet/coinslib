@@ -16,14 +16,11 @@ class P2WPKH {
 
   P2WPKH({required this.data, NetworkType? network})
       : network = network ?? bitcoin {
-
-    if (
-      data.address == null &&
-      data.hash == null &&
-      data.output == null &&
-      data.pubkey == null &&
-      data.witness.isEmpty
-    ) throw ArgumentError('Not enough data');
+    if (data.address == null &&
+        data.hash == null &&
+        data.output == null &&
+        data.pubkey == null &&
+        data.witness.isEmpty) throw ArgumentError('Not enough data');
 
     if (data.address != null) {
       _getDataFromAddress(data.address!);
@@ -61,7 +58,6 @@ class P2WPKH {
       data.witness = [data.signature!, data.pubkey!];
       data.input ??= emptyScript;
     }
-
   }
 
   void _getDataFromWitness(List<Uint8List> witness) {

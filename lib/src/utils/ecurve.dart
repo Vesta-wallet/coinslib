@@ -158,7 +158,8 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
   }
 
   throw ArgumentError(
-      "Could not generate a recoverable signature from private key");
+    "Could not generate a recoverable signature from private key",
+  );
 }
 
 /// This function is used to check the recids for recoverable signatures. It
@@ -167,7 +168,8 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
 Uint8List recover(Uint8List sig, Uint8List hash) {
   if (sig.length != 65) {
     throw ArgumentError(
-        "Can only recover from signatures with 65 bytes including recid");
+      "Can only recover from signatures with 65 bytes including recid",
+    );
   }
 
   final recid = (sig[0] - 27) & 3;

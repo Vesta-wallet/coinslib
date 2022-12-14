@@ -4,7 +4,8 @@ import 'package:hex/hex.dart';
 
 main() {
   bip32.BIP32 node = bip32.BIP32.fromBase58(
-      'xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi');
+    'xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi',
+  );
 
   print(HEX.encode(node.privateKey!));
   // => e8f32e723decf4051aefac8e2c93c9c5b214313817cdb01a1494b917c8436b35
@@ -42,13 +43,14 @@ main() {
   // => xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvvNKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi
 
   bip32.BIP32 nodeFromPub = bip32.BIP32.fromBase58(
-      "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8");
+    "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8",
+  );
   print(nodeFromPub.toBase58());
   // => xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8
 
   var message = HEX.decode(
-          "0202020202020202020202020202020202020202020202020202020202020202")
-      as Uint8List;
+    "0202020202020202020202020202020202020202020202020202020202020202",
+  ) as Uint8List;
   var signature = nodeFromSeed.sign(message);
   print(signature);
   // => [63, 219, 20, 114, 95, 184, 192, 55, 216, 206, 126, 121, 17, 71, 64, 70, 163, 82, 247, 73, 243, 95, 30, 137, 177, 155, 100, 225, 177, 203, 217, 147, 122, 64, 208, 129, 54, 133, 113, 41, 216, 160, 191, 15, 136, 98, 235, 25, 219, 178, 70, 222, 127, 151, 135, 242, 25, 192, 161, 187, 187, 84, 81, 215]

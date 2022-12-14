@@ -6,14 +6,13 @@ import '../utils/constants/op.dart';
 /// Encapsulates a multi-signature redeem or witness script given a set of
 /// public keys and signature threshold.
 class MultisigScript {
-
   static const int _maxMultisigPubkeys = 20;
 
   static final _thresholdError = ArgumentError(
-    'The threshold must be from 1 up-to the number of public keys'
+    'The threshold must be from 1 up-to the number of public keys',
   );
   static final _pubkeyNError = ArgumentError(
-    'Must have 1-$_maxMultisigPubkeys public keys in a multisig script'
+    'Must have 1-$_maxMultisigPubkeys public keys in a multisig script',
   );
 
   late List<Uint8List> pubkeys;
@@ -22,10 +21,8 @@ class MultisigScript {
   /// Creates a multisig redeem script using CHECKMULTISIG for the [pubkeys]
   /// requiring [threshold] signatures. If [threshold] is not given, then all
   /// public keys are required.
-  MultisigScript({
-    required this.pubkeys, int threshold = -1
-  }) : threshold = threshold < 0 ? pubkeys.length : threshold {
-
+  MultisigScript({required this.pubkeys, int threshold = -1})
+      : threshold = threshold < 0 ? pubkeys.length : threshold {
     if (threshold == 0 || threshold > pubkeys.length) throw _thresholdError;
 
     if (pubkeys.length > _maxMultisigPubkeys || pubkeys.isEmpty) {
@@ -35,13 +32,11 @@ class MultisigScript {
     if (pubkeys.any((pk) => !isPoint(pk))) {
       throw ArgumentError('At least one public key argument is not valid');
     }
-
   }
 
   /// Returns a MultisigScript from the script bytes or ArgumentError if the
   /// script is not a multi-sig redeem or witness script
   MultisigScript.fromScriptBytes(Uint8List bytes) {
-
     final chunks = bscript.decompile(bytes);
 
     if (chunks == null) throw ArgumentError('Script is invalid');
@@ -55,21 +50,21 @@ class MultisigScript {
     }
 
     // Second to last must be number of public keys between 1-20
-    int? pubkeyN = bscript.uint8FromChunk(chunks[chunks.length-2]);
+    int? pubkeyN = bscript.uint8FromChunk(chunks[chunks.length - 2]);
     if (pubkeyN == null || pubkeyN < 1 || pubkeyN > _maxMultisigPubkeys) {
       throw _pubkeyNError;
     }
 
     // Must have the correct number of public keys
-    if (chunks.length != pubkeyN+3) {
+    if (chunks.length != pubkeyN + 3) {
       throw ArgumentError(
-        'The script size is inccorect for the number of public keys'
+        'The script size is inccorect for the number of public keys',
       );
     }
 
     // Extract public keys
     pubkeys = [];
-    for (int i = 1; i < chunks.length-2; i++) {
+    for (int i = 1; i < chunks.length - 2; i++) {
       if (!bscript.isCanonicalPubKey(chunks[i])) {
         throw ArgumentError('Public key ${i - 1} is invalid');
       }
@@ -83,15 +78,12 @@ class MultisigScript {
     }
 
     this.threshold = threshold;
-
   }
 
   Uint8List get scriptBytes => bscript.compile([
-      bscript.pushUint8(threshold),
-      ...pubkeys,
-      bscript.pushUint8(pubkeys.length),
-      ops['OP_CHECKMULTISIG']
-  ]);
-
+        bscript.pushUint8(threshold),
+        ...pubkeys,
+        bscript.pushUint8(pubkeys.length),
+        ops['OP_CHECKMULTISIG']
+      ]);
 }
-
