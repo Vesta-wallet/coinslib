@@ -75,7 +75,11 @@ class HDWallet {
     final p2pkh =
         P2PKH(data: PaymentData(pubkey: wallet.publicKey), network: network);
     return HDWallet(
-        bip32: wallet, p2pkh: p2pkh, network: network, seed: seedHex);
+      bip32: wallet,
+      p2pkh: p2pkh,
+      network: network,
+      seed: seedHex,
+    );
   }
 
   factory HDWallet.fromBase58(String xpub, {NetworkType? network}) {

@@ -38,4 +38,3 @@ String? classifyWitness(List<Uint8List> script) {
   if (witness_script_hash.inputCheck(script)) return scriptTypes['P2WSH'];
   return scriptTypes['NONSTANDARD'];
 }
-

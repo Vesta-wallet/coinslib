@@ -21,4 +21,3 @@ Uint8List hash256(Uint8List buffer) {
 }
 
 Uint8List hashSha256(Uint8List buffer) => SHA256Digest().process(buffer);
-

@@ -7,7 +7,6 @@ import '../utils/script.dart' as bscript;
 /// multisig. It checks if there are 0 to threshold signatures and therefore allows
 /// incomplete signatures
 bool inputCheck(List<Uint8List> witness) {
-
   if (witness.isEmpty) return false;
 
   // Check that the first argument is an empty array (BIP 147)
@@ -24,11 +23,9 @@ bool inputCheck(List<Uint8List> witness) {
   }
 
   // Check that signatures after the initial ignored data are valid
-  for (final sig in witness.getRange(1, witness.length-1)) {
+  for (final sig in witness.getRange(1, witness.length - 1)) {
     if (!bscript.isCanonicalScriptSignature(sig)) return false;
   }
 
   return true;
-
 }
-

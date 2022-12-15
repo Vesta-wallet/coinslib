@@ -2,11 +2,11 @@ import 'dart:typed_data';
 import 'varuint.dart' as varuint;
 
 class BytesReaderWriter {
-
   int offset;
   final ByteData bytes;
 
-  BytesReaderWriter(Uint8List bytes, [this.offset = 0]) : bytes = bytes.buffer.asByteData();
+  BytesReaderWriter(Uint8List bytes, [this.offset = 0])
+      : bytes = bytes.buffer.asByteData();
 
   int readUInt8() => bytes.getUint8(offset++);
 
@@ -30,7 +30,7 @@ class BytesReaderWriter {
 
   Uint8List readSlice(int n) {
     offset += n;
-    return Uint8List.fromList(bytes.buffer.asUint8List(offset-n, n));
+    return Uint8List.fromList(bytes.buffer.asUint8List(offset - n, n));
   }
 
   int readVarInt() {
@@ -95,6 +95,4 @@ class BytesReaderWriter {
   }
 
   bool get atEnd => offset == bytes.lengthInBytes;
-
 }
-

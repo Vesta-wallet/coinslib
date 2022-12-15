@@ -19,8 +19,10 @@ class Bech32Codec extends Codec<Bech32, String> {
   }
 
   @override
-  Bech32 decode(String encoded,
-      [maxLength = Bech32Validations.maxInputLength]) {
+  Bech32 decode(
+    String encoded, [
+    maxLength = Bech32Validations.maxInputLength,
+  ]) {
     return Bech32Decoder().convert(encoded, maxLength);
   }
 }
@@ -28,8 +30,10 @@ class Bech32Codec extends Codec<Bech32, String> {
 // This class converts a Bech32 class instance to a String.
 class Bech32Encoder extends Converter<Bech32, String> with Bech32Validations {
   @override
-  String convert(Bech32 input,
-      [int maxLength = Bech32Validations.maxInputLength]) {
+  String convert(
+    Bech32 input, [
+    int maxLength = Bech32Validations.maxInputLength,
+  ]) {
     var hrp = input.hrp;
     var data = input.data;
 
@@ -39,7 +43,8 @@ class Bech32Encoder extends Converter<Bech32, String> with Bech32Validations {
             Bech32Validations.checksumLength >
         maxLength) {
       throw TooLong(
-          hrp.length + data.length + 1 + Bech32Validations.checksumLength);
+        hrp.length + data.length + 1 + Bech32Validations.checksumLength,
+      );
     }
 
     if (hrp.isEmpty) {
@@ -70,8 +75,10 @@ class Bech32Encoder extends Converter<Bech32, String> with Bech32Validations {
 // This class converts a String to a Bech32 class instance.
 class Bech32Decoder extends Converter<String, Bech32> with Bech32Validations {
   @override
-  Bech32 convert(String input,
-      [int maxLength = Bech32Validations.maxInputLength]) {
+  Bech32 convert(
+    String input, [
+    int maxLength = Bech32Validations.maxInputLength,
+  ]) {
     if (input.length > maxLength) {
       throw TooLong(input.length);
     }
@@ -98,7 +105,9 @@ class Bech32Decoder extends Converter<String, Bech32> with Bech32Validations {
 
     var hrp = input.substring(0, separatorPosition);
     var data = input.substring(
-        separatorPosition + 1, input.length - Bech32Validations.checksumLength);
+      separatorPosition + 1,
+      input.length - Bech32Validations.checksumLength,
+    );
     var checksum =
         input.substring(input.length - Bech32Validations.checksumLength);
 
