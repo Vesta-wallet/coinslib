@@ -489,8 +489,8 @@ class Input {
 
     List<InputSignature> decodeSigs(List<dynamic> encodedSigs) {
       return encodedSigs
-        .map((encoded) => InputSignature.decode(encoded))
-        .toList();
+          .map((encoded) => InputSignature.decode(encoded))
+          .toList();
     }
 
     if (type == scriptTypes['P2WPKH']) {
@@ -527,7 +527,6 @@ class Input {
         signatures: signatures,
         threshold: multisig.threshold,
       );
-
     } else if (type == scriptTypes['P2PKH']) {
       P2PKH p2pkh = P2PKH(data: PaymentData(input: scriptSig));
       return Input(

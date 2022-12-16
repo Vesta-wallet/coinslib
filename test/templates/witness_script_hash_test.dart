@@ -8,11 +8,11 @@ main() {
   // The only P2WSH inputs allowed right now are standard multisig ones
 
   expectWitness(List<String> witnessHex, bool success) => expect(
-    inputCheck(
-      witnessHex.map((hex) => HEX.decode(hex) as Uint8List).toList(),
-    ),
-    success,
-  );
+        inputCheck(
+          witnessHex.map((hex) => HEX.decode(hex) as Uint8List).toList(),
+        ),
+        success,
+      );
 
   test('witness_script_hash inputCheck success', () {
     expectSuccess(witnessHex) => expectWitness(witnessHex, true);

@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:coinslib/src/payments/p2sh.dart';
 import 'package:coinslib/src/transaction.dart';
 import 'package:test/test.dart';
 import 'package:coinslib/src/ecpair.dart';
@@ -187,8 +186,8 @@ main() {
 
   Uint8List multisigScript = MultisigScript(
     pubkeys: [aliceKey, bobKey, carolKey, davidKey]
-    .map((key) => key.publicKey!)
-    .toList(),
+        .map((key) => key.publicKey!)
+        .toList(),
     threshold: 3,
   ).scriptBytes;
 
@@ -298,7 +297,6 @@ main() {
       txb.build().toHex(),
       "0300000002137e5cbe8d2eedf2ca2d6028e547d9546d6299552f31807a651f5074f1162acf010000006a47304402206e5aaee739ccb40ed98045581cd6f1171cff33b871ebe0aeed054dcdbbd7e9c802207a398e644c7fc741c79b97462e1e5473769ea52b4928132d227d5df15144b9c50121029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59fffffffffd8e5effbc998c993c003bd8312dc31d5a16bb5c521621563f57a05fda848e39b01000000fd66010047304402201827518866e74777858d4834fa0cb7b6dab3a607733d7766acf232259893f4c80220191b9f19d3b93b39057fa5c191d506aa80dda1289edec63430b9ecf31713ee490147304402200773352a6c70b5ddfe8f6af883d9ea7b9abf7a96fdabe4d3b4a7a590f142c84402206fbf9b634221f206b7c99b3d9bc9dbdc5fec16536d7fd1eac352bbb4feff2a6f0147304402207567ea17703e2df7993ce70ead3f9f051e3bf7b8dfcdc6e9edc7547c0c0c4ef302204332066de953f267db9c31ca934052f1cfabd4281fd2649f928a66b1deb604e7014c8b5321029f50f51d63b345039a290c94bffd3180c99ed659ff6ea6b1242bca47eb93b59f2103df7940ee7cddd2f97763f67e1fb13488da3fbdd7f9c68ec5ef0864074745a2892103e05ce435e462ec503143305feb6c00e06a3ad52fbf939e85c65f3a765bb7baac2103aea0dfd576151cb399347aa6732f8fdf027b9ea3ea2e65fb754803f776e0a50954aeffffffff010095ba0a000000001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac00000000",
     );
-
   });
 
   test('construct fully comprehensive transcation', () {

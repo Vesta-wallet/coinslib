@@ -6,7 +6,6 @@ import 'package:coinslib/src/payments/multisig.dart';
 // This is similar to the inputCheck for P2WSH and a candidate for abstraction.
 /// Only allows multisig P2SH at the moment
 bool inputCheck(List<dynamic> chunks) {
-
   if (chunks.length < 2) return false;
 
   // Check that the first item is 0 which is necessary for CHECKMULTISIG
@@ -30,7 +29,6 @@ bool inputCheck(List<dynamic> chunks) {
   }
 
   return true;
-
 }
 
 bool outputCheck(Uint8List script) {

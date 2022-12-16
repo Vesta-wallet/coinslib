@@ -14,7 +14,6 @@ import 'payments/p2pkh.dart';
 import 'payments/p2wpkh.dart';
 import 'classify.dart';
 import 'input_signature.dart';
-import 'payments/p2sh.dart';
 
 class TransactionBuilder {
   NetworkType network;
@@ -209,7 +208,6 @@ class TransactionBuilder {
       input.signScript = redeemScript;
       input.pubkeys = multisig.pubkeys;
       input.threshold = multisig.threshold;
-
     } else if (input.prevOutScript != null &&
         classifyOutput(input.prevOutScript!) == scriptTypes['P2WPKH']) {
       input.prevOutType = scriptTypes['P2WPKH'];
@@ -219,7 +217,7 @@ class TransactionBuilder {
         data: PaymentData(pubkey: ourPubKey),
         network: network,
       ).data.output;
-    }else {
+    } else {
       Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
       input.prevOutType = scriptTypes['P2PKH'];
       input.pubkeys = [ourPubKey];
@@ -288,8 +286,8 @@ class TransactionBuilder {
 
     // Remove nulls
     return positionedSigs.whereType<InputSignature>().map(
-      (sig) => sig.encode(),
-    );
+          (sig) => sig.encode(),
+        );
   }
 
   Transaction _build(bool allowIncomplete) {
@@ -343,7 +341,6 @@ class TransactionBuilder {
 
           tx.setInputScript(i, script);
         }
-
       } else if (input.isComplete()) {
         // Build the following types of input only when complete
 

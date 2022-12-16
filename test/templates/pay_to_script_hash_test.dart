@@ -6,13 +6,12 @@ import 'package:hex/hex.dart';
 main() {
   // The only P2SH inputs allowed right now are standard multisig ones
 
-  expectChunks(List<dynamic> chunks, success) =>
-    expect(
-      inputCheck(
-        chunks.map((c) => c is String ? HEX.decode(c) : c).toList(),
-      ),
-      success,
-    );
+  expectChunks(List<dynamic> chunks, success) => expect(
+        inputCheck(
+          chunks.map((c) => c is String ? HEX.decode(c) : c).toList(),
+        ),
+        success,
+      );
 
   test('pay_to_script_hash inputCheck success', () {
     expectSuccess(chunks) => expectChunks(chunks, true);
