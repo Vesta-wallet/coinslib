@@ -96,12 +96,12 @@ main() {
 
   final multisig = MultisigScript(
     pubkeys: [aliceKey, bobKey, carolKey, davidKey]
-    .map((key) => key.publicKey!).toList(),
+        .map((key) => key.publicKey!)
+        .toList(),
     threshold: 3,
   );
 
   test('can generate multisig P2WSH address', () {
-
     final p2wsh = P2WSH.fromMultisig(multisig);
 
     expect(
@@ -111,14 +111,11 @@ main() {
   });
 
   test('can generate a P2SH address', () {
-
     final p2sh = P2SH.fromMultisig(multisig);
 
     expect(
       p2sh.address(networks.bitcoin),
       "32QQmWZAbqBr837PE5dir6EgXcxFByojx1",
     );
-
   });
-
 }

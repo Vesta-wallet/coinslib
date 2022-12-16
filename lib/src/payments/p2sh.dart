@@ -7,7 +7,6 @@ import '../models/networks.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 
 class P2SH {
-
   Uint8List scriptHash;
 
   P2SH.fromScriptHash(Uint8List hash) : scriptHash = hash {
@@ -17,12 +16,12 @@ class P2SH {
   }
 
   P2SH.fromScriptBytes(Uint8List bytes) : this.fromScriptHash(hash160(bytes));
-  P2SH.fromMultisig(MultisigScript script) : this.fromScriptBytes(script.scriptBytes);
+  P2SH.fromMultisig(MultisigScript script)
+      : this.fromScriptBytes(script.scriptBytes);
 
   /// Returns the outputScript (scriptPubKey)
-  Uint8List get outputScript => bscript.compile([
-    ops["OP_HASH160"], scriptHash, ops["OP_EQUAL"]
-  ]);
+  Uint8List get outputScript =>
+      bscript.compile([ops["OP_HASH160"], scriptHash, ops["OP_EQUAL"]]);
 
   /// Returns the base58 address for a given network
   String address(NetworkType network) {
@@ -31,6 +30,4 @@ class P2SH {
     payload.setRange(1, payload.length, scriptHash);
     return bs58check.encode(payload);
   }
-
 }
-

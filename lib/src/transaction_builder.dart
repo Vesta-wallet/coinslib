@@ -14,6 +14,7 @@ import 'payments/p2pkh.dart';
 import 'payments/p2wpkh.dart';
 import 'classify.dart';
 import 'input_signature.dart';
+import 'payments/p2sh.dart';
 
 class TransactionBuilder {
   NetworkType network;
@@ -160,6 +161,7 @@ class TransactionBuilder {
     required ECPair keyPair,
     BigInt? witnessValue,
     Uint8List? witnessScript,
+    Uint8List? redeemScript,
     int? hashType,
   }) {
     hashType ??= sigHashAll;
@@ -198,16 +200,26 @@ class TransactionBuilder {
       // Extract public keys from the witnessScript
       input.pubkeys = multisig.pubkeys;
       input.threshold = multisig.threshold;
+    } else if (redeemScript != null) {
+      // P2SH input when redeemScript is provided
+
+      final multisig = MultisigScript.fromScriptBytes(redeemScript);
+
+      input.prevOutType = scriptTypes['P2SH'];
+      input.signScript = redeemScript;
+      input.pubkeys = multisig.pubkeys;
+      input.threshold = multisig.threshold;
+
     } else if (input.prevOutScript != null &&
         classifyOutput(input.prevOutScript!) == scriptTypes['P2WPKH']) {
       input.prevOutType = scriptTypes['P2WPKH'];
       input.witness = [];
       input.pubkeys = [ourPubKey];
-      input.signScript =
-          P2PKH(data: PaymentData(pubkey: ourPubKey), network: network)
-              .data
-              .output;
-    } else {
+      input.signScript = P2PKH(
+        data: PaymentData(pubkey: ourPubKey),
+        network: network,
+      ).data.output;
+    }else {
       Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
       input.prevOutType = scriptTypes['P2PKH'];
       input.pubkeys = [ourPubKey];
@@ -243,17 +255,16 @@ class TransactionBuilder {
     return _build(true);
   }
 
-  Iterable<InputSignature> _orderSigsForPubkeys({
+  Iterable<Uint8List> _orderedEncodedSigs({
     required int inIndex,
     required Input input,
-    required Iterable<InputSignature> signatures,
-    required List<Uint8List> pubkeys,
   }) {
     // Ensure signatures are matched to public keys in the correct order
 
+    final pubkeys = input.pubkeys!;
     List<InputSignature?> positionedSigs = List.filled(pubkeys.length, null);
 
-    for (final sig in signatures) {
+    for (final sig in input.signatures) {
       var matched = false;
       for (var i = 0; i < pubkeys.length; i++) {
         // Check if the signature matches the public key
@@ -276,7 +287,9 @@ class TransactionBuilder {
     }
 
     // Remove nulls
-    return positionedSigs.whereType<InputSignature>();
+    return positionedSigs.whereType<InputSignature>().map(
+      (sig) => sig.encode(),
+    );
   }
 
   Transaction _build(bool allowIncomplete) {
@@ -312,17 +325,25 @@ class TransactionBuilder {
           input.witness = [
             Uint8List.fromList([]),
             // Ensure signatures are in the correct order for multisig
-            ..._orderSigsForPubkeys(
-              inIndex: i,
-              input: input,
-              signatures: input.signatures,
-              pubkeys: input.pubkeys!,
-            ).map((sig) => sig.encode()),
+            ..._orderedEncodedSigs(inIndex: i, input: input),
             input.signScript!
           ];
         }
 
         tx.setWitness(i, input.witness);
+      } else if (input.prevOutType == scriptTypes['P2SH']) {
+        // Build P2SH input script even if incomplete
+
+        if (input.hasNewSignatures) {
+          final script = bscript.compile([
+            0,
+            ..._orderedEncodedSigs(inIndex: i, input: input),
+            input.signScript!
+          ]);
+
+          tx.setInputScript(i, script);
+        }
+
       } else if (input.isComplete()) {
         // Build the following types of input only when complete
 
