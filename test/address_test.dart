@@ -138,6 +138,20 @@ main() {
         expect(HEX.encode(actual), expectedScript);
       }
 
+      test('returns p2pkh scripts', () {
+        expectP2PKH(address, expectedHash) =>
+            expectScript(address, "76a914${expectedHash}88ac");
+
+        expectP2PKH(
+          "1111111111111111111114oLvT2",
+          "0000000000000000000000000000000000000000",
+        );
+        expectP2PKH(
+          "1QLbz7JHiBTspS962RLKV8GndWFwi5j6Qr",
+          "ffffffffffffffffffffffffffffffffffffffff",
+        );
+      });
+
       test('returns p2sh scripts', () {
         expectP2SH(address, expectedHash) =>
             expectScript(address, "a914${expectedHash}87");

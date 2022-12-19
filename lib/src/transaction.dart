@@ -533,12 +533,16 @@ class Input {
         threshold: multisig.threshold,
       );
     } else if (type == scriptTypes['P2PKH']) {
-      P2PKH p2pkh = P2PKH(data: PaymentData(input: scriptSig));
+      final scriptChunks = bscript.decompile(scriptSig)!;
+      final signature = scriptChunks[0];
+      final pubkey = scriptChunks[1];
+      final p2pkh = P2PKH.fromPublicKey(pubkey);
+
       return Input(
-        prevOutScript: p2pkh.data.output,
+        prevOutScript: p2pkh.outputScript,
         prevOutType: type,
-        pubkeys: [p2pkh.data.pubkey!],
-        signatures: [InputSignature.decode(p2pkh.data.signature!)],
+        pubkeys: [pubkey],
+        signatures: [InputSignature.decode(signature)],
       );
     } else if (type == scriptTypes['P2PK']) {
       P2PK p2pk = P2PK(data: PaymentData(input: scriptSig));
@@ -614,19 +618,22 @@ class Output {
 
   factory Output.expandOutput(Uint8List script, [Uint8List? ourPubKey]) {
     if (ourPubKey == null) return Output();
-    var type = classifyOutput(script);
+    final type = classifyOutput(script);
+    final chunks = bscript.decompile(script)!;
+
+    Uint8List hash;
+
     if (type == scriptTypes['P2WPKH']) {
-      Uint8List wpkh1 = bscript.decompile(script)![1];
-      Uint8List wpkh2 = bcrypto.hash160(ourPubKey);
-      if (wpkh1 != wpkh2) throw ArgumentError('Hash mismatch!');
-      return Output(pubkeys: [ourPubKey], signatures: [null]);
+      hash = chunks[1];
     } else if (type == scriptTypes['P2PKH']) {
-      Uint8List pkh1 = P2PKH(data: PaymentData(output: script)).data.hash!;
-      Uint8List pkh2 = bcrypto.hash160(ourPubKey);
-      if (pkh1 != pkh2) throw ArgumentError('Hash mismatch!');
-      return Output(pubkeys: [ourPubKey], signatures: [null]);
+      hash = chunks[2];
+    } else {
+      throw UnsupportedError('type "$type"');
     }
-    throw UnsupportedError('type "$type"');
+
+    if (hash != bcrypto.hash160(ourPubKey)) throw ArgumentError('Hash mismatch!');
+    return Output(pubkeys: [ourPubKey], signatures: [null]);
+
   }
 
   factory Output.clone(Output output) {

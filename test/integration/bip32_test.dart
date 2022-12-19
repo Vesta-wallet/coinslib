@@ -107,7 +107,5 @@ void main() {
 }
 
 String getAddress(node, [network]) {
-  return P2PKH(data: PaymentData(pubkey: node.publicKey), network: network)
-      .data
-      .address!;
+  return P2PKH.fromPublicKey(node.publicKey).address(network ?? bitcoin);
 }

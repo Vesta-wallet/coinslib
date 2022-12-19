@@ -234,8 +234,7 @@ main() {
     });
 
     test('accepts an address string and value', () {
-      final address =
-          P2PKH(data: PaymentData(pubkey: keyPair.publicKey)).data.address;
+      final address = P2PKH.fromPublicKey(keyPair.publicKey!).address(bitcoin);
       final vout = txb.addOutput(address, BigInt.from(1000));
       expect(vout, 0);
       final txout = txb.tx.outs[0];

@@ -40,7 +40,7 @@ main() {
     );
   });
 
-  test("invalid P2WPKH length", () {
+  test("invalid P2WPKH hash length", () {
 
     expect(
       () => P2WPKH.fromPublicKeyHash(

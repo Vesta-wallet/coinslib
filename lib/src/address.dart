@@ -35,9 +35,7 @@ class Address {
       final data = decodeBase58.sublist(1);
 
       if (prefix == network.pubKeyHash) {
-        P2PKH p2pkh =
-            P2PKH(data: PaymentData(address: address), network: network);
-        return p2pkh.data.output!;
+        return P2PKH.fromPublicKeyHash(data).outputScript;
       }
 
       if (prefix == network.scriptHash) {
