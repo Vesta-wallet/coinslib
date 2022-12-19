@@ -123,7 +123,7 @@ main() {
 
     expect(
       p2sh.address(networks.bitcoin),
-      "",
+      "3GUySFjkixqDxfmNghuXU9h4TgTixp5E2p",
     );
 
   });

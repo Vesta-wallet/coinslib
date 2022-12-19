@@ -166,6 +166,19 @@ main() {
           "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
         );
       });
+
+      test('returns p2wpkh scripts', () {
+        expectP2WPKH(address, expectedHash) =>
+            expectScript(address, "0014$expectedHash");
+        expectP2WPKH(
+          "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs",
+          "0000000000000000000000000000000000000000",
+        );
+        expectP2WPKH(
+          "bc1qllllllllllllllllllllllllllllllllfglmy6",
+          "ffffffffffffffffffffffffffffffffffffffff",
+        );
+      });
     });
   });
 }
