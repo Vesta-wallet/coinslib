@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import '../src/utils/script.dart' as bscript;
 import 'templates/pubkeyhash.dart' as pubkeyhash;
+import 'templates/pay_to_script_hash.dart' as pay_to_script_hash;
 import 'templates/pubkey.dart' as pubkey;
 import 'templates/witnesspubkeyhash.dart' as witness_pubkey_hash;
 import 'templates/witness_script_hash.dart' as witness_script_hash;
@@ -29,6 +30,7 @@ String? classifyInput(Uint8List script) {
   final chunks = bscript.decompile(script);
   if (chunks == null) throw ArgumentError('Invalid script');
   if (pubkeyhash.inputCheck(chunks)) return scriptTypes['P2PKH'];
+  if (pay_to_script_hash.inputCheck(chunks)) return scriptTypes['P2SH'];
   if (pubkey.inputCheck(chunks)) return scriptTypes['P2PK'];
   return scriptTypes['NONSTANDARD'];
 }

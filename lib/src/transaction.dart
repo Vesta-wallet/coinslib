@@ -487,6 +487,12 @@ class Input {
       type = ssType ?? wsType;
     }
 
+    List<InputSignature> decodeSigs(List<dynamic> encodedSigs) {
+      return encodedSigs
+          .map((encoded) => InputSignature.decode(encoded))
+          .toList();
+    }
+
     if (type == scriptTypes['P2WPKH']) {
       P2WPKH p2wpkh = P2WPKH(data: PaymentData(witness: witness));
       return Input(
@@ -498,19 +504,28 @@ class Input {
     } else if (type == scriptTypes['P2WSH']) {
       // Having witness data handled in a class would be nicer, but I'm
       // sticking reasonably close to the library interface as-is
-      final signatures = witness
-          .sublist(1, witness.length - 1)
-          .map((encoded) => InputSignature.decode(encoded))
-          .toList();
+      final signatures = decodeSigs(witness.sublist(1, witness.length - 1));
       final multisig = MultisigScript.fromScriptBytes(witness.last);
-      final threshold = multisig.threshold;
 
       return Input(
         prevOutType: type,
         pubkeys: multisig.pubkeys,
         signatures: signatures,
-        threshold: threshold,
+        threshold: multisig.threshold,
         witness: witness,
+      );
+    } else if (type == scriptTypes['P2SH']) {
+      final scriptChunks = bscript.decompile(scriptSig)!;
+      final signatures = decodeSigs(
+        scriptChunks.sublist(1, scriptChunks.length - 1),
+      );
+      final multisig = MultisigScript.fromScriptBytes(scriptChunks.last);
+
+      return Input(
+        prevOutType: type,
+        pubkeys: multisig.pubkeys,
+        signatures: signatures,
+        threshold: multisig.threshold,
       );
     } else if (type == scriptTypes['P2PKH']) {
       P2PKH p2pkh = P2PKH(data: PaymentData(input: scriptSig));
