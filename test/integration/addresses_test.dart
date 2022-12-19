@@ -79,18 +79,15 @@ main() {
     final keyPair =
         ECPair.fromWIF('KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn');
     final address =
-        P2WPKH(data: PaymentData(pubkey: keyPair.publicKey)).data.address;
+      P2WPKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
     expect(address, 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4');
   });
 
   test('can generate a SegWit testnet address', () {
-    final testnet = networks.testnet;
     final keyPair =
         ECPair.fromWIF('cPaJYBMDLjQp5gSUHnBfhX4Rgj95ekBS6oBttwQLw3qfsKKcDfuB');
     final address =
-        P2WPKH(data: PaymentData(pubkey: keyPair.publicKey), network: testnet)
-            .data
-            .address;
+      P2WPKH.fromPublicKey(keyPair.publicKey!).address(networks.testnet);
     expect(address, 'tb1qgmp0h7lvexdxx9y05pmdukx09xcteu9sx2h4ya');
   });
 
@@ -117,5 +114,17 @@ main() {
       p2sh.address(networks.bitcoin),
       "32QQmWZAbqBr837PE5dir6EgXcxFByojx1",
     );
+  });
+
+  test('can generate a P2SH-P2WPKH', () {
+
+    final p2wpkh = P2WPKH.fromPublicKey(aliceKey.publicKey!);
+    final p2sh = P2SH.fromP2WPKH(p2wpkh);
+
+    expect(
+      p2sh.address(networks.bitcoin),
+      "",
+    );
+
   });
 }

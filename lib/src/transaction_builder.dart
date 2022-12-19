@@ -344,21 +344,24 @@ class TransactionBuilder {
       } else if (input.isComplete()) {
         // Build the following types of input only when complete
 
-        final paymentData = PaymentData(
-          pubkey: input.pubkeys![0],
-          signature: input.signatures.first.encode(),
-        );
+        final pubkey = input.pubkeys![0];
+        final signature = input.signatures.first.encode();
 
-        if (input.prevOutType == scriptTypes['P2PKH']) {
+        if (input.prevOutType == scriptTypes['P2WPKH']) {
+          tx.setInputScript(i, Uint8List(0));
+          tx.setWitness(i, [signature, pubkey]);
+        } else if (input.prevOutType == scriptTypes['P2PKH']) {
+
+          final paymentData = PaymentData(
+            pubkey: pubkey,
+            signature: signature,
+          );
+
           P2PKH(data: paymentData, network: network);
-        } else if (input.prevOutType == scriptTypes['P2WPKH']) {
-          P2WPKH(data: paymentData, network: network);
-        } else {
-          continue;
-        }
+          tx.setInputScript(i, paymentData.input!);
+          tx.setWitness(i, []);
 
-        tx.setInputScript(i, paymentData.input!);
-        tx.setWitness(i, paymentData.witness);
+        }
       }
     }
 

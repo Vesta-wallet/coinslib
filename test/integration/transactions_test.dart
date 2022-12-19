@@ -80,18 +80,14 @@ main() {
       'cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am',
       network: networks.testnet,
     );
-    final p2wpkh = P2WPKH(
-      data: PaymentData(pubkey: alice.publicKey),
-      network: networks.testnet,
-    ).data;
-
+    final p2wpkh = P2WPKH.fromPublicKey(alice.publicKey!);
     final txb = TransactionBuilder(network: networks.testnet);
     txb.setVersion(1);
     txb.addInput(
       '53676626f5042d42e15313492ab7e708b87559dc0a8c74b7140057af51a2ed5b',
       0,
       null,
-      p2wpkh.output,
+      p2wpkh.outputScript,
     ); // Alice's previous transaction output, has 200000 satoshis
 
     txb.addOutput(
@@ -332,16 +328,13 @@ main() {
 
     // P2WPKH input (carol) 0.02
 
-    final p2wpkh = P2WPKH(
-      data: PaymentData(pubkey: carolKey.publicKey),
-      network: networks.peercoinTestnet,
-    ).data;
+    final p2wpkh = P2WPKH.fromPublicKey(carolKey.publicKey!);
 
     txb.addInput(
       "20afc8511da97fc745f8efc5c2719b92002a608ce7a456b0187b75a2e21625e0",
       1,
       null,
-      p2wpkh.output,
+      p2wpkh.outputScript,
     );
 
     // P2WSH input (alice and bob) 0.031234

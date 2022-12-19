@@ -494,13 +494,18 @@ class Input {
     }
 
     if (type == scriptTypes['P2WPKH']) {
-      P2WPKH p2wpkh = P2WPKH(data: PaymentData(witness: witness));
+
+      final signature = witness[0];
+      final pubkey = witness[1];
+      final outputScript = P2WPKH.fromPublicKey(pubkey).outputScript;
+
       return Input(
-        prevOutScript: p2wpkh.data.output,
+        prevOutScript: outputScript,
         prevOutType: type,
-        pubkeys: [p2wpkh.data.pubkey!],
-        signatures: [InputSignature.decode(p2wpkh.data.signature!)],
+        pubkeys: [pubkey],
+        signatures: [InputSignature.decode(signature)],
       );
+
     } else if (type == scriptTypes['P2WSH']) {
       // Having witness data handled in a class would be nicer, but I'm
       // sticking reasonably close to the library interface as-is
@@ -611,7 +616,7 @@ class Output {
     if (ourPubKey == null) return Output();
     var type = classifyOutput(script);
     if (type == scriptTypes['P2WPKH']) {
-      Uint8List wpkh1 = P2WPKH(data: PaymentData(output: script)).data.hash!;
+      Uint8List wpkh1 = bscript.decompile(script)![1];
       Uint8List wpkh2 = bcrypto.hash160(ourPubKey);
       if (wpkh1 != wpkh2) throw ArgumentError('Hash mismatch!');
       return Output(pubkeys: [ourPubKey], signatures: [null]);

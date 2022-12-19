@@ -64,9 +64,7 @@ class Address {
       final progLen = program.length;
 
       if (progLen == 20) {
-        P2WPKH p2wpkh =
-            P2WPKH(data: PaymentData(address: address), network: network);
-        return p2wpkh.data.output!;
+        return P2WPKH.fromPublicKeyHash(program).outputScript;
       }
 
       if (progLen == 32) {
