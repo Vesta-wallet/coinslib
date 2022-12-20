@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 import 'package:coinslib/src/models/networks.dart' as networks;
 import 'package:coinslib/src/ecpair.dart' show ECPair;
-import 'package:coinslib/src/payments/index.dart' show PaymentData;
 import 'package:coinslib/src/payments/p2pkh.dart' show P2PKH;
 import 'package:coinslib/src/payments/p2sh.dart';
 import 'package:coinslib/src/payments/p2wpkh.dart' show P2WPKH;

@@ -9,7 +9,6 @@ import 'ecpair.dart';
 import 'models/networks.dart';
 import 'transaction.dart';
 import 'address.dart';
-import 'payments/index.dart' show PaymentData;
 import 'payments/p2pkh.dart';
 import 'classify.dart';
 import 'input_signature.dart';

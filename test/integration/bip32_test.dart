@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'package:coinslib/src/models/networks.dart';
-import 'package:coinslib/src/payments/index.dart' show PaymentData;
 import 'package:coinslib/src/payments/p2pkh.dart';
 import 'package:test/test.dart';
 import 'package:hex/hex.dart';

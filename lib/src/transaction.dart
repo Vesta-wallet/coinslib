@@ -1,9 +1,7 @@
 import 'dart:typed_data';
 import 'package:coinslib/src/payments/multisig.dart';
 import 'package:hex/hex.dart';
-import 'payments/index.dart' show PaymentData;
 import 'payments/p2pkh.dart' show P2PKH;
-import 'payments/p2pk.dart' show P2PK;
 import 'payments/p2wpkh.dart' show P2WPKH;
 import 'crypto.dart' as bcrypto;
 import 'classify.dart';
@@ -425,7 +423,7 @@ class Transaction {
   }
 }
 
-// TODO: In dire need of complete refactoring
+// In dire need of complete refactoring
 class Input {
   Uint8List? hash;
   int? index;
@@ -545,11 +543,11 @@ class Input {
         signatures: [InputSignature.decode(signature)],
       );
     } else if (type == scriptTypes['P2PK']) {
-      P2PK p2pk = P2PK(data: PaymentData(input: scriptSig));
+      final signature = bscript.decompile(scriptSig)![0];
       return Input(
         prevOutType: type,
         pubkeys: [],
-        signatures: [InputSignature.decode(p2pk.data.signature!)],
+        signatures: [InputSignature.decode(signature)],
       );
     }
 

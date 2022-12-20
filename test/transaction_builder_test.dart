@@ -10,7 +10,6 @@ import 'package:coinslib/src/transaction.dart';
 import 'package:coinslib/src/address.dart';
 import 'package:coinslib/src/transaction_builder.dart';
 import 'package:coinslib/src/utils/script.dart' as bscript;
-import 'package:coinslib/src/payments/index.dart' show PaymentData;
 import 'package:coinslib/src/payments/p2pkh.dart';
 
 final networks = {'bitcoin': bitcoin, 'testnet': testnet};
