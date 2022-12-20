@@ -15,17 +15,17 @@ class P2PKH {
   }
 
   P2PKH.fromPublicKey(Uint8List publicKey)
-    : this.fromPublicKeyHash(hash160(publicKey));
+      : this.fromPublicKeyHash(hash160(publicKey));
 
   Uint8List get outputScript => bscript.compile(
-    [
-      ops["OP_DUP"],
-      ops["OP_HASH160"],
-      pubKeyHash,
-      ops["OP_EQUALVERIFY"],
-      ops["OP_CHECKSIG"]
-    ],
-  );
+        [
+          ops["OP_DUP"],
+          ops["OP_HASH160"],
+          pubKeyHash,
+          ops["OP_EQUALVERIFY"],
+          ops["OP_CHECKSIG"]
+        ],
+      );
 
   /// Returns the base58 address for a given network
   String address(NetworkType network) {
@@ -34,6 +34,4 @@ class P2PKH {
     payload.setRange(1, payload.length, pubKeyHash);
     return bs58check.encode(payload);
   }
-
 }
-

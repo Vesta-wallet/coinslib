@@ -492,7 +492,6 @@ class Input {
     }
 
     if (type == scriptTypes['P2WPKH']) {
-
       final signature = witness[0];
       final pubkey = witness[1];
       final outputScript = P2WPKH.fromPublicKey(pubkey).outputScript;
@@ -503,7 +502,6 @@ class Input {
         pubkeys: [pubkey],
         signatures: [InputSignature.decode(signature)],
       );
-
     } else if (type == scriptTypes['P2WSH']) {
       // Having witness data handled in a class would be nicer, but I'm
       // sticking reasonably close to the library interface as-is
@@ -629,9 +627,9 @@ class Output {
       throw UnsupportedError('type "$type"');
     }
 
-    if (hash != bcrypto.hash160(ourPubKey)) throw ArgumentError('Hash mismatch!');
+    if (hash != bcrypto.hash160(ourPubKey))
+      throw ArgumentError('Hash mismatch!');
     return Output(pubkeys: [ourPubKey], signatures: [null]);
-
   }
 
   factory Output.clone(Output output) {

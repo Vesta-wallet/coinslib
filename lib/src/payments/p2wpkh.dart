@@ -15,15 +15,13 @@ class P2WPKH {
   }
 
   P2WPKH.fromPublicKey(Uint8List publicKey)
-    : this.fromPublicKeyHash(hash160(publicKey));
+      : this.fromPublicKeyHash(hash160(publicKey));
 
   Uint8List get outputScript => bscript.compile(
-    [ops["OP_0"], pubKeyHash],
-  );
+        [ops["OP_0"], pubKeyHash],
+      );
 
   /// Returns the bech32 address for a given network
   String address(NetworkType network) =>
       segwit.encode(Segwit(network.bech32!, 0, pubKeyHash));
-
 }
-

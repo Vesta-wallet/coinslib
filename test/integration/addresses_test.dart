@@ -30,7 +30,7 @@ main() {
   test('can generate a random address', () {
     final keyPair = ECPair.makeRandom(rng: rng);
     final address =
-      P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
+        P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
     expect(address, '1F5VhMHukdnUES9kfXqzPzMeF1GPHKiF64');
   });
 
@@ -39,7 +39,7 @@ main() {
         .process(utf8.encode('correct horse battery staple') as Uint8List);
     final keyPair = ECPair.fromPrivateKey(hash);
     final address =
-      P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
+        P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
     expect(address, '1C7zdTfnkzmr13HfA2vNm5SJYRK6nEKyq8');
   });
 
@@ -47,7 +47,7 @@ main() {
     final keyPair =
         ECPair.fromWIF('Kxr9tQED9H44gCmp6HAdmemAzU3n84H3dGkuWTKvE23JgHMW8gct');
     final address =
-      P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
+        P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
     expect(address, '19AAjaTUbRjQCMuVczepkoPswiZRhjtg31');
   });
 
@@ -56,7 +56,7 @@ main() {
     final keyPair = ECPair.makeRandom(network: testnet, rng: rng);
     final wif = keyPair.toWIF();
     final address =
-      P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.testnet);
+        P2PKH.fromPublicKey(keyPair.publicKey!).address(networks.testnet);
     expect(address, 'mubSzQNtZfDj1YdNP6pNDuZy6zs6GDn61L');
     expect(wif, 'cRgnQe9MUu1JznntrLaoQpB476M8PURvXVQB5R2eqms5tXnzNsrr');
   });
@@ -64,8 +64,7 @@ main() {
   test('can generate a Litecoin address', () {
     final keyPair = ECPair.makeRandom(network: litecoin, rng: rng);
     final wif = keyPair.toWIF();
-    final address =
-      P2PKH.fromPublicKey(keyPair.publicKey!).address(litecoin);
+    final address = P2PKH.fromPublicKey(keyPair.publicKey!).address(litecoin);
     expect(address, 'LZJSxZbjqJ2XVEquqfqHg1RQTDdfST5PTn');
     expect(wif, 'T7A4PUSgTDHecBxW1ZiYFrDNRih2o7M8Gf9xpoCgudPF9gDiNvuS');
   });
@@ -74,7 +73,7 @@ main() {
     final keyPair =
         ECPair.fromWIF('KwDiBf89QgGbjEhKnhXJuH7LrciVrZi3qYjgd9M7rFU73sVHnoWn');
     final address =
-      P2WPKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
+        P2WPKH.fromPublicKey(keyPair.publicKey!).address(networks.bitcoin);
     expect(address, 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4');
   });
 
@@ -82,7 +81,7 @@ main() {
     final keyPair =
         ECPair.fromWIF('cPaJYBMDLjQp5gSUHnBfhX4Rgj95ekBS6oBttwQLw3qfsKKcDfuB');
     final address =
-      P2WPKH.fromPublicKey(keyPair.publicKey!).address(networks.testnet);
+        P2WPKH.fromPublicKey(keyPair.publicKey!).address(networks.testnet);
     expect(address, 'tb1qgmp0h7lvexdxx9y05pmdukx09xcteu9sx2h4ya');
   });
 
@@ -112,7 +111,6 @@ main() {
   });
 
   test('can generate a P2SH-P2WPKH', () {
-
     final p2wpkh = P2WPKH.fromPublicKey(aliceKey.publicKey!);
     final p2sh = P2SH.fromP2WPKH(p2wpkh);
 
@@ -120,6 +118,5 @@ main() {
       p2sh.address(networks.bitcoin),
       "3GUySFjkixqDxfmNghuXU9h4TgTixp5E2p",
     );
-
   });
 }

@@ -49,7 +49,8 @@ class HDWallet {
     required p2pkh,
     required this.network,
     this.seed,
-  }) : _bip32 = bip32, _p2pkh = p2pkh;
+  })  : _bip32 = bip32,
+        _p2pkh = p2pkh;
 
   HDWallet derivePath(String path) {
     final bip32 = _bip32.derivePath(path);

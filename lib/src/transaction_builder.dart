@@ -456,4 +456,3 @@ class TransactionBuilder {
 
   Map get prevTxSet => _prevTxSet;
 }
-
