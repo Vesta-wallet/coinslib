@@ -4,6 +4,7 @@ import './utils/ecurve.dart' as ecc;
 import './utils/wif.dart' as wif;
 import 'models/networks.dart';
 
+/// Despite the name, can refer to only a public key
 class ECPair {
   Uint8List? _d;
   Uint8List? _q;
@@ -110,6 +111,15 @@ class ECPair {
     } while (!ecc.isPrivate(d));
     return ECPair.fromPrivateKey(d, network: network, compressed: compressed);
   }
+
+  /// Recover public key from a hash and signature with a recid included
+  factory ECPair.recover({
+    required Uint8List hash,
+    required Uint8List signature,
+  }) {
+    return ECPair.fromPublicKey(ecc.recover(hash, signature));
+  }
+
 }
 
 const int _sizeByte = 256;

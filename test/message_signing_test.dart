@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:test/test.dart';
 import 'package:coinslib/src/coinslib_base.dart';
 import 'package:coinslib/src/models/networks.dart' as networks;

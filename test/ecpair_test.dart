@@ -129,6 +129,22 @@ main() {
       });
     });
 
+    test("ECPair.recover", () {
+      expect(
+        ECPair.recover(
+          hash: HEX.decode(
+            "56282d1366c4b5d34a259fff5bdfd44e7013fa8213bc713758fdeed212d62fe8",
+          ) as Uint8List,
+          signature: HEX.decode(
+            "201faf14ade8fd0e1a3e7a426cec7c1298d64a7a647a6fdd5926fc745eda006e4a4bd7ad09896ddb98e7aac15bb0c09b4d95cb48a8099d946d36738c582853a876",
+          ) as Uint8List,
+        ).publicKey,
+        HEX.decode(
+          "0335d4392797482c7531bf5c21464f8a4c64508b5feef83ba6e435dad04a3a35fe",
+        ) as Uint8List,
+      );
+    });
+
     group('.network', () {
       for (var f in (fixtures['valid'] as List)) {
         test('return ${f['network']} for ${f['WIF']}', () {

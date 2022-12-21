@@ -156,7 +156,7 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
   // 0 and 1 and choose the one that corresponds to the public key
   for (int recid = 0; recid < 2; recid++) {
     final fullSig = Uint8List.fromList([31 + recid] + sig);
-    if (ListEquality().equals(recover(fullSig, hash), pubKey)) return fullSig;
+    if (ListEquality().equals(recover(hash, fullSig), pubKey)) return fullSig;
   }
 
   throw ArgumentError(
@@ -165,7 +165,8 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
 }
 
 /// This function is used to recover the public key of a recoverable signature.
-Uint8List recover(Uint8List sig, Uint8List hash) {
+Uint8List recover(Uint8List hash, Uint8List sig) {
+
   if (sig.length != 65) {
     throw ArgumentError(
       "Can only recover from signatures with 65 bytes including recid",
