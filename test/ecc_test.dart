@@ -69,4 +69,43 @@ void main() {
       ecc.sign(HEX.decode(msg) as Uint8List, HEX.decode(key) as Uint8List);
     });
   });
+
+  test("isSignature", () {
+    expectSig(hex, exp) => expect(
+      ecc.isSignature(HEX.decode(hex) as Uint8List),
+      exp,
+    );
+
+    expectSig(
+      "0000000000000000000000000000000000000000000000000000000000000000"
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+      false,
+    );
+
+    expectSig(
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140"
+      "0000000000000000000000000000000000000000000000000000000000000000",
+      false,
+    );
+
+    expectSig(
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141"
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+      false,
+    );
+
+    expectSig(
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140"
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+      false,
+    );
+
+    expectSig(
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140"
+      "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
+      true,
+    );
+
+  });
+
 }
