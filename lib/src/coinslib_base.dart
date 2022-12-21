@@ -96,6 +96,8 @@ class HDWallet {
   }
 
   bool verify({required String message, required Uint8List signature}) {
+    // Remove recid as it isn't needed when we have the public key
+    signature = signature.sublist(1);
     Uint8List messageHash = magicHash(message);
     return _bip32!.verify(messageHash, signature);
   }
@@ -140,6 +142,8 @@ class Wallet {
   }
 
   bool verify({required String message, required Uint8List signature}) {
+    // Remove recid as it isn't needed when we have the public key
+    signature = signature.sublist(1);
     Uint8List messageHash = magicHash(message, network);
     return _keyPair!.verify(messageHash, signature);
   }
