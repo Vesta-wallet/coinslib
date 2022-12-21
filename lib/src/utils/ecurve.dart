@@ -81,6 +81,8 @@ bool isSignature(Uint8List value) {
   Uint8List s = value.sublist(32, 64);
 
   return value.length == 64 &&
+      _compare(r, zero32) > 0 &&
+      _compare(s, zero32) > 0 &&
       _compare(r, egGroupOrder as Uint8List) < 0 &&
       _compare(s, egGroupOrder as Uint8List) < 0;
 }
@@ -162,9 +164,7 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
   );
 }
 
-/// This function is used to check the recids for recoverable signatures. It
-/// could be used to recover public keys to verify signatures too but it should
-/// probably do more checks first.
+/// This function is used to recover the public key of a recoverable signature.
 Uint8List recover(Uint8List sig, Uint8List hash) {
   if (sig.length != 65) {
     throw ArgumentError(
@@ -195,7 +195,10 @@ Uint8List recover(Uint8List sig, Uint8List hash) {
 
   final Q = (sR! - eG!)! * invr;
 
-  return Q!.getEncoded();
+  final pubkey = Q!.getEncoded();
+  if (!isPoint(pubkey)) throw ArgumentError("Recovered public key is invalid");
+  return pubkey;
+
 }
 
 // Adapted from pointycastle
