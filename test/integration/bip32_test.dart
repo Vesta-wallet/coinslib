@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 import 'package:coinslib/src/models/networks.dart';
-import 'package:coinslib/src/payments/index.dart' show PaymentData;
 import 'package:coinslib/src/payments/p2pkh.dart';
 import 'package:test/test.dart';
 import 'package:hex/hex.dart';
@@ -107,7 +106,5 @@ void main() {
 }
 
 String getAddress(node, [network]) {
-  return P2PKH(data: PaymentData(pubkey: node.publicKey), network: network)
-      .data
-      .address!;
+  return P2PKH.fromPublicKey(node.publicKey).address(network ?? bitcoin);
 }

@@ -1,9 +1,8 @@
 import 'dart:typed_data';
+import 'package:coinslib/coinslib.dart';
 import '../utils/script.dart' as bscript;
 import '../utils/constants/op.dart';
 import "../crypto.dart" show hash160;
-import './multisig.dart';
-import '../models/networks.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 
 class P2SH {
@@ -18,6 +17,7 @@ class P2SH {
   P2SH.fromScriptBytes(Uint8List bytes) : this.fromScriptHash(hash160(bytes));
   P2SH.fromMultisig(MultisigScript script)
       : this.fromScriptBytes(script.scriptBytes);
+  P2SH.fromP2WPKH(P2WPKH p2wpkh) : this.fromScriptBytes(p2wpkh.outputScript);
 
   /// Returns the outputScript (scriptPubKey)
   Uint8List get outputScript =>

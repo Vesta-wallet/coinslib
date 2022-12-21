@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:coinslib/coinslib.dart';
 import 'package:test/test.dart';
-import 'package:coinslib/src/payments/multisig.dart';
 import 'package:hex/hex.dart';
 
 uint8ListFromHex(String hex) => Uint8List.fromList(HEX.decode(hex));
@@ -11,7 +10,7 @@ main() {
   final wallet = HDWallet.fromSeed(Uint8List(16));
   const successThreshold = 17;
   // Generate 20 keys from HD Wallet
-  final pubkeys = List.generate(20, (i) => wallet.derive(i).pubKeyBytes!);
+  final pubkeys = List.generate(20, (i) => wallet.derive(i).pubKeyBytes);
   final pubkey = pubkeys[0];
 
   final pksWithPush =
@@ -100,7 +99,7 @@ main() {
       beforePKNum.toList() +
           // Add PK
           [0x21] +
-          wallet.derive(20).pubKeyBytes! +
+          wallet.derive(20).pubKeyBytes +
           // Add PK num and CHECKMULTISIG
           [0x01, 0x15, 0xae],
     );
