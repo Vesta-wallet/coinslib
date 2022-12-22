@@ -6,7 +6,6 @@ import 'package:coinslib/src/payments/p2wsh.dart';
 import 'models/networks.dart';
 import 'package:bs58check/bs58check.dart' as bs58check;
 import 'package:coinslib/bech32/bech32.dart';
-import 'payments/index.dart' show PaymentData;
 import 'payments/p2pkh.dart';
 import 'payments/p2wpkh.dart';
 import 'payments/p2sh.dart';
@@ -35,9 +34,7 @@ class Address {
       final data = decodeBase58.sublist(1);
 
       if (prefix == network.pubKeyHash) {
-        P2PKH p2pkh =
-            P2PKH(data: PaymentData(address: address), network: network);
-        return p2pkh.data.output!;
+        return P2PKH.fromPublicKeyHash(data).outputScript;
       }
 
       if (prefix == network.scriptHash) {
@@ -64,9 +61,7 @@ class Address {
       final progLen = program.length;
 
       if (progLen == 20) {
-        P2WPKH p2wpkh =
-            P2WPKH(data: PaymentData(address: address), network: network);
-        return p2wpkh.data.output!;
+        return P2WPKH.fromPublicKeyHash(program).outputScript;
       }
 
       if (progLen == 32) {

@@ -1,100 +1,56 @@
-import 'package:coinslib/src/payments/index.dart' show PaymentData;
 import 'package:coinslib/src/payments/p2wpkh.dart';
 import 'package:test/test.dart';
-import 'package:coinslib/src/utils/script.dart' as bscript;
-import 'dart:io';
-import 'dart:convert';
 import 'package:hex/hex.dart';
 import 'dart:typed_data';
+import 'package:coinslib/src/models/networks.dart';
 
 main() {
-  final fixtures = json.decode(
-    File("./test/fixtures/p2wpkh.json").readAsStringSync(encoding: utf8),
-  );
-
-  group('(valid case)', () {
-    for (var f in (fixtures["valid"] as List<dynamic>)) {
-      test(f['description'] + ' as expected', () {
-        final arguments = _preformPaymentData(f['arguments']);
-        final p2wpkh = P2WPKH(data: arguments);
-        if (arguments.address == null) {
-          expect(p2wpkh.data.address, f['expected']['address']);
-        }
-        if (arguments.hash == null) {
-          expect(_toString(p2wpkh.data.hash), f['expected']['hash']);
-        }
-        if (arguments.pubkey == null) {
-          expect(_toString(p2wpkh.data.pubkey), f['expected']['pubkey']);
-        }
-        if (arguments.input == null) {
-          expect(_toString(p2wpkh.data.input), f['expected']['input']);
-        }
-        if (arguments.output == null) {
-          expect(_toString(p2wpkh.data.output), f['expected']['output']);
-        }
-        if (arguments.signature == null) {
-          expect(_toString(p2wpkh.data.signature), f['expected']['signature']);
-        }
-        if (arguments.witness.isEmpty) {
-          expect(_toString(p2wpkh.data.witness), f['expected']['witness']);
-        }
-      });
-    }
+  test("P2WPKH.fromPublicKeyHash", () {
+    final p2wpkh = P2WPKH.fromPublicKeyHash(
+      HEX.decode("ea6d525c0c955d90d3dbd29a81ef8bfb79003727") as Uint8List,
+    );
+    expect(
+      p2wpkh.address(bitcoin),
+      "bc1qafk4yhqvj4wep57m62dgrmutldusqde8adh20d",
+    );
+    expect(
+      p2wpkh.outputScript,
+      HEX.decode("0014ea6d525c0c955d90d3dbd29a81ef8bfb79003727") as Uint8List,
+    );
   });
 
-  group('(invalid case)', () {
-    for (final f in (fixtures["invalid"] as List<dynamic>)) {
-      test(
-          'throws ${f['exception']}${f["description"] != null ? ('for  ${f['description']}') : ''}',
-          () {
-        final arguments = _preformPaymentData(f['arguments']);
-        try {
-          expect(P2WPKH(data: arguments), isArgumentError);
-        } catch (err) {
-          expect((err as ArgumentError).message, f['exception']);
-        }
-      });
-    }
+  test("P2WPKH.fromPublicKey", () {
+    final p2wpkh = P2WPKH.fromPublicKey(
+      HEX.decode(
+        "030000000000000000000000000000000000000000000000000000000000000001",
+      ) as Uint8List,
+    );
+    expect(
+      p2wpkh.address(bitcoin),
+      "bc1qz69ej270c3q9qvgt822t6pm3zdksk2x35j2jlm",
+    );
+    expect(
+      p2wpkh.pubKeyHash,
+      HEX.decode("168b992bcfc44050310b3a94bd0771136d0b28d1") as Uint8List,
+    );
+    expect(
+      p2wpkh.outputScript,
+      HEX.decode("0014168b992bcfc44050310b3a94bd0771136d0b28d1") as Uint8List,
+    );
   });
-}
 
-PaymentData _preformPaymentData(dynamic x) {
-  final address = x['address'];
-  final hash = x['hash'] != null ? HEX.decode(x['hash']) : null;
-  final input = x['input'] != null ? bscript.fromASM(x['input']) : null;
-  final witness = x['witness'] != null
-      ? (x['witness'] as List<dynamic>)
-          .map((e) => HEX.decode(e.toString()) as Uint8List)
-          .toList()
-      : null;
-  final output = x['output'] != null
-      ? bscript.fromASM(x['output'])
-      : x['outputHex'] != null
-          ? HEX.decode(x['outputHex'])
-          : null;
-  final pubkey = x['pubkey'] != null ? HEX.decode(x['pubkey']) : null;
-  final signature = x['signature'] != null ? HEX.decode(x['signature']) : null;
-
-  return PaymentData(
-    address: address,
-    hash: hash as Uint8List?,
-    input: input,
-    output: output as Uint8List?,
-    pubkey: pubkey as Uint8List?,
-    signature: signature as Uint8List?,
-    witness: witness,
-  );
-}
-
-String? _toString(dynamic x) {
-  if (x == null) {
-    return null;
-  }
-  if (x is Uint8List) {
-    return HEX.encode(x);
-  }
-  if (x is List<dynamic>) {
-    return bscript.toASM(x);
-  }
-  return '';
+  test("invalid P2WPKH hash length", () {
+    expect(
+      () => P2WPKH.fromPublicKeyHash(
+        HEX.decode("168b992bcfc44050310b3a94bd0771136d0b28") as Uint8List,
+      ),
+      throwsA(
+        predicate(
+          (e) =>
+              e is ArgumentError &&
+              e.message == 'Invalid P2WPKH public key hash length',
+        ),
+      ),
+    );
+  });
 }

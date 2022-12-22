@@ -1,3 +1,7 @@
+# 3.1.6
+- **(potentially) Breaking change**: Simplify P2WPKH and P2PKH classes. Add P2SH-P2PKH address generation.
+- P2SH Multisig Input Signing and Output Address Generation
+
 # 3.1.5
 - P2WSH multisig inputs
 
@@ -5,7 +9,7 @@
 - Fix message signing
 
 ## 3.1.3
-**Breaking change**: - Change transaction builder addOutput argument to BigInt for better flutter web compatability 
+- **Breaking change**: Change transaction builder addOutput argument to BigInt for better flutter web compatability 
 
 ## 3.1.2
 - Produce fixed-size signatures with low r-values (no more inconsistent tx sizes)

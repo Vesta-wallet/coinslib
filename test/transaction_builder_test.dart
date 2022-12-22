@@ -10,7 +10,6 @@ import 'package:coinslib/src/transaction.dart';
 import 'package:coinslib/src/address.dart';
 import 'package:coinslib/src/transaction_builder.dart';
 import 'package:coinslib/src/utils/script.dart' as bscript;
-import 'package:coinslib/src/payments/index.dart' show PaymentData;
 import 'package:coinslib/src/payments/p2pkh.dart';
 
 final networks = {'bitcoin': bitcoin, 'testnet': testnet};
@@ -234,8 +233,7 @@ main() {
     });
 
     test('accepts an address string and value', () {
-      final address =
-          P2PKH(data: PaymentData(pubkey: keyPair.publicKey)).data.address;
+      final address = P2PKH.fromPublicKey(keyPair.publicKey!).address(bitcoin);
       final vout = txb.addOutput(address, BigInt.from(1000));
       expect(vout, 0);
       final txout = txb.tx.outs[0];

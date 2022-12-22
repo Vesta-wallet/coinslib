@@ -9,9 +9,7 @@ import 'ecpair.dart';
 import 'models/networks.dart';
 import 'transaction.dart';
 import 'address.dart';
-import 'payments/index.dart' show PaymentData;
 import 'payments/p2pkh.dart';
-import 'payments/p2wpkh.dart';
 import 'classify.dart';
 import 'input_signature.dart';
 
@@ -213,15 +211,11 @@ class TransactionBuilder {
       input.prevOutType = scriptTypes['P2WPKH'];
       input.witness = [];
       input.pubkeys = [ourPubKey];
-      input.signScript = P2PKH(
-        data: PaymentData(pubkey: ourPubKey),
-        network: network,
-      ).data.output;
+      input.signScript = P2PKH.fromPublicKey(ourPubKey).outputScript;
     } else {
-      Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
       input.prevOutType = scriptTypes['P2PKH'];
       input.pubkeys = [ourPubKey];
-      input.signScript = prevOutScript;
+      input.signScript = P2PKH.fromPublicKey(ourPubKey).outputScript;
     }
 
     // Check outPubKey is in input.pubkeys or we cannot sign
@@ -344,21 +338,16 @@ class TransactionBuilder {
       } else if (input.isComplete()) {
         // Build the following types of input only when complete
 
-        final paymentData = PaymentData(
-          pubkey: input.pubkeys![0],
-          signature: input.signatures.first.encode(),
-        );
+        final pubkey = input.pubkeys![0];
+        final signature = input.signatures.first.encode();
 
-        if (input.prevOutType == scriptTypes['P2PKH']) {
-          P2PKH(data: paymentData, network: network);
-        } else if (input.prevOutType == scriptTypes['P2WPKH']) {
-          P2WPKH(data: paymentData, network: network);
-        } else {
-          continue;
+        if (input.prevOutType == scriptTypes['P2WPKH']) {
+          tx.setInputScript(i, Uint8List(0));
+          tx.setWitness(i, [signature, pubkey]);
+        } else if (input.prevOutType == scriptTypes['P2PKH']) {
+          tx.setInputScript(i, bscript.compile([signature, pubkey]));
+          tx.setWitness(i, []);
         }
-
-        tx.setInputScript(i, paymentData.input!);
-        tx.setWitness(i, paymentData.witness);
       }
     }
 
@@ -466,10 +455,4 @@ class TransactionBuilder {
   Transaction get tx => _tx;
 
   Map get prevTxSet => _prevTxSet;
-}
-
-Uint8List pubkeyToOutputScript(Uint8List pubkey, [NetworkType? nw]) {
-  NetworkType network = nw ?? bitcoin;
-  P2PKH p2pkh = P2PKH(data: PaymentData(pubkey: pubkey), network: network);
-  return p2pkh.data.output!;
 }
