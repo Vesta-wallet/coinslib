@@ -94,7 +94,7 @@ main() {
   final scripts = [
     '1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH',
     '1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP'
-  ].map((x) => Address.addressToOutputScript(x));
+  ].map((x) => addressToOutputScript(x));
 
   final txHash = HEX.decode(
     '0e7cea811c0be9f73c0aca591034396e7264473fc25c1ca45195d7417b36cbe2',

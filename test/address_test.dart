@@ -143,7 +143,7 @@ main() {
 
     test('returns p2pkh scripts', () {
       expectP2PKH(address, expectedHash) =>
-        expectScript(address, "76a914${expectedHash}88ac");
+          expectScript(address, "76a914${expectedHash}88ac");
 
       expectP2PKH(
         "1111111111111111111114oLvT2",
@@ -157,7 +157,7 @@ main() {
 
     test('returns p2sh scripts', () {
       expectP2SH(address, expectedHash) =>
-        expectScript(address, "a914${expectedHash}87");
+          expectScript(address, "a914${expectedHash}87");
 
       expectP2SH(
         "31h1vYVSYuKP6AhS86fbRdMw9XHieotbST",
@@ -171,7 +171,7 @@ main() {
 
     test('returns p2wsh scripts', () {
       expectP2WSH(address, expectedHash) =>
-        expectScript(address, "0020$expectedHash");
+          expectScript(address, "0020$expectedHash");
 
       expectP2WSH(
         "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqthqst8",
@@ -186,7 +186,7 @@ main() {
 
     test('returns p2wpkh scripts', () {
       expectP2WPKH(address, expectedHash) =>
-        expectScript(address, "0014$expectedHash");
+          expectScript(address, "0014$expectedHash");
       expectP2WPKH(
         "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq9e75rs",
         "0000000000000000000000000000000000000000",
@@ -199,7 +199,6 @@ main() {
   });
 
   group("verifySignedMessageForAddress", () {
-
     expectVerify({
       required String address,
       required String message,
@@ -218,7 +217,6 @@ main() {
     }
 
     test("returns true for correct signatures", () {
-
       expectVerify(
         address: "PBMtsXHQRgSGPG7VKt4g9ris6GcmtJYEVn",
         message: "This is a message to test with!",
@@ -227,11 +225,9 @@ main() {
         ),
         exp: true,
       );
-
     });
 
     test("returns true for P2WPKH address for same public key", () {
-
       // The code should accept P2WPKH but the client cannot sign messages with
       // these at the moment
 
@@ -243,11 +239,9 @@ main() {
         ),
         exp: true,
       );
-
     });
 
     test("returns false for signatures for different pubkey", () {
-
       expectVerify(
         address: "PGgYh12SkCtQ4jy99skqjdYDq2iCd6NKJS",
         message: "This is a message to test with!",
@@ -256,11 +250,9 @@ main() {
         ),
         exp: false,
       );
-
     });
 
     test("returns false for signatures for different messages", () {
-
       expectVerify(
         address: "PBMtsXHQRgSGPG7VKt4g9ris6GcmtJYEVn",
         message: "This is a message to test with",
@@ -272,7 +264,6 @@ main() {
     });
 
     test("returns false for wrong recid", () {
-
       expectVerify(
         address: "PBMtsXHQRgSGPG7VKt4g9ris6GcmtJYEVn",
         message: "This is a message to test with!",
@@ -281,25 +272,22 @@ main() {
         ),
         exp: false,
       );
-
     });
 
     test("throws for non-recoverable signature", () {
-
       expect(
         () => verifySignedMessageForAddress(
           address: "PBMtsXHQRgSGPG7VKt4g9ris6GcmtJYEVn",
           message: "This is a message to test with!",
-          signature: base64.decode(
-            "ILq7D/Rh+sUe7qrVNROQGgU3GLQJjL78eEhz2zlmN2pHE6LhTavBovN2oDVxN+bERT9SD+HHDCrvnNIDrllMXQ4=",
-          ).sublist(1),
+          signature: base64
+              .decode(
+                "ILq7D/Rh+sUe7qrVNROQGgU3GLQJjL78eEhz2zlmN2pHE6LhTavBovN2oDVxN+bERT9SD+HHDCrvnNIDrllMXQ4=",
+              )
+              .sublist(1),
           network: networks.peercoin,
         ),
         throwsA(isA<ArgumentError>()),
       );
-
     });
-
   });
-
 }

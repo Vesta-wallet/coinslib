@@ -119,7 +119,6 @@ class ECPair {
   }) {
     return ECPair.fromPublicKey(ecc.recover(hash, signature));
   }
-
 }
 
 const int _sizeByte = 256;

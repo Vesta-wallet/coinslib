@@ -1,14 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:coinslib/coinslib.dart';
-import 'package:hex/hex.dart';
 import 'package:test/test.dart';
-import 'package:coinslib/src/coinslib_base.dart';
 import 'package:coinslib/src/models/networks.dart' as networks;
 
 main() {
-
   final testWallet = Wallet.fromWIF(
     "cTk3w9wHkw54aH2MHCWzQjT1AT25VkeGGCyVMFQfXaSNMvi847T1",
     networks.peercoinRegtest,
@@ -39,7 +35,6 @@ main() {
   });
 
   test('verify against address', () {
-
     for (final testCase in fixtures) {
       final signature = base64.decode(testCase["sig"]);
       final message = testCase["message"];
@@ -55,9 +50,6 @@ main() {
           true,
         );
       }
-
     }
-
   });
-
 }

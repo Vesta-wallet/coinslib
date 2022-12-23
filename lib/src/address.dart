@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:coinslib/src/payments/p2wsh.dart';
 import 'package:coinslib/src/utils/magic_hash.dart';
 import 'package:collection/collection.dart';
-import 'package:hex/hex.dart';
 import 'classify.dart';
 import 'crypto.dart';
 import 'models/networks.dart';
@@ -88,7 +87,6 @@ bool verifySignedMessageForAddress({
   required Uint8List signature,
   NetworkType? network,
 }) {
-
   // Decode address to public key hash
   // It would be better if there was an output base class for the different
   // output types to better encapsulate the logic.
@@ -109,18 +107,14 @@ bool verifySignedMessageForAddress({
   Uint8List hash = magicHash(message, network);
 
   try {
-
     // Extract public key from signature
     final pubkey = ecc.recover(hash, signature);
 
     // Check public key against address and verify signature with recid removed
     final rsSig = signature.sublist(1);
     return ListEquality().equals(hash160(pubkey), pubkeyhash) &&
-      ecc.verify(hash, pubkey, rsSig);
-
+        ecc.verify(hash, pubkey, rsSig);
   } on Exception {
     return false;
   }
-
 }
-

@@ -72,9 +72,9 @@ void main() {
 
   test("isSignature", () {
     expectSig(hex, exp) => expect(
-      ecc.isSignature(HEX.decode(hex) as Uint8List),
-      exp,
-    );
+          ecc.isSignature(HEX.decode(hex) as Uint8List),
+          exp,
+        );
 
     expectSig(
       "0000000000000000000000000000000000000000000000000000000000000000"
@@ -105,7 +105,5 @@ void main() {
       "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140",
       true,
     );
-
   });
-
 }

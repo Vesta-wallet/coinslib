@@ -166,7 +166,6 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
 
 /// This function is used to recover the public key of a recoverable signature.
 Uint8List recover(Uint8List hash, Uint8List sig) {
-
   if (sig.length != 65) {
     throw ArgumentError(
       "Can only recover from signatures with 65 bytes including recid",
@@ -199,7 +198,6 @@ Uint8List recover(Uint8List hash, Uint8List sig) {
   final pubkey = Q!.getEncoded();
   if (!isPoint(pubkey)) throw Exception("Recovered public key is invalid");
   return pubkey;
-
 }
 
 // Adapted from pointycastle
