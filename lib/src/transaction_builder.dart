@@ -85,7 +85,7 @@ class TransactionBuilder {
   int addOutput(dynamic data, BigInt value) {
     late Uint8List scriptPubKey;
     if (data is String) {
-      scriptPubKey = Address.addressToOutputScript(data, network);
+      scriptPubKey = addressToOutputScript(data, network);
     } else if (data is Uint8List) {
       scriptPubKey = data;
     } else {

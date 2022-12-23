@@ -197,7 +197,7 @@ Uint8List recover(Uint8List hash, Uint8List sig) {
   final Q = (sR! - eG!)! * invr;
 
   final pubkey = Q!.getEncoded();
-  if (!isPoint(pubkey)) throw ArgumentError("Recovered public key is invalid");
+  if (!isPoint(pubkey)) throw Exception("Recovered public key is invalid");
   return pubkey;
 
 }
