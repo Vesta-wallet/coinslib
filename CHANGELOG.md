@@ -1,3 +1,6 @@
+# 3.1.7
+- Verify message signatures against addresses
+
 # 3.1.6
 - **(potentially) Breaking change**: Simplify P2WPKH and P2PKH classes. Add P2SH-P2PKH address generation.
 - P2SH Multisig Input Signing and Output Address Generation
