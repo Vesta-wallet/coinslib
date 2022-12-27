@@ -81,6 +81,8 @@ bool isSignature(Uint8List value) {
   Uint8List s = value.sublist(32, 64);
 
   return value.length == 64 &&
+      _compare(r, zero32) > 0 &&
+      _compare(s, zero32) > 0 &&
       _compare(r, egGroupOrder as Uint8List) < 0 &&
       _compare(s, egGroupOrder as Uint8List) < 0;
 }
@@ -154,7 +156,7 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
   // 0 and 1 and choose the one that corresponds to the public key
   for (int recid = 0; recid < 2; recid++) {
     final fullSig = Uint8List.fromList([31 + recid] + sig);
-    if (ListEquality().equals(recover(fullSig, hash), pubKey)) return fullSig;
+    if (ListEquality().equals(recover(hash, fullSig), pubKey)) return fullSig;
   }
 
   throw ArgumentError(
@@ -162,10 +164,8 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
   );
 }
 
-/// This function is used to check the recids for recoverable signatures. It
-/// could be used to recover public keys to verify signatures too but it should
-/// probably do more checks first.
-Uint8List recover(Uint8List sig, Uint8List hash) {
+/// This function is used to recover the public key of a recoverable signature.
+Uint8List recover(Uint8List hash, Uint8List sig) {
   if (sig.length != 65) {
     throw ArgumentError(
       "Can only recover from signatures with 65 bytes including recid",
@@ -195,7 +195,9 @@ Uint8List recover(Uint8List sig, Uint8List hash) {
 
   final Q = (sR! - eG!)! * invr;
 
-  return Q!.getEncoded();
+  final pubkey = Q!.getEncoded();
+  if (!isPoint(pubkey)) throw Exception("Recovered public key is invalid");
+  return pubkey;
 }
 
 // Adapted from pointycastle

@@ -627,8 +627,9 @@ class Output {
       throw UnsupportedError('type "$type"');
     }
 
-    if (hash != bcrypto.hash160(ourPubKey))
+    if (hash != bcrypto.hash160(ourPubKey)) {
       throw ArgumentError('Hash mismatch!');
+    }
     return Output(pubkeys: [ourPubKey], signatures: [null]);
   }
 
