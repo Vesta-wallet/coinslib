@@ -1,3 +1,6 @@
+# 3.1.8
+- Final release of "coinslib", will be superseeded by a package "coinlib" in the near future, which will be a complete re-write.
+
 # 3.1.7
 - Verify message signatures against addresses
 
